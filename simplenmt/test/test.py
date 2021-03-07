@@ -1,8 +1,9 @@
 import torch
+# import sys
+# sys.path.extend(['..', 'E:\yuchen\SimpleNMT\simplenmt'])
 
-import sys
-sys.path.extend(['..', 'E:\yuchen\SimpleNMT\simplenmt'])
-from models.transformer import Transformer
+#TODO: 这是一个非常操蛋的问题！
+from ..models.transformer import Transformer
 model = Transformer(n_src_words=20, n_tgt_words=25)
 print(model)
 
