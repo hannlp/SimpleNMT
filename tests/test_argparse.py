@@ -1,5 +1,4 @@
 import argparse
-from typing import Tuple
 
 # The parser for Trainer
 parser = argparse.ArgumentParser()
@@ -16,6 +15,8 @@ parser.add_argument("--n_head", help="heads number of mutihead-attention", type=
 parser.add_argument("--p_drop", help="probability of dropout", type=float, default=0.1)
 parser.add_argument("--lr", type=float, default=1e-3)
 parser.add_argument("--betas", type=float, nargs="+", default=(0.9, 0.98))
+
+# The parser for Translator
 
 
 args = parser.parse_args()
