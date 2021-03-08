@@ -54,7 +54,7 @@ class DataLoader(object):
 
         self.SRC.build_vocab(train)
         self.TGT.build_vocab(train)
-
+        
         torch.save(self, dl_save_path, pickle_module=dill)
 
         train_iter = MyIterator(train, batch_size=batch_size, device=None,
