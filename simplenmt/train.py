@@ -1,30 +1,47 @@
 import torch
 import torch.nn as nn
+import argparse
 import dill
-from .data.dataloader import DataLoader
-from .models.transformer import Transformer
-from .utils.builder import build_model
+from data.dataloader import DataLoader
+from train.trainer import Trainer
+from models.transformer import Transformer
+from utils.builder import build_model
 
 CUDA_OK = torch.cuda.is_available()
 
+def parse():
+    # The arguments for Trainer
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-path", "--data_path", type=str, default=".")
+    parser.add_argument("-dl_path", "--dataloader_save_path", help="the dataloader save path", type=str, default=".")
+    parser.add_argument("-ckpt_path", "--checkpoint_save_path", type=str, default=".")
+    parser.add_argument("--batch_size", type=int, default=3200)
+    parser.add_argument("--warmup_steps", help="warmup steps of learning rate update", type=int, default=4000)
+    parser.add_argument("--n_epochs", type=int, default=20)
+
+    # The arguments for Transformer
+    parser.add_argument("--d_model", help="dimension of the model", type=int, default=512)
+    parser.add_argument("--n_layer", type=int, default=6)
+    parser.add_argument("--n_head", help="heads number of mutihead-attention", type=int, default=8)
+    parser.add_argument("--p_drop", help="probability of dropout", type=float, default=0.1)
+    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--betas", type=float, nargs="+", default=(0.9, 0.98))
+    
+    args = parser.parse_args()
+    args.constants = {'PAD': '<pad>', 'START': '<sos>',
+                 'END': '<eos>', 'UNK': '<unk>'}
+    return args
 
 def main():
-
-    #os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
-    constants = {'PAD': '<pad>', 'START': '<sos>',
-                 'END': '<eos>', 'UNK': '<unk>'}
-    en_zh = DataLoader(**constants)
-
-    dl_save_path = '/home/hanyuchen/NMT/en_zh.dl'
-    train_iter, valid_iter = en_zh.load_translation(
-        path='~/NMT/clean', exts=('.en', '.zh'), batch_size=4800, dl_save_path=dl_save_path, device="cuda:0")
-
-    args = {'n_src_words': len(en_zh.SRC.vocab),
-            'n_tgt_words': len(en_zh.TGT.vocab),
-            'src_pdx': en_zh.SRC.vocab.stoi[en_zh.PAD],
-            'tgt_pdx': en_zh.TGT.vocab.stoi[en_zh.PAD],
-            'd_model': 256, 'n_layer': 3,
-            'n_head': 8, 'p_drop': 0.1}
+    args = parse()
+    dl = DataLoader(**args.constants)
+    print(args)
+    train_iter, valid_iter = dl.load_translation(
+        path=args.path, exts=('.en', '.zh'), batch_size=4800, dl_save_path=args.dl_path, device="cuda:0")
+        
+    args.n_src_words, args.n_tgt_words = len(dl.SRC.vocab), len(dl.TGT.vocab)
+    args.src_pdx, args.tgt_pdx = dl.SRC.vocab.stoi[dl.PAD], dl.TGT.vocab.stoi[dl.PAD]
+    print(args)
 
     model = build_model(args, Transformer, CUDA_OK)
     trainer = Trainer(model=model,
@@ -35,10 +52,7 @@ def main():
                       warmup_steps=4000, d_model=args['d_model'])
     trainer.train(train_iter, valid_iter, n_epochs=8,
                   save_path='/home/hanyuchen/NMT/checkpoints')
-    EN_ZH = torch.load(dl_save_path, pickle_module=dill)
-    translator = Translator(args, Transformer, EN_ZH,
-                            load_path='/home/hanyuchen/NMT/checkpoints')
-    translator.generate(valid_iter)
 
 if __name__ == '__main__':
+    #os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
     main()
