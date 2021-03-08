@@ -18,6 +18,12 @@ class Translator(object):
         self.model.eval()
 
     def _load_model(self, path, checkpoint: Union = 'best'):
+        '''
+        checkpoint(dict):
+            - epoch(int)
+            - model(dict): self.model.state_dict()
+            - args(NameSpace)
+        '''
         if checkpoint == 'best':
             checkpoint = torch.load(
                 '{}/checkpoint_best.pt'.format(path), map_location=self.device)

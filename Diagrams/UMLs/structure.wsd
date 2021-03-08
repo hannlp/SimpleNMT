@@ -1,14 +1,28 @@
 @startuml
-object Dataloader
-object Trainer
-object Translator
+class Dataloader{
+    SRC : data.Field
+    TGT : data.Field
+    ~save_dataloader()
+    +load_translation()
+}
 
-object Transformer
+class Trainer{
+    model
+    optimizer
+    criterion
+    ~valid_epoch()
+    ~train_epoch()
+    ~save_model()
+    ~lr_step_update()
+    +train()
+}
 
-Trainer <|-- Dataloader
-Translator *-- Dataloader
-Trainer o-- "4" Transformer
-Translator .. Transformer
-
+class Translator{
+    dl : Dataloader
+    model
+    ~load_model()
+    ~greedy_search()
+    +translate()
+}
 
 @enduml
