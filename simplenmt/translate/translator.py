@@ -58,7 +58,8 @@ class Translator(object):
                 print()
         show_src_tgt_out(src_tokens, tgt_tokens, out_tokens)
 
-    def _greedy_search(self, sentence, beam_size=1):
+    def _greedy_search(self, sentence):
+        beam_size=1
         src_tokens = torch.tensor([self.dl.SRC.vocab.stoi[s]
                                    for s in sentence.split()]).unsqueeze(0).to(self.device)
         src_mask = (src_tokens != self.dl.SRC.vocab.stoi[self.dl.PAD]).bool().to(
