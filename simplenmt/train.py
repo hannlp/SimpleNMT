@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import argparse
-import dill
 from data.dataloader import DataLoader
 from train.trainer import Trainer
 from models.transformer import Transformer
@@ -27,6 +26,7 @@ def parse():
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--betas", type=float, nargs="+", default=(0.9, 0.98))
     
+
     args = parser.parse_args()
     args.constants = {'PAD': '<pad>', 'START': '<sos>',
                  'END': '<eos>', 'UNK': '<unk>'}
@@ -35,10 +35,13 @@ def parse():
 def main():
     args = parse()
     dl = DataLoader(**args.constants)
-    print(args)
     train_iter, valid_iter = dl.load_translation(
-        path=args.path, exts=('.en', '.zh'), batch_size=4800, dl_save_path=args.dl_path, device="cuda:0")
-        
+        path=args.data_path, 
+        exts=('.en', '.zh'), 
+        batch_size=args.batch_size, 
+        dl_save_path=args.dataloader_save_path, 
+        device="cuda:0")
+
     args.n_src_words, args.n_tgt_words = len(dl.SRC.vocab), len(dl.TGT.vocab)
     args.src_pdx, args.tgt_pdx = dl.SRC.vocab.stoi[dl.PAD], dl.TGT.vocab.stoi[dl.PAD]
     print(args)
@@ -48,10 +51,11 @@ def main():
                       optimizer=torch.optim.Adam(
                           model.parameters(), lr=1e-3, betas=(0.9, 0.98), eps=1e-9),
                       criterion=nn.CrossEntropyLoss(
-                          ignore_index=args['tgt_pdx'], reduction='mean'),
-                      warmup_steps=4000, d_model=args['d_model'])
-    trainer.train(train_iter, valid_iter, n_epochs=8,
-                  save_path='/home/hanyuchen/NMT/checkpoints')
+                          ignore_index=args.tgt_pdx, reduction='mean'),
+                      warmup_steps=4000, 
+                      d_model=args.d_model)
+    trainer.train(train_iter, valid_iter, n_epochs=args.epochs,
+                  save_path=args.checkpoint_save_path)
 
 if __name__ == '__main__':
     #os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
