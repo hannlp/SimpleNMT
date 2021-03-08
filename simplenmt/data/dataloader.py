@@ -1,6 +1,7 @@
-from torchtext import data, datasets
 import dill
 import torch
+from torchtext import data, datasets
+from .constants import Constants
 
 
 global max_src_in_batch, max_tgt_in_batch
@@ -39,32 +40,29 @@ class MyIterator(data.Iterator):
 
 
 class DataLoader(object):
-    def __init__(self, PAD='<pad>', START='<sos>', END='<eos>', UNK='<unk>') -> None:
-        self.PAD, self.START, self.END, self.UNK = PAD, START, END, UNK
-        self.SRC = data.Field(pad_token=PAD)
-        self.TGT = data.Field(init_token=START,
-                              eos_token=END,
-                              pad_token=PAD)
+    def __init__(self) -> None:
+        self.SRC = data.Field(pad_token=Constants.PAD)
+        self.TGT = data.Field(init_token=Constants.START,
+                              eos_token=Constants.END,
+                              pad_token=Constants.PAD)
 
-    def _save_dataloader(self, path):
-        torch.save(self, path, pickle_module=dill)
-
-    # TODO: 该函数中，随机划分会导致每次的词典不一样，从而导致之前训练好的模型不能加载，所以词典也要保存
-    def load_translation(self, path, exts, batch_size=64, dl_save_path=None, device=None):
+    def load_translation(self, path, exts, split_ratio=0.95, batch_size=64, dl_save_path=None):
         DATA = datasets.TranslationDataset(
             path=path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
-        train, valid = DATA.split(split_ratio=0.95)
+        
+        train, valid = DATA.split(split_ratio=split_ratio)
 
         self.SRC.build_vocab(train)
         self.TGT.build_vocab(train)
-        self._save_dataloader(dl_save_path)
 
-        train_iter = MyIterator(train, batch_size=batch_size, device=device,
+        torch.save(self, dl_save_path, pickle_module=dill)
+
+        train_iter = MyIterator(train, batch_size=batch_size, device=None,
                                 repeat=False, sort_key=lambda x:
                                 (len(x.src), len(x.trg)),
                                 batch_size_fn=batch_size_fn, train=True,
                                 shuffle=True)
-        valid_iter = MyIterator(valid, batch_size=batch_size, device=device,
+        valid_iter = MyIterator(valid, batch_size=batch_size, device=None,
                                 repeat=False, sort_key=lambda x:
                                 (len(x.src), len(x.trg)),
                                 batch_size_fn=batch_size_fn, train=True,
@@ -72,7 +70,7 @@ class DataLoader(object):
 
         return train_iter, valid_iter
 
-    def load_tabular(path, format):
+    def load_tabular(self, path, format):
         pass
 
 
