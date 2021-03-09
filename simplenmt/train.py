@@ -35,19 +35,18 @@ def main():
 
     CUDA_OK = torch.cuda.is_available()
     args = parse()
-
     dl = DataLoader()
     train_iter, valid_iter = dl.load_translation(
         data_path=args.data_path, 
         exts=('.' + args.src, '.' + args.tgt), # ('.zh', '.en')
         batch_size=args.batch_size, 
         dl_save_path=args.dl_path)
-
+    
     args.n_src_words, args.n_tgt_words = len(dl.SRC.vocab), len(dl.TGT.vocab)
-    args.src_pdx, args.tgt_pdx = dl.SRC.vocab.stoi[dl.PAD], dl.TGT.vocab.stoi[dl.PAD]
+    args.src_pdx, args.tgt_pdx = dl.src_padding_index, dl.tgt_padding_index
     print(args)
 
-    model = build_model(args, args.model, CUDA_OK)
+    model = build_model(args, CUDA_OK)
     trainer = Trainer(model=model,
                       optimizer=torch.optim.Adam(
                           model.parameters(), lr=1e-3, betas=(0.9, 0.98), eps=1e-9),
@@ -55,7 +54,7 @@ def main():
                           ignore_index=args.tgt_pdx, reduction='mean'),
                       warmup_steps=4000, 
                       d_model=args.d_model)
-    trainer.train(train_iter, valid_iter, n_epochs=args.epochs,
+    trainer.train(train_iter, valid_iter, n_epochs=args.n_epochs,
                   save_path=args.ckpt_path)
 
 if __name__ == '__main__':

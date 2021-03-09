@@ -41,6 +41,10 @@ class MyIterator(data.Iterator):
 
 class DataLoader(object):
     def __init__(self) -> None:
+        self.PAD = Constants.PAD
+        self.START = Constants.START
+        self.END = Constants.END
+        self.UNK = Constants.UNK
         self.SRC = data.Field(pad_token=Constants.PAD)
         self.TGT = data.Field(init_token=Constants.START,
                               eos_token=Constants.END,
@@ -54,7 +58,8 @@ class DataLoader(object):
 
         self.SRC.build_vocab(train)
         self.TGT.build_vocab(train)
-        
+        self._add_index()
+
         torch.save(self, dl_save_path, pickle_module=dill)
 
         train_iter = MyIterator(train, batch_size=batch_size, device=None,
@@ -69,6 +74,9 @@ class DataLoader(object):
                                 shuffle=True)
 
         return train_iter, valid_iter
+    def _add_index(self):
+        self.src_padding_index = self.SRC.vocab.stoi[Constants.PAD]
+        self.tgt_padding_index = self.TGT.vocab.stoi[Constants.PAD]
 
     def load_tabular(self, path, format):
         pass
