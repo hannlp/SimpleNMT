@@ -9,7 +9,7 @@ A simple and readable **Neural Machine Translation** system
 ## 2 To do
 I am committed to building a Neural Machine Translation system that is easy to read, use, and friendly to beginners.
 
-## 3 Documents
+## 3 Quick to use
 ### 3.1 Download
 ```bash
 git clone https://github.com/hannlp/SimpleNMT
@@ -22,6 +22,12 @@ python train.py -data_path .. -dl_path .. -ckpt_path ..
 ```
 
 ## 4 Example
+This is a real example of using SimpleNMT to train a Chinese-English translation model. My parallel corpus is placed in ```/content/drive/MyDrive/```, called ```clean.zh``` and ```clean.en``` respectively.
+```
+python train.py -data_path /content/drive/MyDrive/clean -dl_path /content/drive/MyDrive/zh_en.dl -ckpt_path /content/drive/MyDrive -batch_size 3200 -n_epochs 5
+```
+
+This is the training process:  
 ```
 Namespace(batch_size=3200, betas=(0.9, 0.98), ckpt_path='/content/drive/MyDrive', cuda_ok=True, d_model=512, data_path='/content/drive/MyDrive/clean', dl_path='/content/drive/MyDrive/zh_en.dl', lr=0.001, model='Transformer', n_epochs=5, n_head=8, n_layer=6, n_src_words=37112, n_tgt_words=30891, p_drop=0.1, src='zh', src_pdx=1, tgt='en', tgt_pdx=1, warmup_steps=4000)
 Transformer(
