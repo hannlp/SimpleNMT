@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import dill
-from typing import Union
+import jieba
 from utils.builder import build_model
 from data.utils import prepare_batch
 
@@ -67,9 +67,9 @@ class Translator(object):
                 print()
         show_src_tgt_out(src_tokens, tgt_tokens, out_tokens)
 
-    def _greedy_search(self, sentence):
+    def _greedy_search(self, sentence_list):
         src_tokens = torch.tensor([self.src_stoi[s]
-                                   for s in sentence.split()]).unsqueeze(0).to(self.device)
+                                   for s in sentence_list]).unsqueeze(0).to(self.device)
         src_mask = (src_tokens != self.src_pdx).bool().to(self.device)
         encoder_out = self.model.encoder(src_tokens, src_mask)
         prev_tgt_tokens = torch.tensor([self.tgt_sos_idx]).unsqueeze(0).to(self.device)  # <sos>
@@ -90,9 +90,13 @@ class Translator(object):
             topk_probs, topk_idx = decoder_out[:, -1, :].topk(1)
         return ' '.join([self.tgt_itos[w_id] for w_id in list(prev_tgt_tokens.squeeze().detach()[1:])])
 
-    def translate(self, sentence: str, beam_size=8):
+    def translate(self, sentence: str, beam_size=8, src_lang='zh', tgt_lang='en'):
+        if src_lang == 'zh':
+            word_list = list(jieba.cut(sentence))
+        else:
+            word_list = sentence.split()
         with torch.no_grad():
             if beam_size == 1:
-                return self._greedy_search(sentence)
+                return self._greedy_search(word_list)
             else:
                 print('Not implementation. ')
