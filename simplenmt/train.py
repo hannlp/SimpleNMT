@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
 import argparse
-
-from torch.nn import parallel
 from data.dataloader import DataLoader
 from train.trainer import Trainer
 from utils.builder import build_model
