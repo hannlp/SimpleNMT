@@ -33,7 +33,6 @@ def parse():
 
 def main():
 
-    CUDA_OK = torch.cuda.is_available()
     args = parse()
     dl = DataLoader()
     train_iter, valid_iter = dl.load_translation(
@@ -47,7 +46,8 @@ def main():
     args.src_pdx, args.tgt_pdx = dl.src_padding_index, dl.tgt_padding_index
     print(args)
 
-    model = build_model(args, CUDA_OK)
+    args.cuda_ok = torch.cuda.is_available()
+    model = build_model(args)
     trainer = Trainer(args, model=model,
                       optimizer=torch.optim.Adam(
                           model.parameters(), lr=1e-3, betas=(0.9, 0.98), eps=1e-9),
