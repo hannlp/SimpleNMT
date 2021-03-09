@@ -1,15 +1,15 @@
 import torch
 import time
-
+from data.utils import prepare_batch
 
 class Trainer(object):
-    def __init__(self, model, optimizer, criterion, warmup_steps=4000, lr_scal=1, d_model=512) -> None:
+    def __init__(self, args, model, optimizer, criterion, lr_scal=1) -> None:
         self.model = model
         self.optimizer = optimizer
         self.criterion = criterion
-        self.warmup_steps = warmup_steps
+        self.warmup_steps = args.warmup_steps
         self.lr_scal = lr_scal
-        self.d_model = d_model
+        self.d_model = args.d_model
         self._num_step = 0
 
     def train(self, train_iter, valid_iter, n_epochs, save_path=None):
