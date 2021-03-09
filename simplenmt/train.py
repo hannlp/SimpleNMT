@@ -44,9 +44,9 @@ def main():
     
     args.n_src_words, args.n_tgt_words = len(dl.SRC.vocab), len(dl.TGT.vocab)
     args.src_pdx, args.tgt_pdx = dl.src_padding_index, dl.tgt_padding_index
-    print(args)
-
     args.cuda_ok = torch.cuda.is_available()
+    print(args)
+  
     model = build_model(args)
     trainer = Trainer(args, model=model,
                       optimizer=torch.optim.Adam(
