@@ -40,7 +40,8 @@ def main():
         data_path=args.data_path, 
         exts=('.' + args.src, '.' + args.tgt), # ('.zh', '.en')
         batch_size=args.batch_size, 
-        dl_save_path=args.dl_path)
+        dl_save_path=args.dl_path
+        )
     
     args.n_src_words, args.n_tgt_words = len(dl.SRC.vocab), len(dl.TGT.vocab)
     args.src_pdx, args.tgt_pdx = dl.src_padding_index, dl.tgt_padding_index
@@ -51,9 +52,8 @@ def main():
                       optimizer=torch.optim.Adam(
                           model.parameters(), lr=1e-3, betas=(0.9, 0.98), eps=1e-9),
                       criterion=nn.CrossEntropyLoss(
-                          ignore_index=args.tgt_pdx, reduction='mean'),
-                      warmup_steps=4000, 
-                      d_model=args.d_model)
+                          ignore_index=args.tgt_pdx, reduction='mean')
+                          )
     trainer.train(train_iter, valid_iter, n_epochs=args.n_epochs,
                   save_path=args.ckpt_path)
 
