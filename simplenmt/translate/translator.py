@@ -97,6 +97,6 @@ class Translator(object):
             word_list = sentence.split()
         with torch.no_grad():
             if beam_size == 1:
-                return self._greedy_search(word_list)
+                return print(self._greedy_search(word_list))
             else:
                 print('Not implementation. ')
