@@ -4,8 +4,10 @@ from models.transformer import Transformer
 from models import str2model
 
 def build_model(args):
+
     model_args = {
-        "Transformer":{
+        "Transformer":
+        {
             'n_src_words': args.n_src_words,
             'n_tgt_words': args.n_tgt_words, 
             'src_pdx': args.src_pdx, 
@@ -16,7 +18,8 @@ def build_model(args):
             'p_drop':args.p_drop
         }, 
         "RNN":{}, 
-        "CNN":{}}
+        "CNN":{}
+        }
     
     MODEL = str2model[args.model]
     model = MODEL(**model_args[args.model])

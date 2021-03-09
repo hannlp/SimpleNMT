@@ -4,6 +4,7 @@ from data.utils import prepare_batch
 
 class Trainer(object):
     def __init__(self, args, model, optimizer, criterion, lr_scal=1) -> None:
+        self.settings = args
         self.cuda_ok = args.cuda_ok
         self.model = model
         self.optimizer = optimizer
@@ -72,11 +73,23 @@ class Trainer(object):
         return sum(loss_list) / n_batches
 
     def _save_model(self, epoch, path, is_best_epoch):
-        checkpoint = {'epoch': epoch, 'model': self.model.state_dict()}
+        '''
+        checkpoint(dict):
+            - epoch(int)
+            - model(dict): model.state_dict()
+            - settings(NameSpace): train_args
+        '''
+        checkpoint = {
+            'epoch': epoch, 
+            'model': self.model.state_dict(), 
+            'settings': self.settings
+            }
         torch.save(checkpoint, '{}/checkpoint_{}.pt'.format(path, epoch))
         if is_best_epoch:
             best_checkpoint = {'epoch': epoch,
-                               'model': self.model.state_dict()}
+                               'model': self.model.state_dict(),
+                               'settings': self.settings
+                               }
             torch.save(best_checkpoint, '{}/checkpoint_best.pt'.format(path))
 
     def _lr_step_update(self):

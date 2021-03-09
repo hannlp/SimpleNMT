@@ -8,23 +8,27 @@ from dataloader import prepare_batch
 
 
 class Translator(object):
-    def __init__(self, args, MODEL, dataloader, load_path, checkpoint: Union = 'best'):
+    def __init__(self, args):
         self.device = torch.device(
             "cuda:0" if torch.cuda.is_available() else "cpu")
-        self.dl = dataloader
-        self.model = self._load_model(load_path, checkpoint)
+        self.dl = torch.load(args.dl_path, pickle_module=dill)
+        self.model = self._load_model(args)
         self.model.eval()
 
     def _load_model(self, args):
         '''
         checkpoint(dict):
             - epoch(int)
-            - model(dict): self.model.state_dict()
-            - args(NameSpace)
+            - model(dict): model.state_dict()
+            - settings(NameSpace): train_args
         '''
-        model = build_model(args, MODEL)
+
         checkpoint = torch.load(
-            '{}/checkpoint_best.pt'.format(args.ckpt_path), map_location=self.device)
+            '{}/checkpoint_best.pt'.format(args.ckpt_path), 
+            map_location=self.device
+            )
+
+        model = build_model(checkpoint['settings'])
         self.model.load_state_dict(checkpoint['model'])
         model.to(self.device)
         return model
@@ -80,7 +84,7 @@ class Translator(object):
             topk_probs, topk_idx = decoder_out[:, -1, :].topk(beam_size)
         return ' '.join([self.dl.TGT.vocab.itos[w_id] for w_id in list(prev_tgt_tokens.squeeze().detach()[1:])])
 
-    def translate_(self, sentence: str, beam_size=8):
+    def translate(self, sentence: str, beam_size=8):
         with torch.no_grad():
             if beam_size == 1:
                 return self._greedy_search(sentence)
