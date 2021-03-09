@@ -17,7 +17,7 @@ def main():
     args = parse()
     translator = Translator(args)
     while True:
-        sentence = input('Please input a sentence of source:')
+        sentence = input('Please input a sentence of {}:'.format(args.src))
         translator.translate(sentence, beam_size=args.beam_size, src_lang=args.src, tgt_lang=args.tgt)
 
 if __name__ == '__main__':
