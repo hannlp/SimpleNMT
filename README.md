@@ -8,3 +8,15 @@ A simple and readable **Neural Machine Translation** system
 
 ## 2 To do
 I am committed to building a Neural Machine Translation system that is easy to read, use, and friendly to beginners.
+
+## 3 Documents
+### 3.1 Download
+```bash
+git clone https://github.com/hannlp/SimpleNMT
+cd 'SimpleNMT/simplenmt'
+```
+
+### 3.2 Train your model
+```bash
+python train.py -data_path .. -dl_path .. -ckpt_path ..
+```
