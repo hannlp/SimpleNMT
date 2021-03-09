@@ -12,28 +12,22 @@ class Translator(object):
         self.device = torch.device(
             "cuda:0" if torch.cuda.is_available() else "cpu")
         self.dl = dataloader
-        self.model = build_model(args, MODEL)
-        self._load_model(load_path, checkpoint)
-        self.model.to(self.device)
+        self.model = self._load_model(load_path, checkpoint)
         self.model.eval()
 
-    def _load_model(self, path, checkpoint: Union = 'best'):
+    def _load_model(self, args):
         '''
         checkpoint(dict):
             - epoch(int)
             - model(dict): self.model.state_dict()
             - args(NameSpace)
         '''
-        if checkpoint == 'best':
-            checkpoint = torch.load(
-                '{}/checkpoint_best.pt'.format(path), map_location=self.device)
-            self.model.load_state_dict(checkpoint['model'])
-        elif type(checkpoint) == int:
-            # TODO: average last n checkpoints
-            # checkpoint_average_models()
-            pass
-        else:
-            raise Exception
+        model = build_model(args, MODEL)
+        checkpoint = torch.load(
+            '{}/checkpoint_best.pt'.format(args.ckpt_path), map_location=self.device)
+        self.model.load_state_dict(checkpoint['model'])
+        model.to(self.device)
+        return model
 
     def generate(self, data_iter, CUDA_OK):
         abatch = next(iter(data_iter))
