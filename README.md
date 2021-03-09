@@ -24,7 +24,7 @@ python train.py -data_path .. -dl_path .. -ckpt_path ..
 ## 4 Example
 This is a real example of using SimpleNMT to train a Chinese-English translation model. My parallel corpus is placed in ```/content/drive/MyDrive/```, called ```clean.zh``` and ```clean.en``` respectively.
 ```
-python train.py -data_path /content/drive/MyDrive/clean -dl_path /content/drive/MyDrive/zh_en.dl -ckpt_path /content/drive/MyDrive -batch_size 3200 -n_epochs 5
+python train.py -data_path /content/drive/MyDrive/clean -dl_path /content/drive/MyDrive/zh_en.dl -ckpt_path /content/drive/MyDrive -batch_size 6400 -n_epochs 5
 ```
 
 This is the training process:  
