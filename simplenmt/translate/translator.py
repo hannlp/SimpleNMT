@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import dill
 from typing import Union
 from utils.builder import build_model
-from dataloader import prepare_batch
+from data.utils import prepare_batch
 
 
 class Translator(object):
