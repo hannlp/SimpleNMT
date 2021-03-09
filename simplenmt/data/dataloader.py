@@ -46,9 +46,9 @@ class DataLoader(object):
                               eos_token=Constants.END,
                               pad_token=Constants.PAD)
 
-    def load_translation(self, path, exts, split_ratio=0.95, batch_size=64, dl_save_path=None):
+    def load_translation(self, data_path, exts, split_ratio=0.95, batch_size=64, dl_save_path=None):
         DATA = datasets.TranslationDataset(
-            path=path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
+            path=data_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
         
         train, valid = DATA.split(split_ratio=split_ratio)
 
