@@ -29,5 +29,4 @@ def build_model(args, cuda_ok):
     if torch.cuda.device_count() > 1:
         model = nn.DataParallel(model)
     
-    print(model)
     return model

@@ -16,7 +16,7 @@ class Trainer(object):
 
     def train(self, train_iter, valid_iter, n_epochs, save_path=None):
         # TODO: 在训练前打印各种有用信息
-
+        print(self.model)
         self._num_step = 0
         best_valid_loss = 1e9
 
