@@ -25,8 +25,8 @@ class Transformer(nn.Module):
         - decoder_out: (batch_size, tgt_len, n_tgt_words)
         '''
 
-        src_mask = (src_tokens != self.src_pdx).bool()
-        tgt_mask = (prev_tgt_tokens != self.tgt_pdx).bool()
+        src_mask = (src_tokens != self.src_pdx) # .bool()
+        tgt_mask = (prev_tgt_tokens != self.tgt_pdx)
 
         encoder_out = self.encoder(src_tokens, src_mask)
         decoder_out, _ = self.decoder(
@@ -190,7 +190,7 @@ class FeedForwardNetwork(nn.Module):
 
 
 class PositionalEncode(nn.Module):
-    def __init__(self, d_model, max_len=256) -> None:
+    def __init__(self, d_model, max_len=512) -> None:
         super().__init__()
         self.pos_encode = self._get_pos_encode(max_len, d_model)
 
