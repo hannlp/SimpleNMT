@@ -78,10 +78,10 @@ class Translator(object):
         decoder_out = F.softmax(self.model.decoder(
             prev_tgt_tokens, encoder_out, src_mask, tgt_mask)[0], dim=-1)
 
-        topk_probs, topk_idx = decoder_out[:, -1, :].topk(1)
+        _, max_idx = decoder_out[:, -1, :].topk(1)
 
         for step in range(2, self.max_seq_length):
-            new_word = torch.tensor([topk_idx[:, 0]]).to(self.device)
+            new_word = torch.tensor(max_idx[:, 0]).unsqueeze().to(self.device)
             if new_word == self.tgt_eos_idx:
                 break
             prev_tgt_tokens = torch.cat(
@@ -91,7 +91,7 @@ class Translator(object):
             decoder_out = F.softmax(self.model.decoder(
                 prev_tgt_tokens, encoder_out, src_mask, tgt_mask)[0], dim=-1)
             # print(decoder_out.shape) # (1, 1(step), tgt_vocab_size)
-            topk_probs, topk_idx = decoder_out[:, -1, :].topk(1)
+            _, max_idx = decoder_out[:, -1, :].topk(1)
         return ' '.join([self.tgt_itos[w_id] for w_id in list(prev_tgt_tokens.squeeze().detach()[1:])])
 
     def _beam_search(self, word_list, beam_size=8):
