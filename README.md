@@ -22,6 +22,11 @@ pip install -r ../requirements.txt
 python train.py -data_path .. -dl_path .. -ckpt_path ..
 ```
 
+### 3.3 Use your model to translate
+```bash
+python translate.py -dl_path .. -ckpt_path ..
+```
+
 ## 4 Example
 This is a real example of using SimpleNMT to train a Chinese-English translation model. My parallel corpus is placed in ```/content/drive/MyDrive/```, called ```clean.zh``` and ```clean.en``` respectively.
 ```
@@ -251,4 +256,20 @@ Valid | Epoch:8, loss:2.1477, training_time:9.9 min
 21-03-09 11:14:51 | Epoch: 9, batch: [1200/1382], lr:0.0003992, loss: 1.2752
 21-03-09 11:15:32 | Epoch: 9, batch: [1300/1382], lr:0.00039758, loss: 1.2049
 Valid | Epoch:9, loss:2.1855, training_time:9.8 min
+```
+
+```bash
+python translate.py -dl_path /content/drive/MyDrive/zh_en.dl -ckpt_path /content/drive/MyDrive
+```
+
+The translate results:
+```bash
+Please input a sentence of zh:其中有一些政策被获得竞争优势的欲望所驱使，比如中国对绿色产业的支持。
+some of these policies are driven by the desire to gain a competitive advantage , as China supports the green sector .
+
+Please input a sentence of zh:在欧洲，知道目前银行才被明确要求解决资本短缺和杠杆问题，处理残留劣质资产。
+in Europe , knowing that the current bank is explicitly to address its capital shortfalls and leverage problems , and to treat residual assets with residual residual status .
+
+Please input a sentence of zh:收入不平等可能再次开始扩大，尽管去年的中位家庭收入和贫困率指标有了重大改善。
+income inequality may start widening again , though the indices for median household income and poverty improved dramatically during the past year .
 ```
