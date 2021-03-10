@@ -80,7 +80,7 @@ class Translator(object):
 
         topk_probs, topk_idx = decoder_out[:, -1, :].topk(1)
 
-        for step in range(2, self.max_length):
+        for step in range(2, self.max_seq_length):
             new_word = torch.tensor([topk_idx[:, 0]])
             if new_word == self.tgt_eos_idx:
                 break
