@@ -40,7 +40,7 @@ class Translator(object):
         model = build_model(checkpoint['settings'], cuda_ok=torch.cuda.is_available())
         model.load_state_dict(checkpoint['model'])
         if hasattr(model, 'module'):
-            model = self.model.module
+            model = model.module
         model.to(self.device)
         return model
 
