@@ -9,11 +9,12 @@ A simple and readable **Neural Machine Translation** system
 ## 2 To do
 I am committed to building a Neural Machine Translation system that is easy to read, use, and friendly to beginners.
 
-## 3 Quick to use
+## 3 Quick Start
 ### 3.1 Download
 ```bash
 git clone https://github.com/hannlp/SimpleNMT
 cd SimpleNMT/simplenmt
+pip install -r ../requirements.txt
 ```
 
 ### 3.2 Train your model
@@ -51,66 +52,7 @@ Transformer(
           (linear2): Linear(in_features=2048, out_features=512, bias=True)
         )
       )
-      (1): EncoderLayer(
-        (dropout): Dropout(p=0.1, inplace=False)
-        (sublayer1_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-        (multi_head_attention): MultiHeadAttention(
-          (w_q): Linear(in_features=512, out_features=512, bias=False)
-          (w_k): Linear(in_features=512, out_features=512, bias=False)
-          (w_v): Linear(in_features=512, out_features=512, bias=False)
-          (w_out): Linear(in_features=512, out_features=512, bias=False)
-        )
-        (sublayer2_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-        (pos_wise_ffn): FeedForwardNetwork(
-          (linear1): Linear(in_features=512, out_features=2048, bias=True)
-          (linear2): Linear(in_features=2048, out_features=512, bias=True)
-        )
-      )
-      (2): EncoderLayer(
-        (dropout): Dropout(p=0.1, inplace=False)
-        (sublayer1_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-        (multi_head_attention): MultiHeadAttention(
-          (w_q): Linear(in_features=512, out_features=512, bias=False)
-          (w_k): Linear(in_features=512, out_features=512, bias=False)
-          (w_v): Linear(in_features=512, out_features=512, bias=False)
-          (w_out): Linear(in_features=512, out_features=512, bias=False)
-        )
-        (sublayer2_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-        (pos_wise_ffn): FeedForwardNetwork(
-          (linear1): Linear(in_features=512, out_features=2048, bias=True)
-          (linear2): Linear(in_features=2048, out_features=512, bias=True)
-        )
-      )
-      (3): EncoderLayer(
-        (dropout): Dropout(p=0.1, inplace=False)
-        (sublayer1_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-        (multi_head_attention): MultiHeadAttention(
-          (w_q): Linear(in_features=512, out_features=512, bias=False)
-          (w_k): Linear(in_features=512, out_features=512, bias=False)
-          (w_v): Linear(in_features=512, out_features=512, bias=False)
-          (w_out): Linear(in_features=512, out_features=512, bias=False)
-        )
-        (sublayer2_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-        (pos_wise_ffn): FeedForwardNetwork(
-          (linear1): Linear(in_features=512, out_features=2048, bias=True)
-          (linear2): Linear(in_features=2048, out_features=512, bias=True)
-        )
-      )
-      (4): EncoderLayer(
-        (dropout): Dropout(p=0.1, inplace=False)
-        (sublayer1_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-        (multi_head_attention): MultiHeadAttention(
-          (w_q): Linear(in_features=512, out_features=512, bias=False)
-          (w_k): Linear(in_features=512, out_features=512, bias=False)
-          (w_v): Linear(in_features=512, out_features=512, bias=False)
-          (w_out): Linear(in_features=512, out_features=512, bias=False)
-        )
-        (sublayer2_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-        (pos_wise_ffn): FeedForwardNetwork(
-          (linear1): Linear(in_features=512, out_features=2048, bias=True)
-          (linear2): Linear(in_features=2048, out_features=512, bias=True)
-        )
-      )
+      ...
       (5): EncoderLayer(
         (dropout): Dropout(p=0.1, inplace=False)
         (sublayer1_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
@@ -156,94 +98,7 @@ Transformer(
           (linear2): Linear(in_features=2048, out_features=512, bias=True)
         )
       )
-      (1): DecoderLayer(
-        (dropout): Dropout(p=0.1, inplace=False)
-        (sublayer1_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-        (masked_multi_head_attention): MultiHeadAttention(
-          (w_q): Linear(in_features=512, out_features=512, bias=False)
-          (w_k): Linear(in_features=512, out_features=512, bias=False)
-          (w_v): Linear(in_features=512, out_features=512, bias=False)
-          (w_out): Linear(in_features=512, out_features=512, bias=False)
-        )
-        (sublayer2_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-        (multi_head_attention): MultiHeadAttention(
-          (w_q): Linear(in_features=512, out_features=512, bias=False)
-          (w_k): Linear(in_features=512, out_features=512, bias=False)
-          (w_v): Linear(in_features=512, out_features=512, bias=False)
-          (w_out): Linear(in_features=512, out_features=512, bias=False)
-        )
-        (sublayer3_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-        (pos_wise_ffn): FeedForwardNetwork(
-          (linear1): Linear(in_features=512, out_features=2048, bias=True)
-          (linear2): Linear(in_features=2048, out_features=512, bias=True)
-        )
-      )
-      (2): DecoderLayer(
-        (dropout): Dropout(p=0.1, inplace=False)
-        (sublayer1_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-        (masked_multi_head_attention): MultiHeadAttention(
-          (w_q): Linear(in_features=512, out_features=512, bias=False)
-          (w_k): Linear(in_features=512, out_features=512, bias=False)
-          (w_v): Linear(in_features=512, out_features=512, bias=False)
-          (w_out): Linear(in_features=512, out_features=512, bias=False)
-        )
-        (sublayer2_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-        (multi_head_attention): MultiHeadAttention(
-          (w_q): Linear(in_features=512, out_features=512, bias=False)
-          (w_k): Linear(in_features=512, out_features=512, bias=False)
-          (w_v): Linear(in_features=512, out_features=512, bias=False)
-          (w_out): Linear(in_features=512, out_features=512, bias=False)
-        )
-        (sublayer3_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-        (pos_wise_ffn): FeedForwardNetwork(
-          (linear1): Linear(in_features=512, out_features=2048, bias=True)
-          (linear2): Linear(in_features=2048, out_features=512, bias=True)
-        )
-      )
-      (3): DecoderLayer(
-        (dropout): Dropout(p=0.1, inplace=False)
-        (sublayer1_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-        (masked_multi_head_attention): MultiHeadAttention(
-          (w_q): Linear(in_features=512, out_features=512, bias=False)
-          (w_k): Linear(in_features=512, out_features=512, bias=False)
-          (w_v): Linear(in_features=512, out_features=512, bias=False)
-          (w_out): Linear(in_features=512, out_features=512, bias=False)
-        )
-        (sublayer2_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-        (multi_head_attention): MultiHeadAttention(
-          (w_q): Linear(in_features=512, out_features=512, bias=False)
-          (w_k): Linear(in_features=512, out_features=512, bias=False)
-          (w_v): Linear(in_features=512, out_features=512, bias=False)
-          (w_out): Linear(in_features=512, out_features=512, bias=False)
-        )
-        (sublayer3_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-        (pos_wise_ffn): FeedForwardNetwork(
-          (linear1): Linear(in_features=512, out_features=2048, bias=True)
-          (linear2): Linear(in_features=2048, out_features=512, bias=True)
-        )
-      )
-      (4): DecoderLayer(
-        (dropout): Dropout(p=0.1, inplace=False)
-        (sublayer1_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-        (masked_multi_head_attention): MultiHeadAttention(
-          (w_q): Linear(in_features=512, out_features=512, bias=False)
-          (w_k): Linear(in_features=512, out_features=512, bias=False)
-          (w_v): Linear(in_features=512, out_features=512, bias=False)
-          (w_out): Linear(in_features=512, out_features=512, bias=False)
-        )
-        (sublayer2_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-        (multi_head_attention): MultiHeadAttention(
-          (w_q): Linear(in_features=512, out_features=512, bias=False)
-          (w_k): Linear(in_features=512, out_features=512, bias=False)
-          (w_v): Linear(in_features=512, out_features=512, bias=False)
-          (w_out): Linear(in_features=512, out_features=512, bias=False)
-        )
-        (sublayer3_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
-        (pos_wise_ffn): FeedForwardNetwork(
-          (linear1): Linear(in_features=512, out_features=2048, bias=True)
-          (linear2): Linear(in_features=2048, out_features=512, bias=True)
-        )
-      )
+      ...
       (5): DecoderLayer(
         (dropout): Dropout(p=0.1, inplace=False)
         (sublayer1_prenorm): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
