@@ -81,7 +81,7 @@ class Translator(object):
         _, max_idx = decoder_out[:, -1, :].topk(1)
 
         for step in range(2, self.max_seq_length):
-            new_word = torch.tensor(max_idx[:, 0]).unsqueeze(0).to(self.device)
+            new_word = max_idx[:, 0].unsqueeze(0).to(self.device)
             if new_word == self.tgt_eos_idx:
                 break
             prev_tgt_tokens = torch.cat(
