@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import dill
 import jieba
+import logging
 from utils.builder import build_model
 from data.utils import prepare_batch
 
@@ -146,6 +147,7 @@ class Translator(object):
         return ''.join([self.tgt_itos[s] for s in gen_seqs[ans_idx, :seq_lens[ans_idx]]])
 
     def translate(self, sentence: str, beam_size=8, src_lang='zh', tgt_lang='en'):
+        jieba.setLogLevel(logging.INFO)
         if src_lang == 'zh':
             word_list = list(jieba.cut(sentence))
         else:
