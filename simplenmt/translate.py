@@ -8,7 +8,7 @@ def parse():
 
     parser.add_argument("-dl_path", help="the dataloader save path", type=str, default="./")
     parser.add_argument("-ckpt_path", help="the checkpoint save path", type=str, default="./")
-    parser.add_argument("-max_length", help="the max length of sequence", type=int, default=256)
+    parser.add_argument("-max_seq_length", help="the max length of sequence", type=int, default=256)
     parser.add_argument("-beam_size", help="the width of beam search", type=int, default=1)
     args = parser.parse_args()
     return args
