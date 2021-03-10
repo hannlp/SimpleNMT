@@ -3,9 +3,9 @@ import time
 from data.utils import prepare_batch
 
 class Trainer(object):
-    def __init__(self, args, model, optimizer, criterion, lr_scal=1) -> None:
+    def __init__(self, args, model, optimizer, criterion, lr_scal=1, cuda_ok=False) -> None:
+        self.cuda_ok = cuda_ok
         self.settings = args
-        self.cuda_ok = args.cuda_ok
         self.model = model
         self.optimizer = optimizer
         self.criterion = criterion
