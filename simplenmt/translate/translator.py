@@ -154,6 +154,7 @@ class Translator(object):
             word_list = sentence.split()
         with torch.no_grad():
             if beam_size == 1:
-                return print(self._greedy_search(word_list))
+                return print(self._greedy_search(word_list), end="\n")
             else:
-                return print(self._beam_search(word_list))
+                return print(self._beam_search(word_list), end="\n")
+        
