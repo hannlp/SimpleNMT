@@ -272,4 +272,7 @@ in Europe , knowing that the current bank is explicitly to address its capital s
 
 Please input a sentence of zh:收入不平等可能再次开始扩大，尽管去年的中位家庭收入和贫困率指标有了重大改善。
 income inequality may start widening again , though the indices for median household income and poverty improved dramatically during the past year .
+
+Please input a sentence of zh:须知民粹主义并不是某个心怀恶意的外来势力强加于欧洲身上的；而是在欧洲内部有机地滋生，并在真实存在且广泛的不满情绪的推动下蔓延开来。
+populism is not a malicious external actor in Europe ; it is a source of organic power in Europe , and spreading from real and widespread disaffection .
 ```
