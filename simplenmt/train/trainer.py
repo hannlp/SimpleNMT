@@ -79,12 +79,15 @@ class Trainer(object):
             - model(dict): model.state_dict()
             - settings(NameSpace): train_args
         '''
+        '''
         checkpoint = {
             'epoch': epoch, 
             'model': self.model.state_dict(), 
             'settings': self.settings
             }
         torch.save(checkpoint, '{}/checkpoint_{}.pt'.format(path, epoch))
+        '''
+        # Only save the best checkpoint
         if is_best_epoch:
             best_checkpoint = {'epoch': epoch,
                                'model': self.model.state_dict(),
