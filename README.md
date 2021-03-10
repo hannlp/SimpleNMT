@@ -258,6 +258,7 @@ Valid | Epoch:8, loss:2.1477, training_time:9.9 min
 Valid | Epoch:9, loss:2.1855, training_time:9.8 min
 ```
 
+After training the model, use the following command to use the model for translation
 ```bash
 python translate.py -dl_path /content/drive/MyDrive/zh_en.dl -ckpt_path /content/drive/MyDrive
 ```
