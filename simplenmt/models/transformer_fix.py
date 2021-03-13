@@ -25,10 +25,10 @@ class Transformer(nn.Module):
         self._model_init()
 
         if share_decoder_embeddings:
-            self.out_vocab_proj = self.decoder.input_embedding
+            self.out_vocab_proj.weight = self.decoder.input_embedding.weight
         
         if share_embeddings:
-            self.encoder.input_embedding = self.decoder.input_embedding
+            self.encoder.input_embedding.weight = self.decoder.input_embedding.weight
 
 
     def forward(self, src_tokens, prev_tgt_tokens):
