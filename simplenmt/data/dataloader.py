@@ -62,9 +62,10 @@ class DataLoader(object):
 
             train, valid = DATA.split(split_ratio=split_ratio)
         else:
-            train, valid = datasets.TranslationDataset.splits(
-                train=train_path, validation=valid_path, exts=exts, 
-                fields=(('src', self.SRC), ('trg', self.TGT)))
+            train = datasets.TranslationDataset(
+                path=train_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
+            valid = datasets.TranslationDataset(
+                path=train_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
 
         print("Building src and tgt vocab ...", end=" ")
         if not share_vocab:
