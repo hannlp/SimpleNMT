@@ -6,7 +6,7 @@ from train.trainer import Trainer
 from utils.builder import build_model
 
 def parse():
-    # The arguments for Trainer
+    # The arguments for DataLoader and Trainer
     parser = argparse.ArgumentParser()
     parser.add_argument("-src", help="the source language", type=str, default="zh")
     parser.add_argument("-tgt", help="the target language", type=str, default="en")
@@ -39,10 +39,13 @@ def main():
     args = parse()
     dl = DataLoader()
     train_iter, valid_iter = dl.load_translation(
-        data_path=args.data_path, 
-        exts=('.' + args.src, '.' + args.tgt), # ('.zh', '.en')
+        exts=('.' + args.src, '.' + args.tgt), # default: ('.zh', '.en')
+        data_path=args.data_path,
+        train_path=args.train_path,
+        valid_path=args.valid_path,      
         batch_size=args.batch_size, 
-        dl_save_path=args.dl_path
+        dl_save_path=args.dl_path,
+        share_vocab=args.share_vocab
         )
     
     args.n_src_words, args.n_tgt_words = len(dl.SRC.vocab), len(dl.TGT.vocab)

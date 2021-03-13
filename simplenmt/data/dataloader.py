@@ -50,20 +50,31 @@ class DataLoader(object):
                               eos_token=Constants.END,
                               pad_token=Constants.PAD)
 
-    def load_translation(self, data_path, exts, split_ratio=0.95, batch_size=64, dl_save_path=None):
+    def load_translation(self, exts, data_path=None, train_path=None, valid_path=None, 
+                         split_ratio=0.95, batch_size=64, dl_save_path=None,
+                         share_vocab=False):
 
-        print("Loading parallel corpus [{}, {}]".format(data_path + exts[0], data_path + exts[1]))
-        DATA = datasets.TranslationDataset(
-            path=data_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
+        if data_path:
+            print("Loading parallel corpus \'{}, {}\' ...".format(data_path + exts[0], data_path + exts[1]) ,end=" ")
+            DATA = datasets.TranslationDataset(
+                path=data_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
+            print("Successful.")
+
+            train, valid = DATA.split(split_ratio=split_ratio)
+        else:
+            train, valid = datasets.TranslationDataset.splits(
+                train=train_path, validation=valid_path, exts=exts, 
+                fields=(('src', self.SRC), ('trg', self.TGT)))
+
+        print("Building src and tgt vocab ...", end=" ")
+        if not share_vocab:
+            self.SRC.build_vocab(train.src)
+            self.TGT.build_vocab(train.trg)
+        else:
+            self.SRC.build_vocab(train.src, train.trg)
+            self.TGT.vocab = self.SRC.vocab
         print("Successful.")
-
-        train, valid = DATA.split(split_ratio=split_ratio)
-
-        print("Building src and tgt vocab ...")
-        self.SRC.build_vocab(train)
-        self.TGT.build_vocab(train)
         self._add_index()
-        print("Successful.")
 
         torch.save(self, dl_save_path, pickle_module=dill)
         print("The dataloader is save at {}".format(dl_save_path))

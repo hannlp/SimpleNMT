@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-from models.transformer import Transformer
 from models import str2model
 
 def build_model(args, cuda_ok):
@@ -15,7 +14,10 @@ def build_model(args, cuda_ok):
             'd_model': args.d_model, 
             'n_head': args.n_head, 
             'n_layer':args.n_layer, 
-            'p_drop':args.p_drop
+            'p_drop':args.p_drop,
+            'share_embeddings':args.share_vocab, 
+            'share_decoder_embeddings':args.share_vocab,
+            'max_seq_len':args.max_seq_len
         }, 
         "RNN":{}, 
         "CNN":{}
