@@ -4,17 +4,32 @@ import torch.nn.functional as F
 
 
 class Transformer(nn.Module):
-    def __init__(self, n_src_words, n_tgt_words, src_pdx=0, tgt_pdx=0, d_model=512, n_head=8, n_layer=6, p_drop=0.1) -> None:
+    def __init__(self, n_src_words, n_tgt_words, src_pdx=0, tgt_pdx=0, 
+                 d_model=512, n_head=8, n_layers=6, p_drop=0.1, 
+                 share_embeddings=False, share_decoder_embeddings=False,
+                 max_seq_len=512) -> None:
+
         super().__init__()
         self.d_model = d_model
         self.src_pdx, self.tgt_pdx = src_pdx, tgt_pdx  # pdx: padding index
-        self.encoder = Encoder(
-            n_src_words, src_pdx=src_pdx, n_head=n_head, d_model=d_model, n_layer=n_layer, p_drop=p_drop)
+        
+        self.encoder = Encoder(n_src_words, src_pdx=src_pdx, n_head=n_head, 
+                               d_model=d_model, n_layers=n_layers, p_drop=p_drop, 
+                               max_seq_len=max_seq_len)
 
         self.decoder = Decoder(n_tgt_words, tgt_pdx=tgt_pdx, n_head=n_head,
-                               d_model=d_model, n_layer=n_layer, p_drop=p_drop)
+                               d_model=d_model, n_layers=n_layers, p_drop=p_drop, 
+                               max_seq_len=max_seq_len)
         self.out_vocab_proj = nn.Linear(d_model, n_tgt_words)
+        
         self._model_init()
+
+        if share_decoder_embeddings:
+            self.out_vocab_proj = self.decoder.input_embedding
+        
+        if share_embeddings:
+            self.encoder.input_embedding = self.decoder.input_embedding
+
 
     def forward(self, src_tokens, prev_tgt_tokens):
         '''
@@ -29,7 +44,7 @@ class Transformer(nn.Module):
         tgt_mask = (prev_tgt_tokens != self.tgt_pdx)
 
         encoder_out = self.encoder(src_tokens, src_mask)
-        decoder_out, _ = self.decoder(
+        decoder_out = self.decoder(
             prev_tgt_tokens, encoder_out, src_mask, tgt_mask)
         model_out = self.out_vocab_proj(decoder_out)
         return model_out
@@ -41,7 +56,7 @@ class Transformer(nn.Module):
 
 
 class Encoder(nn.Module):
-    def __init__(self, n_src_words, src_pdx, n_head, d_model, n_layer, p_drop) -> None:
+    def __init__(self, n_src_words, src_pdx, n_head, d_model, n_layers, p_drop, max_seq_len) -> None:
         super().__init__()
         self.d_model = d_model
         self.dropout = nn.Dropout(p=p_drop)
@@ -49,7 +64,7 @@ class Encoder(nn.Module):
             num_embeddings=n_src_words, embedding_dim=d_model, padding_idx=src_pdx)
         self.positional_encode = PositionalEncode(d_model)
         self.layers = nn.ModuleList(
-            [EncoderLayer(d_model, n_head, p_drop) for _ in range(n_layer)])
+            [EncoderLayer(d_model, n_head, p_drop) for _ in range(n_layers)])
         # - layer_norm: (d_model)
         self.layer_norm = nn.LayerNorm(d_model)
 
@@ -83,16 +98,16 @@ class EncoderLayer(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, n_tgt_words, tgt_pdx, n_head, d_model, n_layer, p_drop) -> None:
+    def __init__(self, n_tgt_words, tgt_pdx, n_head, d_model, n_layers, p_drop, max_seq_len) -> None:
         super().__init__()
         self.d_model = d_model
         self.dropout = nn.Dropout(p=p_drop)
         self.input_embedding = nn.Embedding(
             num_embeddings=n_tgt_words, embedding_dim=d_model, padding_idx=tgt_pdx)
-        self.positional_encode = PositionalEncode(d_model)
+        self.positional_encode = PositionalEncode(d_model, max_seq_len)
         self.layers = nn.ModuleList(
-            [DecoderLayer(d_model, n_head, p_drop) for _ in range(n_layer)])
-        # TODO : 这个LayerNorm没用到，下次看一下有没有用
+            [DecoderLayer(d_model, n_head, p_drop) for _ in range(n_layers)])
+        # TODO : 这个LayerNorm试一下有没有用
         self.layer_norm = nn.LayerNorm(d_model)
 
     def forward(self, prev_tgt_tokens, encoder_out, src_mask, tgt_mask):
@@ -190,18 +205,18 @@ class FeedForwardNetwork(nn.Module):
 
 
 class PositionalEncode(nn.Module):
-    def __init__(self, d_model, max_len=512) -> None:
+    def __init__(self, d_model, max_seq_len=512) -> None:
         super().__init__()
-        self.pos_encode = self._get_pos_encode(max_len, d_model)
+        self.pos_encode = self._get_pos_encode(max_seq_len, d_model)
 
     def forward(self, x):
         # - x: (batch_size, seq_len, d_model)
         return x + self.pos_encode[:x.size(1), :].unsqueeze(0).to(x.device)
 
-    def _get_pos_encode(self, max_len, d_model):
+    def _get_pos_encode(self, max_seq_len, d_model):
         # TODO: 尝试使用矩阵乘法，观察哪种方式速度更快
         pos_encode = torch.tensor([[pos / 10000 ** (2 * (i//2) / d_model) for i in range(d_model)]
-                                   for pos in range(max_len)], requires_grad=False)
+                                   for pos in range(max_seq_len)], requires_grad=False)
         pos_encode[:, 0::2] = torch.sin(pos_encode[:, 0::2])
         pos_encode[:, 1::2] = torch.cos(pos_encode[:, 1::2])
         # - pos_encode: (seq_len, d_model)
