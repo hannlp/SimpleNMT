@@ -13,7 +13,7 @@ def build_model(args, cuda_ok):
             'tgt_pdx': args.tgt_pdx, 
             'd_model': args.d_model, 
             'n_head': args.n_head, 
-            'n_layer':args.n_layer, 
+            'n_layers':args.n_layers, 
             'p_drop':args.p_drop,
             'share_embeddings':args.share_vocab, 
             'share_decoder_embeddings':args.share_vocab,

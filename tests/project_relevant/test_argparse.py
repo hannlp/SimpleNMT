@@ -16,7 +16,7 @@ parser.add_argument("-n_epochs", type=int, default=20)
 # The arguments for Transformer
 parser.add_argument("-model", help="model name", type=str, default='Transformer')
 parser.add_argument("-d_model", help="dimension of the model", type=int, default=512)
-parser.add_argument("-n_layer", type=int, default=6)
+parser.add_argument("-n_layers", type=int, default=6)
 parser.add_argument("-n_head", help="number of heads in multihead-attention", type=int, default=8)
 parser.add_argument("-p_drop", help="probability of dropout", type=float, default=0.1)
 parser.add_argument("-lr", type=float, default=1e-3)
