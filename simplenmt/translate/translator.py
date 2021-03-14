@@ -77,7 +77,7 @@ class Translator(object):
         prev_tgt_tokens = torch.tensor([[self.tgt_sos_idx]]).to(self.device)  # <sos>
         tgt_mask = (prev_tgt_tokens != self.tgt_pdx).to(self.device)
         decoder_out = F.softmax(self.model.decoder(
-            prev_tgt_tokens, encoder_out, src_mask, tgt_mask)[0], dim=-1)
+            prev_tgt_tokens, encoder_out, src_mask, tgt_mask), dim=-1)
 
         _, max_idx = decoder_out[:, -1, :].topk(1)
 
@@ -90,7 +90,7 @@ class Translator(object):
             tgt_mask = (prev_tgt_tokens != self.tgt_pdx).to(self.device)
 
             decoder_out = F.softmax(self.model.decoder(
-                prev_tgt_tokens, encoder_out, src_mask, tgt_mask)[0], dim=-1)
+                prev_tgt_tokens, encoder_out, src_mask, tgt_mask), dim=-1)
             # print(decoder_out.shape) # (1, 1(step), tgt_vocab_size)
             _, max_idx = decoder_out[:, -1, :].topk(1)
         return ' '.join([self.tgt_itos[w_id] for w_id in list(prev_tgt_tokens.squeeze().detach()[1:])])
@@ -100,7 +100,7 @@ class Translator(object):
         
         def decode(prev_tgt_tokens, encoder_out, src_mask):
             tgt_mask = (prev_tgt_tokens != self.tgt_pdx).to(self.device)
-            decoder_out = F.softmax(self.model.decoder(prev_tgt_tokens, encoder_out, src_mask, tgt_mask)[0], dim=-1)
+            decoder_out = F.softmax(self.model.decoder(prev_tgt_tokens, encoder_out, src_mask, tgt_mask), dim=-1)
             return decoder_out
 
         gen_seqs = torch.full((beam_size, 1), self.tgt_sos_idx).to(self.device)
