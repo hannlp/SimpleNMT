@@ -1,17 +1,11 @@
-from simplenmt.translate import translator
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import dill
 import jieba
 import logging
-import argparse
-import os
-import sys
-print(os.path, os.getcwd())
-sys.path.append(os.getcwd())
 import torch
-from simplenmt.models.transformer_fix import Transformer
+from models.transformer_fix import Transformer
 
 def prepare_batch(batch, CUDA_OK=False):
     src_tokens = batch.src.transpose(0, 1)
@@ -209,15 +203,13 @@ class Translator(object):
             else:
                 return print(self._beam_search(word_list), end="\n")
 
-
-parser = argparse.ArgumentParser()
-args = parser.parse_args()
-args.src = "zh"
-args.tgt = "en"
-args.dl_path = ""
-args.ckpt_path = ""
-args.max_seq_lengh = 512
-args.beam_size = 4
-
+class args:
+  src = "zh"
+  tgt = "en"
+  dl_path = "/content/drive/MyDrive/zh_en.dl"
+  ckpt_path = "/content/drive/MyDrive"
+  max_seq_length = 512
+  beam_size = 1
+  
 translator = Translator(args)
-translator.translate()
+translator.translate("我爱你们。")
