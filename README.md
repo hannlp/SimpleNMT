@@ -35,7 +35,7 @@ python train.py -data_path /content/drive/MyDrive/clean -dl_path /content/drive/
 
 This is the training process:  
 ```
-Namespace(batch_size=6400, betas=(0.9, 0.98), ckpt_path='/content/drive/MyDrive', cuda_ok=True, d_model=512, data_path='/content/drive/MyDrive/clean', dl_path='/content/drive/MyDrive/zh_en.dl', lr=0.001, model='Transformer', n_epochs=10, n_head=8, n_layer=6, n_src_words=37125, n_tgt_words=30903, p_drop=0.1, src='zh', src_pdx=1, tgt='en', tgt_pdx=1, warmup_steps=4000)
+Namespace(batch_size=6400, betas=(0.9, 0.98), ckpt_path='/content/drive/MyDrive', use_cuda=True, d_model=512, data_path='/content/drive/MyDrive/clean', dl_path='/content/drive/MyDrive/zh_en.dl', lr=0.001, model='Transformer', n_epochs=10, n_head=8, n_layer=6, n_src_words=37125, n_tgt_words=30903, p_drop=0.1, src='zh', src_pdx=1, tgt='en', tgt_pdx=1, warmup_steps=4000)
 Transformer(
   (encoder): Encoder(
     (dropout): Dropout(p=0.1, inplace=False)

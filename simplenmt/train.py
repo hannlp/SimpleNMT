@@ -35,7 +35,7 @@ def parse():
     return args
 
 def main():
-    CUDA_OK = torch.cuda.is_available()
+    use_cuda = torch.cuda.is_available()
     args = parse()
     dl = DataLoader()
     train_iter, valid_iter = dl.load_translation(
@@ -52,13 +52,13 @@ def main():
     args.src_pdx, args.tgt_pdx = dl.src_padding_index, dl.tgt_padding_index
     print(args)
   
-    model = build_model(args, cuda_ok=CUDA_OK)
+    model = build_model(args, use_cuda=use_cuda)
     trainer = Trainer(args, model=model,
                       optimizer=torch.optim.Adam(
                           model.parameters(), lr=1e-3, betas=(0.9, 0.98), eps=1e-9),
                       criterion=nn.CrossEntropyLoss(
                           ignore_index=args.tgt_pdx, reduction='mean'),
-                      cuda_ok=CUDA_OK
+                      use_cuda=use_cuda
                       )
     trainer.train(train_iter, valid_iter, n_epochs=args.n_epochs,
                   save_path=args.ckpt_path)

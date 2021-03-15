@@ -11,4 +11,4 @@ parser.add_argument("-model", type=str, default="Transformer")
 args = parser.parse_args()
 print(args)
 
-build_model(args, CUDA_OK=False)
+build_model(args, use_cuda=False)

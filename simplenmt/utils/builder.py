@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from models import str2model
 
-def build_model(args, cuda_ok):
+def build_model(args, use_cuda):
 
     model_args = {
         "Transformer":
@@ -26,7 +26,7 @@ def build_model(args, cuda_ok):
     MODEL = str2model[args.model]
     model = MODEL(**model_args[args.model])
 
-    if cuda_ok:
+    if use_cuda:
         model.cuda()
     if torch.cuda.device_count() > 1:
         model = nn.DataParallel(model)

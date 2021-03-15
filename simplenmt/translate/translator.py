@@ -38,17 +38,17 @@ class Translator(object):
             map_location=self.device
             )
 
-        model = build_model(checkpoint['settings'], cuda_ok=torch.cuda.is_available())
+        model = build_model(checkpoint['settings'], use_cuda=torch.cuda.is_available())
         model.load_state_dict(checkpoint['model'])
         if hasattr(model, 'module'):
             model = model.module
         model.to(self.device)
         return model
 
-    def generate(self, data_iter, CUDA_OK):
+    def generate(self, data_iter, use_cuda):
         abatch = next(iter(data_iter))
         src_tokens, prev_tgt_tokens, tgt_tokens = prepare_batch(
-            abatch, CUDA_OK)
+            abatch, use_cuda)
         with torch.no_grad():
             out_tokens = torch.argmax(
                 nn.functional.softmax(self.model(src_tokens, prev_tgt_tokens), dim=-1), dim=-1)

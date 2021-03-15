@@ -3,8 +3,8 @@ import time
 from data.utils import prepare_batch
 
 class Trainer(object):
-    def __init__(self, args, model, optimizer, criterion, lr_scal=1, cuda_ok=False) -> None:
-        self.cuda_ok = cuda_ok
+    def __init__(self, args, model, optimizer, criterion, lr_scal=1, use_cuda=False) -> None:
+        self.use_cuda = use_cuda
         self.settings = args
         self.model = model
         self.optimizer = optimizer
@@ -46,7 +46,7 @@ class Trainer(object):
             self._lr_step_update()
             self.optimizer.zero_grad()
             src_tokens, prev_tgt_tokens, tgt_tokens = prepare_batch(
-                batch, CUDA_OK=self.cuda_ok)
+                batch, use_cuda=self.use_cuda)
             out = self.model(src_tokens, prev_tgt_tokens)
             loss = self.criterion(
                 out.reshape(-1, out.size(-1)), tgt_tokens.contiguous().view(-1))
@@ -65,7 +65,7 @@ class Trainer(object):
             loss_list = []
             for _, batch in enumerate(valid_iter, start=1):
                 src_tokens, prev_tgt_tokens, tgt_tokens = prepare_batch(
-                    batch, CUDA_OK=self.cuda_ok)
+                    batch, use_cuda=self.use_cuda)
                 out = self.model(src_tokens, prev_tgt_tokens)
                 loss = self.criterion(
                     out.reshape(-1, out.size(-1)), tgt_tokens.contiguous().view(-1))

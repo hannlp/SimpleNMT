@@ -7,16 +7,16 @@ import logging
 import torch
 from models.transformer_fix import Transformer
 
-def prepare_batch(batch, CUDA_OK=False):
+def prepare_batch(batch, use_cuda=False):
     src_tokens = batch.src.transpose(0, 1)
     prev_tgt_tokens = batch.trg.transpose(0, 1)[:, :-1]
     tgt_tokens = batch.trg.transpose(0, 1)[:, 1:]
-    if CUDA_OK:
+    if use_cuda:
         src_tokens, prev_tgt_tokens, tgt_tokens = src_tokens.cuda(
         ), prev_tgt_tokens.cuda(), tgt_tokens.cuda()
     return src_tokens, prev_tgt_tokens, tgt_tokens
 
-def build_model(args, cuda_ok):
+def build_model(args, use_cuda):
 
     model_args = {
         "Transformer":
@@ -40,7 +40,7 @@ def build_model(args, cuda_ok):
     MODEL = str2model[args.model]
     model = MODEL(**model_args[args.model])
 
-    if cuda_ok:
+    if use_cuda:
         model.cuda()
     if torch.cuda.device_count() > 1:
         model = nn.DataParallel(model)
@@ -79,17 +79,17 @@ class Translator(object):
             map_location=self.device
             )
 
-        model = build_model(checkpoint['settings'], cuda_ok=torch.cuda.is_available())
+        model = build_model(checkpoint['settings'], use_cuda=torch.cuda.is_available())
         model.load_state_dict(checkpoint['model'])
         if hasattr(model, 'module'):
             model = model.module
         model.to(self.device)
         return model
 
-    def generate(self, data_iter, CUDA_OK):
+    def generate(self, data_iter, use_cuda):
         abatch = next(iter(data_iter))
         src_tokens, prev_tgt_tokens, tgt_tokens = prepare_batch(
-            abatch, CUDA_OK)
+            abatch, use_cuda)
         with torch.no_grad():
             out_tokens = torch.argmax(
                 nn.functional.softmax(self.model(src_tokens, prev_tgt_tokens), dim=-1), dim=-1)
