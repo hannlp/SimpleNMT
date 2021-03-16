@@ -62,7 +62,7 @@ class Encoder(nn.Module):
         self.dropout = nn.Dropout(p=p_drop)
         self.input_embedding = nn.Embedding(
             num_embeddings=n_src_words, embedding_dim=d_model, padding_idx=src_pdx)
-        self.positional_encode = PositionalEncode(d_model)
+        self.positional_encode = PositionalEncode(d_model, max_seq_len)
         self.layers = nn.ModuleList(
             [EncoderLayer(d_model, n_head, p_drop) for _ in range(n_layers)])
         # - layer_norm: (d_model)
