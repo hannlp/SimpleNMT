@@ -40,8 +40,8 @@ class Transformer(nn.Module):
         - decoder_out: (batch_size, tgt_len, n_tgt_words)
         '''
 
-        src_mask = (src_tokens != self.src_pdx) # .bool()
-        tgt_mask = (prev_tgt_tokens != self.tgt_pdx)
+        src_mask = src_tokens.eq(self.src_pdx)
+        tgt_mask = prev_tgt_tokens.eq(self.tgt_pdx)
 
         encoder_out = self.encoder(src_tokens, src_mask)
         decoder_out = self.decoder(
@@ -149,8 +149,8 @@ class DecoderLayer(nn.Module):
     def _add_sequence_mask(self, padding_mask):
         # -padding_mask: (batch_size, seq_len)
         seq_len = padding_mask.size(1)
-        sequence_mask = torch.tril(torch.ones(
-            (seq_len, seq_len), device=padding_mask.device)).bool()
+        sequence_mask = torch.ones((seq_len, seq_len), 
+            device=padding_mask.device).triu(diagonal=1).bool()
         # -return: (batch_size, 1, seq_len, seq_len)
         return padding_mask.unsqueeze(1).unsqueeze(1) & sequence_mask
 
@@ -184,7 +184,7 @@ class MultiHeadAttention(nn.Module):
         Q_KT = torch.matmul(Q, torch.transpose(K, 2, 3))
 
         if mask != None:
-            Q_KT.masked_fill_(mask == False, -1e9)
+            Q_KT.masked_fill_(mask, -1e9)
 
         attn = F.softmax(Q_KT / self.one_head_dim ** 0.5, dim=-1)
 
