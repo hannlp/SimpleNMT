@@ -152,7 +152,7 @@ class DecoderLayer(nn.Module):
         sequence_mask = torch.ones((seq_len, seq_len), 
             device=padding_mask.device).triu(diagonal=1).bool()
         # -return: (batch_size, 1, seq_len, seq_len)
-        return padding_mask.unsqueeze(1).unsqueeze(1) & sequence_mask
+        return padding_mask.unsqueeze(1).unsqueeze(1) | sequence_mask
 
 
 class MultiHeadAttention(nn.Module):
