@@ -1,7 +1,7 @@
 import torch
 
 # padding mask
-src_tokens = torch.randint(0, 5, (10, 5))
+src_tokens = torch.randint(0, 5, (5, 10))
 src_pdx = 0
 
 print(src_tokens)

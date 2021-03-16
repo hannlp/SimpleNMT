@@ -3,7 +3,7 @@ import os
 print(os.path, os.getcwd())
 sys.path.append(os.getcwd())
 import torch
-from simplenmt.models.transformer import Transformer
+from simplenmt.models.transformer_fix import Transformer
 
 n_src_words = 20
 n_tgt_words = 25
@@ -12,7 +12,7 @@ src_len = 64
 tgt_len = 60
 
 model = Transformer(n_src_words=n_src_words, n_tgt_words=n_tgt_words)
-print(model)
+#print(model)
 
 src_tokens = torch.randint(n_src_words, (batch_size, src_len))
 prev_output_tokens = torch.randint(n_tgt_words, (batch_size, tgt_len))
