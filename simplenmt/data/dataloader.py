@@ -55,19 +55,21 @@ class DataLoader(object):
                          share_vocab=False):
 
         if data_path:
-            print("Loading parallel corpus \'{}, {}\' ...".format(data_path + exts[0], data_path + exts[1]) ,end=" ")
+            print("Loading parallel corpus from \'{}\', \'{}\' ...".format(data_path + exts[0], data_path + exts[1]), end=" ")
             DATA = datasets.TranslationDataset(
                 path=data_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
             print("Successful.")
 
             train, valid = DATA.split(split_ratio=split_ratio)
         else:
+            print("Loading train data and valid data from \'{}\', \'{}\' ...".format(train_path, valid_path), end=" ")
             train = datasets.TranslationDataset(
                 path=train_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
             valid = datasets.TranslationDataset(
-                path=train_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
+                path=valid_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
+            print("Successful.")
 
-        print("Building src and tgt vocab ...", end=" ")
+        print("Building src and tgt vocabs ...", end=" ")
         if not share_vocab:
             self.SRC.build_vocab(train.src)
             self.TGT.build_vocab(train.trg)
@@ -78,7 +80,7 @@ class DataLoader(object):
         self._add_index()
 
         torch.save(self, dl_save_path, pickle_module=dill)
-        print("The dataloader is save at {}".format(dl_save_path))
+        print("The dataloader is saved at \'{}\'".format(dl_save_path))
 
         train_iter = MyIterator(train, batch_size=batch_size, device=None,
                                 repeat=False, sort_key=lambda x:
