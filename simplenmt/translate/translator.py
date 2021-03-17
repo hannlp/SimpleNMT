@@ -56,7 +56,7 @@ class Translator(object):
             return arr
 
         test = datasets.TranslationDataset(
-            path=test_path, exts=('.' + exts[0], '.' + exts[1]), 
+            path=test_path, exts=exts, 
             fields=(('src', self.dl.SRC), ('trg', self.dl.TGT)))
         
         test_iter = MyIterator(test, batch_size=batch_size, device=None,
@@ -65,17 +65,18 @@ class Translator(object):
                                 batch_size_fn=batch_size_fn, train=True,
                                 shuffle=True)
 
-        with open(test_path + '.result', 'w') as f:
+        print('Writing result to {} ...'.format(test_path + '.result'))
+        with open(test_path + '.result', 'w', encoding='utf8') as f:
             with torch.no_grad():
                 for _, batch in enumerate(test_iter, start=1):
                     src_tokens, _, tgt_tokens = prepare_batch(
-                        batch, use_cuda=self.use_cuda)
+                        batch, use_cuda=torch.cuda.is_available())
 
                     src_words_list = de_numericalize(self.dl.SRC.vocab, src_tokens)
                     tgt_words_list = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
                     
                     pred_tokens = self.batch_greedy_search(src_tokens)
-                    pred_words_list = de_numericalize(self.dl.TGT.vocab, pred_tokens)
+                    pred_words_list = de_numericalize(self.dl.SRC.vocab, pred_tokens) # 记得换成TGT
 
                     for src_words, tgt_words, pred_words in zip(src_words_list, tgt_words_list, pred_words_list):
                         f.write('-S: {}'.format(' '.join(src_words)))
@@ -179,4 +180,3 @@ class Translator(object):
                 return print(self._greedy_search(word_list), end="\n")
             else:
                 return print(self._beam_search(word_list), end="\n")
-        
