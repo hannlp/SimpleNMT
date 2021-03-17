@@ -9,7 +9,6 @@ from utils.builder import build_model
 from data.dataloader import MyIterator, batch_size_fn
 from data.utils import prepare_batch
 from data.constants import Constants
-#from data.utils import prepare_batch
 
 
 class Translator(object):
@@ -52,10 +51,11 @@ class Translator(object):
     # TODO: 实现批量生成pred
     def generate(self, test_path, exts, batch_size=3200):
 
-        def de_numericalize(vocab, arr, 
+        def de_numericalize(vocab, tokens, 
                 remove_constants={Constants.PAD, Constants.START, Constants.END}):
-            arr = [[vocab.itos[x] for x in ex if vocab.itos[x] not in remove_constants] for ex in arr]
-            return arr
+            words = [[vocab.itos[x] for x in ex 
+                        if vocab.itos[x] not in remove_constants] for ex in tokens]
+            return words
 
         test = datasets.TranslationDataset(
             path=test_path, exts=exts, 
@@ -87,30 +87,31 @@ class Translator(object):
   
     def batch_greedy_search(self, src_tokens):
         batch_size = src_tokens.size(0)
+        all_end = torch.tensor([False] * batch_size)
         src_mask = src_tokens.eq(self.src_pdx).to(self.device)
         encoder_out = self.model.encoder(src_tokens, src_mask)
-        gen_seqs = torch.full((batch_size, 1), self.tgt_sos_idx).to(self.device) # prev_tgt_tokens
+
+        gen_seqs = torch.full((batch_size, 1), self.tgt_sos_idx).to(self.device) # (batch_size, 1) -> <sos>
         tgt_mask = gen_seqs.eq(self.tgt_pdx).to(self.device)
         decoder_out = self.model.decoder(
             gen_seqs, encoder_out, src_mask, tgt_mask)
-        out = F.softmax(self.model.out_vocab_proj(decoder_out), dim=-1)
-        _, max_idxs = out[:, -1, :].topk(1)
-        for step in range(2, 10):
-            new_words = max_idxs.to(self.device)
+        model_out = F.softmax(self.model.out_vocab_proj(decoder_out), dim=-1)
+        _, max_idxs = model_out[:, -1, :].topk(1) # new_words
+        
+        for step in range(2, self.max_seq_length):
             #TODO : stop rules
-            # if new_word == self.tgt_eos_idx:
-            #     break
-            gen_seqs = torch.cat((gen_seqs, new_words), dim=1)  # (batch_size, step)
+            all_end = all_end | max_idxs.eq(self.tgt_eos_idx)
+            if False not in all_end:
+                break
+            gen_seqs = torch.cat((gen_seqs, max_idxs.to(self.device)), dim=1)  # (batch_size, step)
             tgt_mask = gen_seqs.eq(self.tgt_pdx).to(self.device)
 
             decoder_out = self.model.decoder(
                 gen_seqs, encoder_out, src_mask, tgt_mask)
-            out = F.softmax(self.model.out_vocab_proj(decoder_out), dim=-1)
-            # print(out.shape) # (1, 1(step), tgt_vocab_size)
-            _, max_idxs = out[:, -1, :].topk(1)
+            model_out = F.softmax(self.model.out_vocab_proj(decoder_out), dim=-1)
+            _, max_idxs = model_out[:, -1, :].topk(1)
         
-        #return ' '.join([self.tgt_itos[w_id] for w_id in list(prev_tgt_tokens.squeeze().detach()[1:])])
-        return gen_seqs#src_tokens
+        return gen_seqs
 
     # TODO: 由于最后一层线性映射从decoder换到了transformer，所以这里面都需要调整
     def _greedy_search(self, word_list):
