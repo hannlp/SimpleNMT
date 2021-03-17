@@ -78,7 +78,7 @@ class Translator(object):
                     tgt_words_list = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
                     
                     pred_tokens = self.batch_greedy_search(src_tokens)
-                    pred_words_list = de_numericalize(self.dl.SRC.vocab, pred_tokens) # 记得换成TGT
+                    pred_words_list = de_numericalize(self.dl.TGT.vocab, pred_tokens) # 记得换成TGT
 
                     for src_words, tgt_words, pred_words in zip(src_words_list, tgt_words_list, pred_words_list):
                         f.write('-S: {}'.format(' '.join(src_words)) + '\n')
@@ -87,7 +87,31 @@ class Translator(object):
                 
     def batch_greedy_search(self, src_tokens):
         # TODO
-        return src_tokens           
+        batch_size = src_tokens.size(0)
+        src_mask = src_tokens.eq(self.src_pdx).to(self.device)
+        encoder_out = self.model.encoder(src_tokens, src_mask)
+        gen_seqs = torch.full((batch_size, 1), self.tgt_sos_idx).to(self.device) # prev_tgt_tokens
+        tgt_mask = gen_seqs.eq(self.tgt_pdx).to(self.device)
+        decoder_out = self.model.decoder(
+            gen_seqs, encoder_out, src_mask, tgt_mask)
+        out = F.softmax(self.model.out_vocab_proj(decoder_out), dim=-1)
+        _, max_idxs = out[:, -1, :].topk(1)
+        for step in range(2, 10):
+            new_words = max_idxs.to(self.device)
+            #TODO : stop rules
+            # if new_word == self.tgt_eos_idx:
+            #     break
+            gen_seqs = torch.cat((gen_seqs, new_words), dim=1)  # (batch_size, step)
+            tgt_mask = gen_seqs.eq(self.tgt_pdx).to(self.device)
+
+            decoder_out = self.model.decoder(
+                gen_seqs, encoder_out, src_mask, tgt_mask)
+            out = F.softmax(self.model.out_vocab_proj(decoder_out), dim=-1)
+            # print(out.shape) # (1, 1(step), tgt_vocab_size)
+            _, max_idxs = out[:, -1, :].topk(1)
+        
+        #return ' '.join([self.tgt_itos[w_id] for w_id in list(prev_tgt_tokens.squeeze().detach()[1:])])
+        return gen_seqs#src_tokens
 
     # TODO: 由于最后一层线性映射从decoder换到了transformer，所以这里面都需要调整
     def _greedy_search(self, word_list):
