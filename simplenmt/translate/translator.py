@@ -84,9 +84,8 @@ class Translator(object):
                         f.write('-S: {}'.format(' '.join(src_words)) + '\n')
                         f.write('-T: {}'.format(' '.join(tgt_words)) + '\n')
                         f.write('-P: {}'.format(' '.join(pred_words)) + '\n\n')
-                
+  
     def batch_greedy_search(self, src_tokens):
-        # TODO
         batch_size = src_tokens.size(0)
         src_mask = src_tokens.eq(self.src_pdx).to(self.device)
         encoder_out = self.model.encoder(src_tokens, src_mask)
