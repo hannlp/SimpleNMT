@@ -7,14 +7,14 @@ import logging
 import torch
 from models.transformer_fix import Transformer
 
-def prepare_batch(batch, use_cuda=False):
+'''def prepare_batch(batch, use_cuda=False):
     src_tokens = batch.src.transpose(0, 1)
     prev_tgt_tokens = batch.trg.transpose(0, 1)[:, :-1]
     tgt_tokens = batch.trg.transpose(0, 1)[:, 1:]
     if use_cuda:
         src_tokens, prev_tgt_tokens, tgt_tokens = src_tokens.cuda(
         ), prev_tgt_tokens.cuda(), tgt_tokens.cuda()
-    return src_tokens, prev_tgt_tokens, tgt_tokens
+    return src_tokens, prev_tgt_tokens, tgt_tokens'''
 
 def build_model(args, use_cuda):
 
@@ -85,29 +85,6 @@ class Translator(object):
             model = model.module
         model.to(self.device)
         return model
-
-    def generate(self, data_iter, use_cuda):
-        abatch = next(iter(data_iter))
-        src_tokens, prev_tgt_tokens, tgt_tokens = prepare_batch(
-            abatch, use_cuda)
-        with torch.no_grad():
-            out_tokens = torch.argmax(
-                nn.functional.softmax(self.model(src_tokens, prev_tgt_tokens), dim=-1), dim=-1)
-
-        def show_src_tgt_out(src, tgt, out):
-            batch_size = out.size(0)
-            for b in range(batch_size):
-                print('\n|src: ', end=" ")
-                for i in range(src.size(1)):
-                    print(self.SRC_VOCAB.itos[src[b, i]], end=' ')
-                print('\n|gold: ', end=" ")
-                for i in range(tgt.size(1)):
-                    print(self.TGT_VOCAB.itos[tgt[b, i]], end='')
-                print('\n|out: ', end=" ")
-                for i in range(out.size(1)):
-                    print(self.TGT_VOCAB.itos[out[b, i]], end='')
-                print()
-        show_src_tgt_out(src_tokens, tgt_tokens, out_tokens)
 
     # TODO: 由于最后一层线性映射从decoder换到了transformer，所以这里面都需要调整
     def _greedy_search(self, word_list):
@@ -213,3 +190,28 @@ class args:
   
 translator = Translator(args)
 translator.translate("我爱你们。")
+
+'''
+def generate(self, data_iter, use_cuda):
+    abatch = next(iter(data_iter))
+    src_tokens, prev_tgt_tokens, tgt_tokens = prepare_batch(
+        abatch, use_cuda)
+    with torch.no_grad():
+        out_tokens = torch.argmax(
+            nn.functional.softmax(self.model(src_tokens, prev_tgt_tokens), dim=-1), dim=-1)
+
+    def show_src_tgt_out(src, tgt, out):
+        batch_size = out.size(0)
+        for b in range(batch_size):
+            print('\n|src: ', end=" ")
+            for i in range(src.size(1)):
+                print(self.SRC_VOCAB.itos[src[b, i]], end=' ')
+            print('\n|gold: ', end=" ")
+            for i in range(tgt.size(1)):
+                print(self.TGT_VOCAB.itos[tgt[b, i]], end='')
+            print('\n|out: ', end=" ")
+            for i in range(out.size(1)):
+                print(self.TGT_VOCAB.itos[out[b, i]], end='')
+            print()
+    show_src_tgt_out(src_tokens, tgt_tokens, out_tokens)
+'''

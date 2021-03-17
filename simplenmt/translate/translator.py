@@ -4,8 +4,9 @@ import torch.nn.functional as F
 import dill
 import jieba
 import logging
+from torchtext import datasets
 from utils.builder import build_model
-from data.utils import prepare_batch
+#from data.utils import prepare_batch
 
 
 class Translator(object):
@@ -45,38 +46,23 @@ class Translator(object):
         model.to(self.device)
         return model
 
-    def generate(self, data_iter, use_cuda):
-        abatch = next(iter(data_iter))
-        src_tokens, prev_tgt_tokens, tgt_tokens = prepare_batch(
-            abatch, use_cuda)
+    # TODO: 实现批量生成pred
+    def generate(self, test_path, src):
+        test = datasets.TranslationDataset(
+            path=test_path, exts=('.en', '.de'), 
+            fields=(('src', self.dl.SRC), ('trg', self.dl.TGT)))
         with torch.no_grad():
-            out_tokens = torch.argmax(
-                nn.functional.softmax(self.model(src_tokens, prev_tgt_tokens), dim=-1), dim=-1)
-
-        def show_src_tgt_out(src, tgt, out):
-            batch_size = out.size(0)
-            for b in range(batch_size):
-                print('\n|src: ', end=" ")
-                for i in range(src.size(1)):
-                    print(self.SRC_VOCAB.itos[src[b, i]], end=' ')
-                print('\n|gold: ', end=" ")
-                for i in range(tgt.size(1)):
-                    print(self.TGT_VOCAB.itos[tgt[b, i]], end='')
-                print('\n|out: ', end=" ")
-                for i in range(out.size(1)):
-                    print(self.TGT_VOCAB.itos[out[b, i]], end='')
-                print()
-        show_src_tgt_out(src_tokens, tgt_tokens, out_tokens)
+            pass
 
     # TODO: 由于最后一层线性映射从decoder换到了transformer，所以这里面都需要调整
     def _greedy_search(self, word_list):
         src_tokens = torch.tensor([[self.src_stoi[s]
                                    for s in word_list]]).to(self.device)
-        src_mask = (src_tokens != self.src_pdx).to(self.device)
+        src_mask = src_tokens.eq(self.src_pdx).to(self.device)
         encoder_out = self.model.encoder(src_tokens, src_mask)
 
         prev_tgt_tokens = torch.tensor([[self.tgt_sos_idx]]).to(self.device)  # <sos>
-        tgt_mask = (prev_tgt_tokens != self.tgt_pdx).to(self.device)
+        tgt_mask = prev_tgt_tokens.eq(self.tgt_pdx).to(self.device)
         decoder_out = self.model.decoder(
             prev_tgt_tokens, encoder_out, src_mask, tgt_mask)
         out = F.softmax(self.model.out_vocab_proj(decoder_out), dim=-1)
@@ -89,7 +75,7 @@ class Translator(object):
                 break
             prev_tgt_tokens = torch.cat(
                 (prev_tgt_tokens, new_word), dim=1)  # (1, step)
-            tgt_mask = (prev_tgt_tokens != self.tgt_pdx).to(self.device)
+            tgt_mask = prev_tgt_tokens.eq(self.tgt_pdx).to(self.device)
 
             decoder_out = self.model.decoder(
                 prev_tgt_tokens, encoder_out, src_mask, tgt_mask)
