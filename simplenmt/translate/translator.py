@@ -53,8 +53,10 @@ class Translator(object):
 
         def de_numericalize(vocab, tokens, 
                 remove_constants={Constants.PAD, Constants.START, Constants.END}):
+            
             words = [[vocab.itos[x] for x in ex 
                         if vocab.itos[x] not in remove_constants] for ex in tokens]
+            # TODO 不仅不输出这些，终止符后面的也不能输出
             return words
 
         test = datasets.TranslationDataset(
@@ -70,7 +72,7 @@ class Translator(object):
         print('Writing result to {} ...'.format(test_path + '.result'))
         with open(test_path + '.result', 'w', encoding='utf8') as f:
             with torch.no_grad():
-                for _, batch in enumerate(test_iter, start=1):
+                for batch in test_iter:
                     src_tokens, _, tgt_tokens = prepare_batch(
                         batch, use_cuda=torch.cuda.is_available())
 
@@ -100,7 +102,7 @@ class Translator(object):
         
         for step in range(2, self.max_seq_length):
             #TODO : stop rules
-            all_end = all_end | max_idxs.eq(self.tgt_eos_idx)
+            all_end = all_end | max_idxs.eq(self.tgt_eos_idx).squeeze()
             if False not in all_end:
                 break
             gen_seqs = torch.cat((gen_seqs, max_idxs.to(self.device)), dim=1)  # (batch_size, step)
