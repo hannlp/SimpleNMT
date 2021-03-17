@@ -8,6 +8,7 @@ from torchtext import datasets
 from utils.builder import build_model
 from data.dataloader import MyIterator, batch_size_fn
 from data.utils import prepare_batch
+from data.constants import Constants
 #from data.utils import prepare_batch
 
 
@@ -51,8 +52,9 @@ class Translator(object):
     # TODO: 实现批量生成pred
     def generate(self, test_path, exts, batch_size=3200):
 
-        def de_numericalize(vocab, arr):
-            arr = [[vocab.itos[x] for x in ex] for ex in arr]
+        def de_numericalize(vocab, arr, 
+                remove_constants={Constants.PAD, Constants.START, Constants.END}):
+            arr = [[vocab.itos[x] for x in ex if vocab.itos[x] not in remove_constants] for ex in arr]
             return arr
 
         test = datasets.TranslationDataset(
@@ -79,9 +81,9 @@ class Translator(object):
                     pred_words_list = de_numericalize(self.dl.SRC.vocab, pred_tokens) # 记得换成TGT
 
                     for src_words, tgt_words, pred_words in zip(src_words_list, tgt_words_list, pred_words_list):
-                        f.write('-S: {}'.format(' '.join(src_words)))
-                        f.write('-T: {}'.format(' '.join(tgt_words)))
-                        f.write('-P: {}'.format(' '.join(pred_words)))
+                        f.write('-S: {}'.format(' '.join(src_words)) + '\n')
+                        f.write('-T: {}'.format(' '.join(tgt_words)) + '\n')
+                        f.write('-P: {}'.format(' '.join(pred_words)) + '\n\n')
                 
     def batch_greedy_search(self, src_tokens):
         # TODO
