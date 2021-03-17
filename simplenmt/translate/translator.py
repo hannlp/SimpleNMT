@@ -54,10 +54,24 @@ class Translator(object):
         def de_numericalize(vocab, tokens, 
                 remove_constants={Constants.PAD, Constants.START, Constants.END}):
             
-            words = [[vocab.itos[x] for x in ex 
-                        if vocab.itos[x] not in remove_constants] for ex in tokens]
+            sentences = []
+            for ex in tokens:
+                end = False
+                words_list = []
+                for x in ex:
+                    word = vocab.itos[x]
+                    if word not in remove_constants and not end:
+                        words_list.append(word)
+                    elif word == Constants.END:
+                        end = True
+                    else:
+                        pass
+                sentences.append(words_list)
+
+            # words = [[vocab.itos[x] for x in ex 
+            #             if vocab.itos[x] not in remove_constants] for ex in tokens]
             # TODO 不仅不输出这些，终止符后面的也不能输出
-            return words
+            return sentences
 
         test = datasets.TranslationDataset(
             path=test_path, exts=exts, 
@@ -76,13 +90,13 @@ class Translator(object):
                     src_tokens, _, tgt_tokens = prepare_batch(
                         batch, use_cuda=torch.cuda.is_available())
 
-                    src_words_list = de_numericalize(self.dl.SRC.vocab, src_tokens)
-                    tgt_words_list = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
+                    src_sentences = de_numericalize(self.dl.SRC.vocab, src_tokens)
+                    tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
                     
                     pred_tokens = self.batch_greedy_search(src_tokens)
-                    pred_words_list = de_numericalize(self.dl.TGT.vocab, pred_tokens) # 记得换成TGT
+                    pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens) # 记得换成TGT
 
-                    for src_words, tgt_words, pred_words in zip(src_words_list, tgt_words_list, pred_words_list):
+                    for src_words, tgt_words, pred_words in zip(src_sentences, tgt_sentences, pred_sentences):
                         f.write('-S: {}'.format(' '.join(src_words)) + '\n')
                         f.write('-T: {}'.format(' '.join(tgt_words)) + '\n')
                         f.write('-P: {}'.format(' '.join(pred_words)) + '\n\n')
