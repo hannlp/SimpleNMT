@@ -64,22 +64,27 @@ class Translator(object):
                                 (len(x.src), len(x.trg)),
                                 batch_size_fn=batch_size_fn, train=True,
                                 shuffle=True)
-        with torch.no_grad():
-            with open(test + '.result', 'w') as f:
+
+        with open(test_path + '.result', 'w') as f:
+            with torch.no_grad():
                 for _, batch in enumerate(test_iter, start=1):
                     src_tokens, _, tgt_tokens = prepare_batch(
                         batch, use_cuda=self.use_cuda)
-                    # TODO : 解码
 
                     src_words_list = de_numericalize(self.dl.SRC.vocab, src_tokens)
                     tgt_words_list = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
-                    batch_size = len(src_words_list)
-                    for src_words, tgt_words in zip(src_words_list, tgt_words_list):                      
-                        f.write('-S {}'.format())
-                        f.write('-T {}'.foramt())
-                        f.write('-P {}'.format())
+                    
+                    pred_tokens = self.batch_greedy_search(src_tokens)
+                    pred_words_list = de_numericalize(self.dl.TGT.vocab, pred_tokens)
+
+                    for src_words, tgt_words, pred_words in zip(src_words_list, tgt_words_list, pred_words_list):
+                        f.write('-S: {}'.format(' '.join(src_words)))
+                        f.write('-T: {}'.format(' '.join(tgt_words)))
+                        f.write('-P: {}'.format(' '.join(pred_words)))
                 
-                
+    def batch_greedy_search(self, src_tokens):
+        # TODO
+        return src_tokens           
 
     # TODO: 由于最后一层线性映射从decoder换到了transformer，所以这里面都需要调整
     def _greedy_search(self, word_list):
