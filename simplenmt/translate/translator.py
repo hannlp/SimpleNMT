@@ -6,6 +6,8 @@ import jieba
 import logging
 from torchtext import datasets
 from utils.builder import build_model
+from data.dataloader import MyIterator, batch_size_fn
+from data.utils import prepare_batch
 #from data.utils import prepare_batch
 
 
@@ -47,12 +49,37 @@ class Translator(object):
         return model
 
     # TODO: 实现批量生成pred
-    def generate(self, test_path, src):
+    def generate(self, test_path, exts, batch_size=3200):
+
+        def de_numericalize(vocab, arr):
+            arr = [[vocab.itos[x] for x in ex] for ex in arr]
+            return arr
+
         test = datasets.TranslationDataset(
-            path=test_path, exts=('.en', '.de'), 
+            path=test_path, exts=('.' + exts[0], '.' + exts[1]), 
             fields=(('src', self.dl.SRC), ('trg', self.dl.TGT)))
+        
+        test_iter = MyIterator(test, batch_size=batch_size, device=None,
+                                repeat=False, sort_key=lambda x:
+                                (len(x.src), len(x.trg)),
+                                batch_size_fn=batch_size_fn, train=True,
+                                shuffle=True)
         with torch.no_grad():
-            pass
+            with open(test + '.result', 'w') as f:
+                for _, batch in enumerate(test_iter, start=1):
+                    src_tokens, _, tgt_tokens = prepare_batch(
+                        batch, use_cuda=self.use_cuda)
+                    # TODO : 解码
+
+                    src_words_list = de_numericalize(self.dl.SRC.vocab, src_tokens)
+                    tgt_words_list = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
+                    batch_size = len(src_words_list)
+                    for src_words, tgt_words in zip(src_words_list, tgt_words_list):                      
+                        f.write('-S {}'.format())
+                        f.write('-T {}'.foramt())
+                        f.write('-P {}'.format())
+                
+                
 
     # TODO: 由于最后一层线性映射从decoder换到了transformer，所以这里面都需要调整
     def _greedy_search(self, word_list):
