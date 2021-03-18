@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import time
 import torch.nn.functional as F
 import dill
 import jieba
@@ -83,7 +84,8 @@ class Translator(object):
                                 batch_size_fn=batch_size_fn, train=True,
                                 shuffle=True)
 
-        print('Writing result to {} ...'.format(test_path + '.result'))
+        print('Writing result to {} ...'.format(test_path + '.result'), end='')
+        start_time = time.time()
         with open(test_path + '.result', 'w', encoding='utf8') as f:
             with torch.no_grad():
                 for batch in test_iter:
@@ -100,7 +102,8 @@ class Translator(object):
                         f.write('-S: {}'.format(' '.join(src_words)) + '\n')
                         f.write('-T: {}'.format(' '.join(tgt_words)) + '\n')
                         f.write('-P: {}'.format(' '.join(pred_words)) + '\n\n')
-  
+        print('Successful. generate time:{:.1f}'.format((time.time() - start_time) / 60))
+
     def batch_greedy_search(self, src_tokens):
         batch_size = src_tokens.size(0)
         done = torch.tensor([False] * batch_size)
