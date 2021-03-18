@@ -103,7 +103,7 @@ class Translator(object):
   
     def batch_greedy_search(self, src_tokens):
         batch_size = src_tokens.size(0)
-        all_end = torch.tensor([False] * batch_size)
+        done = torch.tensor([False] * batch_size)
         src_mask = src_tokens.eq(self.src_pdx).to(self.device)
         encoder_out = self.model.encoder(src_tokens, src_mask)
 
@@ -116,8 +116,8 @@ class Translator(object):
         
         for step in range(2, self.max_seq_length):
             #TODO : stop rules
-            all_end = all_end | max_idxs.eq(self.tgt_eos_idx).squeeze()
-            if False not in all_end:
+            done = done | max_idxs.eq(self.tgt_eos_idx).squeeze()
+            if all(done):
                 break
             gen_seqs = torch.cat((gen_seqs, max_idxs.to(self.device)), dim=1)  # (batch_size, step)
             tgt_mask = gen_seqs.eq(self.tgt_pdx).to(self.device)
