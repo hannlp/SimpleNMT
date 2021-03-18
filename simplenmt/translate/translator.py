@@ -102,6 +102,7 @@ class Translator(object):
                         f.write('-S: {}'.format(' '.join(src_words)) + '\n')
                         f.write('-T: {}'.format(' '.join(tgt_words)) + '\n')
                         f.write('-P: {}'.format(' '.join(pred_words)) + '\n\n')
+                        
         print('Successful. generate time:{:.1f}'.format((time.time() - start_time) / 60))
 
     def batch_greedy_search(self, src_tokens):
