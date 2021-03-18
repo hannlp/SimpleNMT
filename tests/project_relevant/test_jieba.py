@@ -1,7 +1,13 @@
 import jieba
 
-sentence = "我爱你，我亲爱的祖国母亲。"
+zh = "我爱你，我亲爱的祖国母亲。"
 
-word_list = list(jieba.cut(sentence))
+word_list1 = list(jieba.cut(zh))
 
-print(word_list)
+en = 'in Europe , knowing that the current bank is explicitly to address \
+    its capital shortfalls and leverage problems , and to treat residual assets with residual residual status.'
+
+word_list2 = [w for w in list(jieba.cut(en)) if w.strip()]
+
+print(word_list1)
+print(word_list2)
