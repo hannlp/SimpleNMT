@@ -28,7 +28,7 @@ def main():
         #python translate.py -src zh -tgt en -dl_path E:\yuchen\zh_en.dl -ckpt_path E:\yuchen
         while True:
             sentence = input('Please input a sentence({}): '.format(args.src))
-            translator.translate(sentence, beam_size=args.beam_size, src_lang=args.src, tgt_lang=args.tgt)
+            translator.translate(sentence, beam_size=args.beam_size)#, src_lang=args.src, tgt_lang=args.tgt)
 
 if __name__ == '__main__':
     main()
