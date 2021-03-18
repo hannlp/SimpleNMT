@@ -211,12 +211,9 @@ class Translator(object):
         
         return ''.join([self.tgt_itos[s] for s in gen_seqs[ans_idx, :seq_lens[ans_idx]]])
 
-    def translate(self, sentence: str, beam_size=8, src_lang='zh', tgt_lang='en'):
+    def translate(self, sentence: str, beam_size=8):
         jieba.setLogLevel(logging.INFO)
-        if src_lang == 'zh':
-            word_list = list(jieba.cut(sentence))
-        else:
-            word_list = sentence.split()
+        word_list = [w for w in list(jieba.cut(sentence)) if w.strip()]
         with torch.no_grad():
             if beam_size == 1:
                 return print(self._greedy_search(word_list), end="\n")
