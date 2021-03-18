@@ -20,6 +20,7 @@ def main():
     args = parse()
     translator = Translator(args)
     if args.generate:
+        #python -u translate.py -generate -src zh -tgt en -dl_path E:\yuchen\models\ldc\zh_en.dl -ckpt_path E:\yuchen\models\ldc -test_path E:\yuchen\ldc_test
         #python translate.py -generate -src zh -tgt en -dl_path E:\yuchen\zh_en.dl -ckpt_path E:\yuchen -test_path E:\yuchen\ldc_valid
         translator.generate(
             exts=('.' + args.src, '.' + args.tgt),
