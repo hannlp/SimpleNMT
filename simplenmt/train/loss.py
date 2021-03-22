@@ -14,9 +14,8 @@ class LabelSmoothingLoss(nn.Module):
         input (FloatTensor): batch_size x n_classes
         target (LongTensor): batch_size
         """
-        n_tgt_words = input.size(-1)
         one_hot = torch.zeros_like(input).scatter(1, target.unsqueeze(-1), 1)
-        weight = one_hot * (1 - self.label_smoothing) + (1 - one_hot) * self.label_smoothing / (n_tgt_words - 1)
+        weight = one_hot * (1 - self.label_smoothing) + (1 - one_hot) * self.label_smoothing / (input.size(-1) - 1)
 
         log_prob = F.log_softmax(input, dim=-1)     
         loss = -(weight * log_prob).sum(dim=-1)
