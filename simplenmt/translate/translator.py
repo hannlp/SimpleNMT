@@ -6,7 +6,7 @@ import dill
 import jieba
 import logging
 from torchtext import datasets
-from utils.builder import build_model
+from models import build_model
 from data.dataloader import MyIterator, batch_size_fn
 from data.utils import prepare_batch
 from data.constants import Constants
