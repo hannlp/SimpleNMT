@@ -85,30 +85,30 @@ class Translator(object):
 
         print('Writing result to {} ...'.format(test_path + '.result'), end='')
         start_time = time.time()
-        #with open(test_path + '.result', 'w', encoding='utf8') as f:
-        with torch.no_grad():
-            for i, batch in enumerate(test_iter, start=1):
-                print(i)
-                print("preparing batch")
-                src_tokens, _, tgt_tokens = prepare_batch(
-                    batch, use_cuda=torch.cuda.is_available())
+        with open(test_path + '.result', 'w', encoding='utf8') as f:
+            with torch.no_grad():
+                for i, batch in enumerate(test_iter, start=1):
+                    print(i)
+                    print("preparing batch")
+                    src_tokens, _, tgt_tokens = prepare_batch(
+                        batch, use_cuda=torch.cuda.is_available())
 
-                src_sentences = de_numericalize(self.dl.SRC.vocab, src_tokens)
-                tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
-                
-                print("start batch greedy search")
-                pred_tokens = self.batch_greedy_search(src_tokens)
-                print("end batch greedy search")
+                    src_sentences = de_numericalize(self.dl.SRC.vocab, src_tokens)
+                    tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
+                    
+                    print("start batch greedy search")
+                    pred_tokens = self.batch_greedy_search(src_tokens)
+                    print("end batch greedy search")
 
-                pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens) # 记得换成TGT
+                    pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens) # 记得换成TGT
 
-                for src_words, tgt_words, pred_words in zip(src_sentences, tgt_sentences, pred_sentences):
-                    print('-S: {}'.format(' '.join(src_words)) + '\n' + 
-                          '-T: {}'.format(' '.join(tgt_words)) + '\n' + 
-                          '-P: {}'.format(' '.join(pred_words)) + '\n\n')
-                    # f.write('-S: {}'.format(' '.join(src_words)) + '\n')
-                    # f.write('-T: {}'.format(' '.join(tgt_words)) + '\n')
-                    # f.write('-P: {}'.format(' '.join(pred_words)) + '\n\n')
+                    for src_words, tgt_words, pred_words in zip(src_sentences, tgt_sentences, pred_sentences):
+                        # print('-S: {}'.format(' '.join(src_words)) + '\n' + 
+                        #       '-T: {}'.format(' '.join(tgt_words)) + '\n' + 
+                        #       '-P: {}'.format(' '.join(pred_words)) + '\n\n')
+                        f.write('-S: {}'.format(' '.join(src_words)) + '\n')
+                        f.write('-T: {}'.format(' '.join(tgt_words)) + '\n')
+                        f.write('-P: {}'.format(' '.join(pred_words)) + '\n\n')
 
         print('Successful. generate time:{:.1f}'.format((time.time() - start_time) / 60))
 
