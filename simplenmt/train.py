@@ -4,6 +4,7 @@ import argparse
 from data.dataloader import DataLoader
 from train.trainer import Trainer
 from utils.builder import build_model
+from train.loss import LabelSmoothingLoss
 
 def parse():
     # The arguments for DataLoader and Trainer
@@ -31,6 +32,7 @@ def parse():
     parser.add_argument("-share_vocab", help="share src tgt embeddings and share decoder embeddings", action="store_true")
     #parser.add_argument("-share_decoder_embeddings", action="store_true")
     
+    parser.add_argument("-label_smoothing", type=float, default=0.1)
     args = parser.parse_args()
     return args
 
@@ -53,11 +55,14 @@ def main():
     print(args)
   
     model = build_model(args, use_cuda=use_cuda)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, betas=args.betas, eps=1e-9)
+    if args.label_smoothing:
+        criterion = LabelSmoothingLoss(args.label_smoothing, ignore_index=args.tgt_pdx, reduction='mean')
+    else:
+        criterion = nn.CrossEntropyLoss(ignore_index=args.tgt_pdx, reduction='mean')
     trainer = Trainer(args, model=model,
-                      optimizer=torch.optim.Adam(
-                          model.parameters(), lr=1e-3, betas=(0.9, 0.98), eps=1e-9),
-                      criterion=nn.CrossEntropyLoss(
-                          ignore_index=args.tgt_pdx, reduction='mean'),
+                      optimizer=optimizer,
+                      criterion=criterion,
                       use_cuda=use_cuda
                       )
     trainer.train(train_iter, valid_iter, n_epochs=args.n_epochs,
