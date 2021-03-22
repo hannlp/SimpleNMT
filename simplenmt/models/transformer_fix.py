@@ -37,7 +37,7 @@ class Transformer(nn.Module):
         - prev_tgt_tokens: (batch_size, tgt_len)
 
         return:
-        - decoder_out: (batch_size, tgt_len, n_tgt_words)
+        - model_out: (batch_size, tgt_len, n_tgt_words)
         '''
 
         src_mask = src_tokens.eq(self.src_pdx)
