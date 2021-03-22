@@ -11,7 +11,6 @@ from models import build_model
 from data.dataloader import MyIterator, batch_size_fn
 from data.utils import prepare_batch
 from data.constants import Constants
-from torch.autograd import Variable
 
 class Translator(object):
     def __init__(self, args):
@@ -97,8 +96,8 @@ class Translator(object):
                 tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
                 
                 print("start batch greedy search")
-                #pred_tokens = self.batch_beam_search(src_tokens, beam_size=4)
-                pred_tokens = self.batch_greedy_search(src_tokens)
+                pred_tokens = self.batch_beam_search(src_tokens, beam_size=4)
+                #pred_tokens = self.batch_greedy_search(src_tokens)
                 print("end batch greedy search")
 
                 pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens) # 记得换成TGT
@@ -251,11 +250,6 @@ class Translator(object):
                 b.get_current_state() for b in beams if not b.done])
             # size: [batch_size * beam_size x seq_len]
             dec_partial_inputs = dec_partial_inputs.view(-1, len_dec_seq)
-            # wrap into a Variable
-            dec_partial_inputs = Variable(dec_partial_inputs, volatile=True)
-
-            dec_partial_inputs_len = torch.LongTensor(n_remaining_sents,).fill_(len_dec_seq) # TODO: note
-            dec_partial_inputs_len = dec_partial_inputs_len.repeat(beam_size)
 
             print("解到第{}步了".format(len_dec_seq))
             # Decoding
@@ -296,8 +290,7 @@ class Translator(object):
                 original_seq_data = seq_var.data.view(n_remaining_sents, -1)
                 active_seq_data = original_seq_data.index_select(0, active_inst_idxs)
                 active_seq_data = active_seq_data.view(*new_size)
-
-                return Variable(active_seq_data, volatile=True)
+                return active_seq_data
 
             def update_active_enc_info(enc_info_var, active_inst_idxs):
                 ''' Remove the encoder outputs of finished instances in one batch. '''
@@ -311,8 +304,7 @@ class Translator(object):
                     n_remaining_sents, -1, self.model.d_model)
                 active_enc_info_data = original_enc_info_data.index_select(0, active_inst_idxs)
                 active_enc_info_data = active_enc_info_data.view(*new_size)
-
-                return Variable(active_enc_info_data, volatile=True)
+                return active_enc_info_data
 
             src_tokens = update_active_seq(src_tokens, active_inst_idxs)
             encoder_out = update_active_enc_info(encoder_out, active_inst_idxs)
