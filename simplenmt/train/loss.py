@@ -16,11 +16,12 @@ class LabelSmoothingLoss(nn.Module):
         """
         n_tgt_words = input.size(-1)
         one_hot = torch.zeros_like(input).scatter(1, target.unsqueeze(-1), 1)
-        one_hot = one_hot * (1 - self.label_smoothing) + \
-            (1 - one_hot) * self.label_smoothing / (n_tgt_words - 1)
-        log_prob = F.log_softmax(input, dim=1)
+        weight = one_hot * (1 - self.label_smoothing) + (1 - one_hot) * self.label_smoothing / (n_tgt_words - 1)
+
+        log_prob = F.log_softmax(input, dim=-1)     
+        loss = -(weight * log_prob).sum(dim=-1)
+
         non_pad_mask = target.ne(self.ignore_index)
-        loss = -(one_hot * log_prob).sum(dim=-1)
         if self.reduction == "mean":
             loss = loss.masked_select(non_pad_mask).mean()
         elif self.reduction == "sum":
