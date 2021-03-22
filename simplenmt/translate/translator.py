@@ -217,9 +217,10 @@ class Translator(object):
         
         return ''.join([self.tgt_itos[s] for s in gen_seqs[ans_idx, :seq_lens[ans_idx]]])
 
+    #TODO :to fix this fucntion
     def batch_beam_search(self, src_tokens, beam_size=4):
         ''' Translation work in one batch '''
-        #TODO :to fix this fucntion
+        
         # Batch size is in different location depending on data.
         batch_size = src_tokens.size(0) # src_tokens: [batch_size x src_len]
 
