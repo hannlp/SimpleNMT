@@ -50,7 +50,6 @@ class Translator(object):
         model.to(self.device)
         return model
 
-    # TODO: 实现批量生成pred
     def generate(self, test_path, exts, batch_size=3200):
 
         def de_numericalize(vocab, tokens, 
@@ -86,46 +85,44 @@ class Translator(object):
 
         print('Writing result to {} ...'.format(test_path + '.result'), end='')
         start_time = time.time()
-        with open(test_path + '.result', 'w', encoding='utf8') as f:
-            with torch.no_grad():
-                for i, batch in enumerate(test_iter, start=1):
-                    print(i)
-                    print("preparing batch")
-                    src_tokens, _, tgt_tokens = prepare_batch(
-                        batch, use_cuda=torch.cuda.is_available())
+        #with open(test_path + '.result', 'w', encoding='utf8') as f:
+        with torch.no_grad():
+            for i, batch in enumerate(test_iter, start=1):
+                print(i)
+                print("preparing batch")
+                src_tokens, _, tgt_tokens = prepare_batch(
+                    batch, use_cuda=torch.cuda.is_available())
 
-                    src_sentences = de_numericalize(self.dl.SRC.vocab, src_tokens)
-                    tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
-                    
-                    print("start batch greedy search")
-                    pred_tokens = self.batch_beam_search(src_tokens, beam_size=4)
-                    #pred_tokens = self.batch_greedy_search(src_tokens)
-                    print("end batch greedy search")
+                src_sentences = de_numericalize(self.dl.SRC.vocab, src_tokens)
+                tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
+                
+                print("start batch greedy search")
+                #pred_tokens = self.batch_beam_search(src_tokens, beam_size=4)
+                pred_tokens = self.batch_greedy_search(src_tokens)
+                print("end batch greedy search")
 
-                    pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens) # 记得换成TGT
+                pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens) # 记得换成TGT
 
-                    for src_words, tgt_words, pred_words in zip(src_sentences, tgt_sentences, pred_sentences):
-                        # print('-S: {}'.format(' '.join(src_words)) + '\n' + 
-                        #       '-T: {}'.format(' '.join(tgt_words)) + '\n' + 
-                        #       '-P: {}'.format(' '.join(pred_words)) + '\n\n')
-                        f.write('-S: {}'.format(' '.join(src_words)) + '\n')
-                        f.write('-T: {}'.format(' '.join(tgt_words)) + '\n')
-                        f.write('-P: {}'.format(' '.join(pred_words)) + '\n\n')
+                for src_words, tgt_words, pred_words in zip(src_sentences, tgt_sentences, pred_sentences):
+                    print('-S: {}'.format(' '.join(src_words)) + '\n' + 
+                          '-T: {}'.format(' '.join(tgt_words)) + '\n' + 
+                          '-P: {}'.format(' '.join(pred_words)) + '\n\n')
+                    # f.write('-S: {}'.format(' '.join(src_words)) + '\n')
+                    # f.write('-T: {}'.format(' '.join(tgt_words)) + '\n')
+                    # f.write('-P: {}'.format(' '.join(pred_words)) + '\n\n')
 
         print('Successful. generate time:{:.1f}'.format((time.time() - start_time) / 60))
 
     def batch_greedy_search(self, src_tokens):
         batch_size = src_tokens.size(0)
         done = torch.tensor([False] * batch_size)
-        src_mask = src_tokens.eq(self.src_pdx).to(self.device)
-        encoder_out = self.model.encoder(src_tokens, src_mask)
+        
+        encoder_out, src_mask = self._encode(src_tokens)
 
-        gen_seqs = torch.full((batch_size, 1), self.tgt_sos_idx).to(self.device) # (batch_size, 1) -> <sos>
-        tgt_mask = gen_seqs.eq(self.tgt_pdx).to(self.device)
-        decoder_out = self.model.decoder(
-            gen_seqs, encoder_out, src_mask, tgt_mask)
-        model_out = F.softmax(self.model.out_vocab_proj(decoder_out), dim=-1)
-        _, max_idxs = model_out[:, -1, :].topk(1) # new_words
+        # - gen_seqs: (batch_size, 1) -> <sos>
+        gen_seqs = torch.full((batch_size, 1), self.tgt_sos_idx).to(self.device)
+        probs = F.softmax(self._decode(gen_seqs, encoder_out, src_mask), dim=-1) # TODO: use log_softmax
+        _, max_idxs = probs.topk(1) # new words
         
         for step in range(2, self.max_seq_length):
             #TODO : stop rules
@@ -133,17 +130,13 @@ class Translator(object):
             print(step, done)
             if all(done):
                 break
-            gen_seqs = torch.cat((gen_seqs, max_idxs.to(self.device)), dim=1)  # (batch_size, step)
-            tgt_mask = gen_seqs.eq(self.tgt_pdx).to(self.device)
-
-            decoder_out = self.model.decoder(
-                gen_seqs, encoder_out, src_mask, tgt_mask)
-            model_out = F.softmax(self.model.out_vocab_proj(decoder_out), dim=-1)
-            _, max_idxs = model_out[:, -1, :].topk(1)
+            # - gen_seqs: (batch_size, step) -> batch seqs
+            gen_seqs = torch.cat((gen_seqs, max_idxs.to(self.device)), dim=1)
+            probs = F.softmax(self._decode(gen_seqs, encoder_out, src_mask), dim=-1)
+            _, max_idxs = probs.topk(1)
         
         return gen_seqs
 
-    # TODO: 由于最后一层线性映射从decoder换到了transformer，所以这里面都需要调整
     def _greedy_search(self, word_list):
         src_tokens = torch.tensor([[self.src_stoi[s]
                                    for s in word_list]]).to(self.device)
@@ -236,6 +229,8 @@ class Translator(object):
 
         # Repeat data for beam
         src_tokens = src_tokens.repeat(1, beam_size).view(batch_size * beam_size, -1)
+        src_mask = src_mask.repeat(1, beam_size).view(batch_size * beam_size, -1)
+
         encoder_out =  encoder_out.repeat(1, beam_size, 1).view(
             batch_size * beam_size, encoder_out.size(1), encoder_out.size(2))
 
@@ -246,6 +241,7 @@ class Translator(object):
         }
         n_remaining_sents = batch_size
 
+        print("开始解码了")
         # Decode
         for i in range(self.max_seq_length):
             len_dec_seq = i + 1
@@ -258,21 +254,10 @@ class Translator(object):
             # wrap into a Variable
             dec_partial_inputs = Variable(dec_partial_inputs, volatile=True)
 
-            # Preparing decoded pos_seq
-            # size: [1 x seq]
-            # dec_partial_pos = torch.arange(1, len_dec_seq + 1).unsqueeze(0) # TODO:
-            # # size: [batch_size * beam_size x seq_len]
-            # dec_partial_pos = dec_partial_pos.repeat(n_remaining_sents * beam_size, 1)
-            # # wrap into a Variable
-            # dec_partial_pos = Variable(dec_partial_pos.type(torch.LongTensor), volatile=True)
             dec_partial_inputs_len = torch.LongTensor(n_remaining_sents,).fill_(len_dec_seq) # TODO: note
             dec_partial_inputs_len = dec_partial_inputs_len.repeat(beam_size)
-            #dec_partial_inputs_len = Variable(dec_partial_inputs_len, volatile=True)
 
-            # if self.use_cuda:
-            #     dec_partial_inputs = dec_partial_inputs.cuda()
-            #     dec_partial_inputs_len = dec_partial_inputs_len.cuda()
-
+            print("解到第{}步了".format(len_dec_seq))
             # Decoding
             model_out = self._decode(dec_partial_inputs, encoder_out, src_mask)
             out = F.log_softmax(model_out, dim=-1)
@@ -294,7 +279,7 @@ class Translator(object):
 
             # In this section, the sentences that are still active are
             # compacted so that the decoder is not run on completed sentences
-            active_inst_idxs = self.tt.LongTensor(
+            active_inst_idxs = torch.LongTensor(
                 [beam_inst_idx_map[k] for k in active_beam_idx_list]) # TODO: fix
 
             # update the idx mapping
@@ -349,12 +334,12 @@ class Translator(object):
         return all_hyp, all_scores
 
     def _encode(self, src_tokens):
-        src_mask = src_tokens.eq(self.src_pdx)
+        src_mask = src_tokens.eq(self.src_pdx).to(self.device)
         encoder_out = self.model.encoder(src_tokens, src_mask)
         return encoder_out, src_mask
     
     def _decode(self, prev_tgt_tokens, encoder_out, src_mask):
-        tgt_mask = prev_tgt_tokens.eq(self.tgt_pdx)
+        tgt_mask = prev_tgt_tokens.eq(self.tgt_pdx).to(self.device)
         decoder_out = self.model.decoder(
             prev_tgt_tokens, encoder_out, src_mask, tgt_mask)
         decoder_out = decoder_out[:,-1,:] # get last token

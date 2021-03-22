@@ -15,9 +15,9 @@ class Beam(object):
         self.done = False
 
         # indexs for target
-        self.bos_idx = bos_idx
-        self.eos_idx = eos_idx
-        self.pdx = pdx
+        self.bos_idx = torch.tensor(bos_idx, dtype=torch.long)
+        self.eos_idx = torch.tensor(eos_idx, dtype=torch.long)
+        self.pdx = torch.tensor(pdx, dtype=torch.long)
 
         self.tt = torch.cuda if use_cuda else torch
 
