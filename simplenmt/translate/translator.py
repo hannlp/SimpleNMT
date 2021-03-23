@@ -96,8 +96,8 @@ class Translator(object):
                 tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
                 
                 print("start batch greedy search")
-                pred_tokens = self.batch_beam_search(src_tokens, beam_size=4)
-                #pred_tokens = self.batch_greedy_search(src_tokens)
+                #pred_tokens = self.batch_beam_search(src_tokens, beam_size=4)
+                pred_tokens = self.batch_greedy_search(src_tokens)
                 print("end batch greedy search")
 
                 pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens) # 记得换成TGT
