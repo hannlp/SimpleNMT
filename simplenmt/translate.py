@@ -24,7 +24,7 @@ def main():
         #python translate.py -generate -src zh -tgt en -dl_path E:\yuchen\zh_en.dl -ckpt_path E:\yuchen -test_path E:\yuchen\ldc_valid
         translator.generate(
             exts=('.' + args.src, '.' + args.tgt),
-            test_path=args.test_path, batch_size=800)
+            test_path=args.test_path, batch_size=3200)
     else:
         #python translate.py -src zh -tgt en -dl_path E:\yuchen\zh_en.dl -ckpt_path E:\yuchen
         while True:
