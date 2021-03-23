@@ -114,7 +114,7 @@ class Translator(object):
 
     def batch_greedy_search(self, src_tokens):
         batch_size = src_tokens.size(0)
-        done = torch.tensor([False] * batch_size)
+        done = torch.tensor([False] * batch_size).to(self.device)
         
         encoder_out, src_mask = self._encode(src_tokens)
 
