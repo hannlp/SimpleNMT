@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 #from .transformer import Transformer
 from .transformer_fix import Transformer
+from .rnnsearch import RNNSearch
 
 '''
 transformer_fix:
@@ -19,27 +20,39 @@ transformer_fix:
 
 '''
 
-str2model = {"Transformer": Transformer}
+str2model = {"Transformer": Transformer, 
+             "RNNSearch": RNNSearch}
 
 def build_model(args, use_cuda):
 
     model_args = {
-        "Transformer":
-        {
+        "Transformer": {
             'n_src_words': args.n_src_words,
             'n_tgt_words': args.n_tgt_words, 
             'src_pdx': args.src_pdx, 
             'tgt_pdx': args.tgt_pdx, 
             'd_model': args.d_model, 
             'n_head': args.n_head, 
-            'n_layers':args.n_layers, 
-            'p_drop':args.p_drop,
-            'share_embeddings':args.share_vocab, 
-            'share_decoder_embeddings':args.share_vocab,
-            'max_seq_len':args.max_seq_len
-        }, 
-        "RNN":{}, 
-        "CNN":{}
+            'n_layers': args.n_layers, 
+            'p_drop': args.p_drop,
+            'share_embeddings': args.share_vocab, 
+            'share_decoder_embeddings': args.share_vocab,
+            'max_seq_len': args.max_seq_len
+            }, 
+        "RNNSearch": {
+            'n_src_words': args.n_src_words,
+            'n_tgt_words': args.n_tgt_words,
+            'd_model': args.d_model, 
+            'n_layers': args.n_layers, 
+            'src_pdx': args.src_pdx, 
+            'tgt_pdx': args.tgt_pdx
+            }, 
+        "LSTM": {
+
+            },
+        "CNN": {
+
+            }
         }
     
     MODEL = str2model[args.model]

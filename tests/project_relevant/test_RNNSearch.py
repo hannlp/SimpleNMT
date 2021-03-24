@@ -3,7 +3,7 @@ import os
 print(os.path, os.getcwd())
 sys.path.append(os.getcwd())
 import torch
-from simplenmt.models.RNNSearch import RNNSearch
+from simplenmt.models.rnnsearch import RNNSearch
 
 n_src_words = 20
 n_tgt_words = 25
