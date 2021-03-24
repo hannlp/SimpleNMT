@@ -50,13 +50,12 @@ class Translator(object):
 
     def generate(self, test_path, exts, batch_size=3200):
 
-        def de_numericalize(vocab, tokens, 
-                remove_constants={Constants.PAD, Constants.START, Constants.END}):
+        def de_numericalize(vocab, tokens, remove_constants=
+                            {Constants.PAD, Constants.START, Constants.END}):
             
             sentences = []
             for ex in tokens:
-                end = False
-                words_list = []
+                end, words_list = False, []
                 for x in ex:
                     word = vocab.itos[x]
                     end = True if word == Constants.END else end
@@ -66,9 +65,6 @@ class Translator(object):
                         pass
                 sentences.append(words_list)
 
-            # words = [[vocab.itos[x] for x in ex 
-            #             if vocab.itos[x] not in remove_constants] for ex in tokens]
-            # TODO 不仅不输出这些，终止符后面的也不能输出
             return sentences
 
         test = datasets.TranslationDataset(
@@ -78,7 +74,7 @@ class Translator(object):
         test_iter = MyIterator(test, batch_size=batch_size, device=None,
                                 repeat=False, sort_key=lambda x:
                                 (len(x.src), len(x.trg)),
-                                batch_size_fn=batch_size_fn, train=True,
+                                batch_size_fn=batch_size_fn, train=False,
                                 shuffle=True)
        
         with open(test_path + '.result', 'w', encoding='utf8') as f:
@@ -98,13 +94,12 @@ class Translator(object):
                     pred_tokens = self.batch_greedy_search(src_tokens)
                     #print("end batch greedy search")
 
-                    pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens) # 记得换成TGT
+                    pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens)
 
                     for src_words, tgt_words, pred_words in zip(src_sentences, tgt_sentences, pred_sentences):
                         content = '-S: {}\n-T: {}\n-P: {}\n\n'.format(
-                            ' '.join(src_words), ' '.join(tgt_words), ' '.join(pred_words))
-                        print(content)
-                        f.write(content)
+                            ' '.join(src_words), ' '.join(tgt_words), ' '.join(pred_words))            
+                        f.write(content); print(content)
 
         print('Successful. Generate time:{:.1f} min, results were saved at{}'
                 .format((time.time() - start_time) / 60, test_path + '.result'))
