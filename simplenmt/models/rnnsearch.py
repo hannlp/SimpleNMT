@@ -26,8 +26,7 @@ class RNNSearch(nn.Module):
 class Encoder(nn.Module):
     def __init__(self, n_src_words, src_pdx, d_model, n_layers):
         super().__init__()
-        self.d_model = d_model
-        self.n_layers = n_layers
+        self.d_model, self.n_layers = d_model, n_layers
         self.input_embedding = nn.Embedding(n_src_words, d_model, padding_idx=src_pdx)
         self.gru = nn.GRU(input_size=d_model, hidden_size=d_model, num_layers=n_layers, 
                           batch_first=True)
@@ -42,8 +41,7 @@ class Encoder(nn.Module):
 class Decoder(nn.Module):
     def __init__(self, n_tgt_words, tgt_pdx, d_model, n_layers):
         super().__init__()
-        self.d_model = d_model
-        self.n_layers = n_layers
+        self.d_model, self.n_layers = d_model, n_layers
         self.input_embedding = nn.Embedding(n_tgt_words, d_model, padding_idx=tgt_pdx)
         self.gru = nn.GRU(input_size=d_model, hidden_size=d_model, num_layers=n_layers, 
                           batch_first=True)
