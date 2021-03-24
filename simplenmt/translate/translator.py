@@ -82,7 +82,7 @@ class Translator(object):
                                 batch_size_fn=batch_size_fn, train=True,
                                 shuffle=True)
 
-        print('Writing result to {} ...'.format(test_path + '.result'), end='')
+        print('Writing result to {} ...'.format(test_path + '.result'))
         start_time = time.time()
         with open(test_path + '.result', 'w', encoding='utf8') as f:
             with torch.no_grad():
@@ -102,15 +102,13 @@ class Translator(object):
                     pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens) # 记得换成TGT
 
                     for src_words, tgt_words, pred_words in zip(src_sentences, tgt_sentences, pred_sentences):
-                        print('-S: {}'.format(' '.join(src_words)) + '\n' + 
-                            '-T: {}'.format(' '.join(tgt_words)) + '\n' + 
-                            '-P: {}'.format(' '.join(pred_words)) + '\n\n')
-                        f.write('-S: {}'.format(' '.join(src_words)) + '\n' + 
-                            '-T: {}'.format(' '.join(tgt_words)) + '\n' + 
-                            '-P: {}'.format(' '.join(pred_words)) + '\n\n')
+                        content = '-S: {}\n-T: {}\n-P: {}\n\n'.format(
+                            ' '.join(src_words), ' '.join(tgt_words), ' '.join(pred_words))
+                        print(content)
+                        f.write(content)
 
-        print('Successful. generate time:{:.1f}, results were saved at{}'.format(
-                    (time.time() - start_time) / 60, test_path + '.result'))
+        print('Successful. Generate time:{:.1f} min, results were saved at{}'
+                .format((time.time() - start_time) / 60, test_path + '.result'))
 
     def batch_greedy_search(self, src_tokens):
         batch_size = src_tokens.size(0)
@@ -118,19 +116,21 @@ class Translator(object):
         
         encoder_out, src_mask = self._encode(src_tokens)
 
-        # - gen_seqs: (batch_size, 1) -> <sos>
         gen_seqs = torch.full((batch_size, 1), self.tgt_sos_idx).to(self.device)
+        # - gen_seqs: (batch_size, 1) -> <sos>
+
         probs = F.softmax(self._decode(gen_seqs, encoder_out, src_mask), dim=-1) # TODO: use log_softmax
         _, max_idxs = probs.topk(1) # new words
         
-        for step in range(2, self.max_seq_length):
-            #TODO : stop rules
-            done = done | max_idxs.eq(self.tgt_eos_idx).squeeze()
+        for step in range(2, self.max_seq_length):           
+            done = done | max_idxs.eq(self.tgt_eos_idx).squeeze() #TODO : stop rules
             #print(step, done)
             if all(done):
                 break
-            # - gen_seqs: (batch_size, step) -> batch seqs
+            
             gen_seqs = torch.cat((gen_seqs, max_idxs.to(self.device)), dim=1)
+            # - gen_seqs: (batch_size, step) -> batch seqs
+
             probs = F.softmax(self._decode(gen_seqs, encoder_out, src_mask), dim=-1)
             _, max_idxs = probs.topk(1)
         
