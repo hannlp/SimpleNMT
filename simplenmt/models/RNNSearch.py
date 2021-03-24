@@ -26,7 +26,7 @@ class Encoder(nn.Module):
     def __init__(self, n_src_words, max_src_len, d_model, src_pdx, n_layers):
         super().__init__()
         self.input_embedding = nn.Embedding(n_src_words, d_model, padding_idx=src_pdx)
-        self.lstm = nn.LSTM(input_size=d_model, hidden_size=d_model, num_layers=n_layers)
+        self.lstm = nn.LSTM(input_size=d_model, hidden_size=d_model, num_layers=n_layers, batch_first=True, bidirectional=True)
     
     def forward(self, src_tokens):
         # - src_embed: (batch_size, src_len, d_model)

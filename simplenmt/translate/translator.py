@@ -39,8 +39,7 @@ class Translator(object):
 
         checkpoint = torch.load(
             '{}/checkpoint_best.pt'.format(args.ckpt_path), 
-            map_location=self.device
-            )
+            map_location=self.device)
 
         model = build_model(checkpoint['settings'], use_cuda=torch.cuda.is_available())
         model.load_state_dict(checkpoint['model'])
@@ -81,10 +80,10 @@ class Translator(object):
                                 (len(x.src), len(x.trg)),
                                 batch_size_fn=batch_size_fn, train=True,
                                 shuffle=True)
-
-        print('Writing result to {} ...'.format(test_path + '.result'))
-        start_time = time.time()
+       
         with open(test_path + '.result', 'w', encoding='utf8') as f:
+            start_time = time.time()
+            print('Writing result to {} ...'.format(test_path + '.result'))
             with torch.no_grad():
                 for i, batch in enumerate(test_iter, start=1):
                     #print("batch {}: preparing batch".format(i))
