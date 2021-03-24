@@ -35,7 +35,7 @@ class Encoder(nn.Module):
     def forward(self, src_tokens):
         # - src_embed: (batch_size, src_len, d_model)
         src_embed = self.input_embedding(src_tokens)
-        init_hidden = torch.zeros((self.n_layers * self.n_directions), src_tokens.size(0),  self.d_model)
+        init_hidden = torch.zeros(self.n_layers, src_tokens.size(0),  self.d_model)
         _, hidden = self.gru(src_embed, init_hidden)
         return hidden
 

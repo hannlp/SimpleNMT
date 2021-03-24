@@ -11,7 +11,7 @@ batch_size = 5
 src_len = 64
 tgt_len = 60
 
-model = RNNSearch(n_src_words=n_src_words, n_tgt_words=n_tgt_words, max_src_len=256, max_tgt_len=256, d_model=512, n_layers=24, bidirectional=False)
+model = RNNSearch(n_src_words=n_src_words, n_tgt_words=n_tgt_words, d_model=512, n_layers=24)
 print(model)
 
 src_tokens = torch.randint(n_src_words, (batch_size, src_len))
