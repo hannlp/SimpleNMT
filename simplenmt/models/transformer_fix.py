@@ -136,23 +136,24 @@ class DecoderLayer(nn.Module):
 
     def forward(self, x, memory, src_mask, tgt_mask):
         res, x_ln = x, self.sublayer1_prenorm(x)
-        x = res + self.dropout(self.masked_multi_head_attention(q=x_ln, k=x_ln, v=x_ln,
-                                                                mask=self._add_sequence_mask(tgt_mask))
-                               )
+        x = res + self.dropout(
+              self.masked_multi_head_attention(q=x_ln, k=x_ln, v=x_ln,
+                mask=self._add_subsequent_mask(tgt_mask)))
         res, x_ln = x, self.sublayer2_prenorm(x)
-        x = res + self.dropout(self.multi_head_attention(q=x_ln, k=memory,
-                                                         v=memory, mask=src_mask.unsqueeze(1).unsqueeze(1)))
+        x = res + self.dropout(
+              self.multi_head_attention(q=x_ln, k=memory, v=memory, 
+                mask=src_mask.unsqueeze(1).unsqueeze(1)))
         res, x_ln = x, self.sublayer3_prenorm(x)
         x = res + self.dropout(self.pos_wise_ffn(x_ln))
         return x
 
-    def _add_sequence_mask(self, padding_mask):
-        # -padding_mask: (batch_size, seq_len)
+    def _add_subsequent_mask(self, padding_mask):
+        # - padding_mask: (batch_size, seq_len)
         seq_len = padding_mask.size(1)
-        sequence_mask = torch.ones((seq_len, seq_len), 
+        subsequent_mask = torch.ones((seq_len, seq_len), 
             device=padding_mask.device).triu(diagonal=1).bool()
-        # -return: (batch_size, 1, seq_len, seq_len)
-        return padding_mask.unsqueeze(1).unsqueeze(1) | sequence_mask
+        # - return: (batch_size, 1, seq_len, seq_len)
+        return padding_mask.unsqueeze(1).unsqueeze(1) | subsequent_mask
 
 
 class MultiHeadAttention(nn.Module):
