@@ -10,10 +10,13 @@ class LabelSmoothingLoss(nn.Module):
         self.reduction = reduction
 
     def forward(self, input, target):
-        """
-        input (FloatTensor): batch_size x n_classes
-        target (LongTensor): batch_size
-        """
+        '''
+        params:
+          - input (FloatTensor): (batch_size x n_classes)
+          - target (LongTensor): (batch_size)
+        return:
+          - loss
+        '''
         one_hot = torch.zeros_like(input).scatter(1, target.unsqueeze(-1), 1)
         weight = one_hot * (1 - self.label_smoothing) + (1 - one_hot) * self.label_smoothing / (input.size(-1) - 1)
 

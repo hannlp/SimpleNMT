@@ -33,11 +33,11 @@ class Transformer(nn.Module):
 
     def forward(self, src_tokens, prev_tgt_tokens):
         '''
-        - src_tokens: (batch_size, src_len)
-        - prev_tgt_tokens: (batch_size, tgt_len)
-
+        params:
+          - src_tokens: (batch_size, src_len)
+          - prev_tgt_tokens: (batch_size, tgt_len)
         return:
-        - model_out: (batch_size, tgt_len, n_tgt_words)
+          - model_out: (batch_size, tgt_len, n_tgt_words)
         '''
 
         src_mask = src_tokens.eq(self.src_pdx)
