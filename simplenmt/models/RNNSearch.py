@@ -3,10 +3,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Seq2seq(nn.Module):
-    def __init__(self, max_src_len, max_tgt_len):
+    def __init__(self, n_src_words, n_tgt_words, max_src_len, max_tgt_len, d_model, n_layers, src_pdx=0, tgt_pdx=0):
         super().__init__()
-        encoder = Encoder(max_src_len)
-        decoder = Decoder(max_tgt_len)
+        encoder = Encoder(n_src_words, max_src_len, d_model, src_pdx, n_layers)
+        decoder = Decoder(n_tgt_words, max_tgt_len, d_model, tgt_pdx, n_layers)
     
     def forward(self, src_tokens, prev_tgt_tokens):
         '''
@@ -23,10 +23,17 @@ class Seq2seq(nn.Module):
         return model_out
 
 class Encoder(nn.Module):
-    def __init__(self, max_src_len):
+    def __init__(self, n_src_words, max_src_len, d_model, src_pdx, n_layers):
         super().__init__()
+        self.input_embedding = nn.Embedding(n_src_words, d_model, padding_idx=src_pdx)
+        self.lstm = nn.LSTM(input_size=d_model, hidden_size=d_model, num_layers=n_layers)
     
     def forward(self, src_tokens):
+        # - src_embed: (batch_size, src_len, d_model)
+        src_embed = self.input_embedding(src_tokens)
+
+
+
         encoder_out = src_tokens
         return encoder_out
 
