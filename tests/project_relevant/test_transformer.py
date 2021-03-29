@@ -3,7 +3,7 @@ import os
 print(os.path, os.getcwd())
 sys.path.append(os.getcwd())
 import torch
-from simplenmt.models.transformer_fix import Transformer
+from simplenmt.models.transformer import Transformer
 
 n_src_words = 20
 n_tgt_words = 25

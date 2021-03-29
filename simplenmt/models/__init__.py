@@ -1,11 +1,11 @@
 import torch
 import torch.nn as nn
 #from .transformer import Transformer
-from .transformer_fix import Transformer
+from .transformer import Transformer
 from .rnnsearch import RNNSearch
 
 '''
-transformer_fix:
+transformer:
 
 1. use decoder last layer norm (deleted) 
 2. move decoder vocab proj to transformer

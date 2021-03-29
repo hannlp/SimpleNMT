@@ -5,7 +5,7 @@ import dill
 import jieba
 import logging
 import torch
-from models.transformer_fix import Transformer
+from models.transformer import Transformer
 
 '''def prepare_batch(batch, use_cuda=False):
     src_tokens = batch.src.transpose(0, 1)
@@ -187,7 +187,7 @@ class args:
   ckpt_path = "/content/drive/MyDrive"
   max_seq_length = 512
   beam_size = 1
-  
+
 translator = Translator(args)
 translator.translate("我爱你们。")
 
