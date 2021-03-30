@@ -19,7 +19,7 @@ def parse():
 
 def split(args):
     src_fpath, tgt_fpath = args.data_path + '.' + args.src, args.data_path + '.' + args.tgt
-    print('Spliting \'{}\' and \'{}\' ...'.format(src_fpath, ), end='')
+    print('Spliting \'{}\' and \'{}\' ...'.format(src_fpath, tgt_fpath), end='')
     src_fp, tgt_fp = open(src_fpath, encoding='utf-8'), open(tgt_fpath, encoding='utf-8')
 
     fname = args.fname.split(',')
