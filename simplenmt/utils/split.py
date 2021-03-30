@@ -6,6 +6,7 @@ import argparse
 Usage:
 python split.py -src zh -tgt en -data_path e:\clean -ratio 0.9 -fname train,test,valid
 '''
+
 def parse():
     parser = argparse.ArgumentParser()
     parser.add_argument("-src", help="the source language", type=str, default="zh")
