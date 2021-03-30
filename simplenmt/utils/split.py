@@ -18,9 +18,9 @@ def parse():
     return args
 
 def split(args):
-    print('Spliting \'{}\' and \'{}\' ...'.format(args.data_path + '.' + args.src, args.data_path + '.' + args.tgt), end='')
-    src_fp = open(args.data_path + '.' + args.src, encoding='utf-8')
-    tgt_fp = open(args.data_path + '.' + args.tgt, encoding='utf-8')
+    src_fpath, tgt_fpath = args.data_path + '.' + args.src, args.data_path + '.' + args.tgt
+    print('Spliting \'{}\' and \'{}\' ...'.format(src_fpath, ), end='')
+    src_fp, tgt_fp = open(src_fpath, encoding='utf-8'), open(tgt_fpath, encoding='utf-8')
 
     fname = args.fname.split(',')
     save_dir = os.path.dirname(os.path.abspath(args.data_path)) + '/'
@@ -40,7 +40,7 @@ def split(args):
             src_test.write(s); tgt_test.write(t); count['test'] += 1
         else:
             src_val.write(s); tgt_val.write(t); count['valid'] += 1
-    print('Successful.\ntrain set: {} lines, test_set:{} lines, valid set: {} lines'.format(
+    print('Successful.\ntrain set: {} lines, test set:{} lines, valid set: {} lines'.format(
           count['train'], count['valid'], count['valid']))
     src_fp.close(); tgt_fp.close(); src_train.close(); src_test.close()
     src_val.close(); tgt_train.close(); tgt_test.close(); tgt_val.close()
