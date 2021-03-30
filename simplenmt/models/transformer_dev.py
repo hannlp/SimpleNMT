@@ -111,7 +111,7 @@ class Decoder(nn.Module):
         self.layers = nn.ModuleList(
             [DecoderLayer(d_model, n_head, p_drop) for _ in range(n_layers)])
         # TODO : 这个LayerNorm试了一下，没看出有没有用，一开始的时候loss变高了，但是也能降到2左右
-        #self.layer_norm = nn.LayerNorm(d_model)
+        self.layer_norm = nn.LayerNorm(d_model)
 
     def forward(self, prev_tgt_tokens, encoder_out, src_mask, tgt_mask):
         # - tgt_embed: (batch_size, src_len, d_model)
