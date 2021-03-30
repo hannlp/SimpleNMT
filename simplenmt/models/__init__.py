@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from .transformer_dev import Transformer
+from .transformer import Transformer
 from .rnnsearch import RNNSearch
 
 '''
