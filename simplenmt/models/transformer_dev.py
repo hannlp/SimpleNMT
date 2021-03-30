@@ -121,8 +121,8 @@ class Decoder(nn.Module):
         for layer in self.layers:
             x = layer(x, encoder_out, src_mask, tgt_mask)
         # - decoder_out: (batch_size, tgt_len, n_tgt_words)
-        #decoder_out = self.layer_norm(x)
-        return x#decoder_out
+        decoder_out = self.layer_norm(x)
+        return decoder_out
 
 
 class DecoderLayer(nn.Module):
