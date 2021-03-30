@@ -26,21 +26,26 @@ class LSTMModel(nn.Module):
 class Encoder(nn.Module):
     def __init__(self, n_src_words, max_src_len, d_model, src_pdx, n_layers, bidirectional):
         super().__init__()
-        self.d_model = d_model
-        self.n_layers = n_layers
+        self.d_model, self.n_layers, self.src_pdx = d_model, n_layers, src_pdx
         self.n_directions = 2 if bidirectional else 1
         self.input_embedding = nn.Embedding(n_src_words, d_model, padding_idx=src_pdx)
         self.lstm = nn.LSTM(input_size=d_model, hidden_size=d_model, num_layers=n_layers, 
                             batch_first=True, bidirectional=bidirectional)
     
     def forward(self, src_tokens):
-        batch_size, src_len = src_tokens.size()
+        batch_size, src_lens = src_tokens.size(0), src_tokens.ne(self.src_pdx).long().sum(dim=-1)
         # - src_embed: (batch_size, src_len, d_model)
         src_embed = self.input_embedding(src_tokens)
-        state_size = self.n_layers * self.n_directions, batch_size,  self.d_model
+        packed_src_embed = nn.utils.rnn.pack_padded_sequence(
+            src_embed, src_lens, batch_first=True, enforce_sorted=False
+        )
+        state_size = self.n_layers * self.n_directions, batch_size, self.d_model
         h_0 = src_embed.new_zeros(*state_size)
         c_0 = src_embed.new_zeros(*state_size)
-        encoder_out, (hiddens, cells) = self.lstm(src_embed, (h_0, c_0))
+        packed_encoder_out, (hiddens, cells) = self.lstm(packed_src_embed, (h_0, c_0))
+        encoder_out = nn.utils.rnn.pad_packed_sequence(
+            packed_encoder_out, batch_first=True
+        )
         if self.n_directions == 2:
             hiddens = self._combine_bidir(hiddens, batch_size)
             cells = self._combine_bidir(cells, batch_size)
