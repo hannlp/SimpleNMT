@@ -97,7 +97,7 @@ class Translator(object):
                     pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens)
 
                     for src_words, tgt_words, pred_words in zip(src_sentences, tgt_sentences, pred_sentences):
-                        content = '-S: {}\n-T: {}\n-P: {}\n\n'.format(
+                        content = '-S\t{}\n-T\t{}\n-P\t{}\n\n'.format(
                             ' '.join(src_words), ' '.join(tgt_words), ' '.join(pred_words))            
                         f.write(content); print(content)
 
