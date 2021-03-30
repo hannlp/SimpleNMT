@@ -42,8 +42,10 @@ class Encoder(nn.Module):
         state_size = self.n_layers * self.n_directions, batch_size, self.d_model
         h_0 = src_embed.new_zeros(*state_size)
         c_0 = src_embed.new_zeros(*state_size)
+        # - hiddens & cells: (n_layers, batch_size, n_directions * d_model)
         packed_encoder_out, (hiddens, cells) = self.lstm(packed_src_embed, (h_0, c_0))
-        encoder_out = nn.utils.rnn.pad_packed_sequence(
+        # - encoder_out: (batch_size, src_len, n_directions * d_model)
+        encoder_out, _ = nn.utils.rnn.pad_packed_sequence(
             packed_encoder_out, batch_first=True
         )
         if self.n_directions == 2:
@@ -51,7 +53,7 @@ class Encoder(nn.Module):
             cells = self._combine_bidir(cells, batch_size)
         return encoder_out, hiddens, cells
 
-    def _combine_bidir(self, outs, batch_size: int):
+    def _combine_bidir(self, outs, batch_size):
         out = outs.view(self.n_layers, 2, batch_size, -1).transpose(1, 2).contiguous()
         return out.view(self.n_layers, batch_size, -1)
 
