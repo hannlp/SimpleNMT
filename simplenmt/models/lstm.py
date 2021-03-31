@@ -63,8 +63,8 @@ class AttentionLayer(nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, in, ):
-        return x
+    def forward(self, input, encoder_out, src_mask):
+        pass
 
 class Decoder(nn.Module):
     def __init__(self, n_tgt_words, max_tgt_len, d_model, tgt_pdx, n_layers):
