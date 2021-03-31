@@ -33,16 +33,17 @@ class Encoder(nn.Module):
                             batch_first=True, bidirectional=bidirectional)
     
     def forward(self, src_tokens):
+        src_mask = src_tokens.eq(self.src_pdx)
         batch_size, src_lens = src_tokens.size(0), src_tokens.ne(self.src_pdx).long().sum(dim=-1)
         # - src_embed: (batch_size, src_len, d_model)
         src_embed = self.input_embedding(src_tokens)
         packed_src_embed = nn.utils.rnn.pack_padded_sequence(
-            src_embed, src_lens, batch_first=True, enforce_sorted=False
+            src_embed, src_lens.to('cpu'), batch_first=True, enforce_sorted=False
         )
         state_size = self.n_layers * self.n_directions, batch_size, self.d_model
         h_0 = src_embed.new_zeros(*state_size)
         c_0 = src_embed.new_zeros(*state_size)
-        # - hiddens & cells: (n_layers, batch_size, n_directions * d_model)
+        # - hiddens & cells: (n_layers * n_directions, batch_size, d_model)
         packed_encoder_out, (hiddens, cells) = self.lstm(packed_src_embed, (h_0, c_0))
         # - encoder_out: (batch_size, src_len, n_directions * d_model)
         encoder_out, _ = nn.utils.rnn.pad_packed_sequence(
@@ -51,7 +52,8 @@ class Encoder(nn.Module):
         if self.n_directions == 2:
             hiddens = self._combine_bidir(hiddens, batch_size)
             cells = self._combine_bidir(cells, batch_size)
-        return encoder_out, hiddens, cells
+        # - hiddens & cells: (n_layers, batch_size, n_directions * d_model)
+        return encoder_out, hiddens, cells, src_mask
 
     def _combine_bidir(self, outs, batch_size):
         out = outs.view(self.n_layers, 2, batch_size, -1).transpose(1, 2).contiguous()
@@ -61,7 +63,7 @@ class AttentionLayer(nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, x):
+    def forward(self, in, ):
         return x
 
 class Decoder(nn.Module):
