@@ -1,6 +1,6 @@
 import dill
 import torch
-from torchtext import data, datasets
+from torchtext.legacy import data, datasets
 from .constants import Constants
 
 
