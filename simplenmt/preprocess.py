@@ -1,7 +1,7 @@
-import sacremoses
+#import sacremoses
 import argparse
-import jieba
-import subword-nmt
+#import jieba
+#import subword-nmt
 
 def parse():
     parser = argparse.ArgumentParser()
