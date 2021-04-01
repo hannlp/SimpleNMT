@@ -32,25 +32,29 @@ class Encoder(nn.Module):
         self.lstm = nn.LSTM(input_size=d_model, hidden_size=d_model, num_layers=n_layers, 
                             batch_first=True, bidirectional=bidirectional)
     
-    def forward(self, src_tokens):
-        batch_size, src_lens = src_tokens.size(0), src_tokens.ne(self.src_pdx).long().sum(dim=-1)
+    def forward(self, src_tokens):        
         # - src_embed: (batch_size, src_len, d_model)
         src_embed = self.input_embedding(src_tokens)
+        batch_size, src_lens = src_tokens.size(0), src_tokens.ne(self.src_pdx).long().sum(dim=-1)
         packed_src_embed = nn.utils.rnn.pack_padded_sequence(
             src_embed, src_lens.to('cpu'), batch_first=True, enforce_sorted=False
         )
+
+        # - h_0 & c_0: (n_layers * n_directions, batch_size, d_model)
         state_size = self.n_layers * self.n_directions, batch_size, self.d_model
         h_0, c_0 = src_embed.new_zeros(*state_size), src_embed.new_zeros(*state_size)
-        # - h_0 & c_0: (n_layers * n_directions, batch_size, d_model)
+        
         packed_encoder_out, (hiddens, cells) = self.lstm(packed_src_embed, (h_0, c_0))
-        # - encoder_out: (batch_size, src_len, n_directions * d_model)
+        # - encoder_out: (batch_size, src_len, n_directions * d_model) where 3rd is last layer [h_fwd; h_bkwd]
         encoder_out, _ = nn.utils.rnn.pad_packed_sequence(
             packed_encoder_out, batch_first=True
         )
+
+        # - hiddens & cells: (n_layers, batch_size, n_directions * d_model)
         if self.n_directions == 2:
             hiddens = self._combine_bidir(hiddens, batch_size)
             cells = self._combine_bidir(cells, batch_size)
-        # - hiddens & cells: (n_layers, batch_size, n_directions * d_model)
+        
         return encoder_out, hiddens, cells
 
     def _combine_bidir(self, outs, batch_size):
