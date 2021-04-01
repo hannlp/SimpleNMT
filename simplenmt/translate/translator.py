@@ -37,9 +37,7 @@ class Translator(object):
             - settings(NameSpace): train_args
         '''
 
-        checkpoint = torch.load(
-            '{}/checkpoint_best.pt'.format(args.ckpt_path), 
-            map_location=self.device)
+        checkpoint = torch.load(args.ckpt_path, map_location=self.device)
 
         model = build_model(checkpoint['settings'], use_cuda=torch.cuda.is_available())
         model.load_state_dict(checkpoint['model'])
