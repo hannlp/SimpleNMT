@@ -87,13 +87,15 @@ class Trainer(object):
             }
         torch.save(checkpoint, '{}/checkpoint_{}.pt'.format(path, epoch))
         '''
-        # Only save the best checkpoint
-        if is_best_epoch:
-            best_checkpoint = {'epoch': epoch,
-                               'model': self.model.state_dict(),
-                               'settings': self.settings
-                               }
-            torch.save(best_checkpoint, '{}/checkpoint_best.pt'.format(path))
+        checkpoint = {'epoch': epoch,
+                      'model': self.model.state_dict(),
+                      'settings': self.settings
+                      }
+        # save the last checkpoint
+        torch.save(checkpoint, '{}/checkpoint_last.pt'.format(path))
+        # save the best checkpoint
+        if is_best_epoch:           
+            torch.save(checkpoint, '{}/checkpoint_best.pt'.format(path))
 
     def _lr_step_update(self):
         self._num_step += 1
