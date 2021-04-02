@@ -8,6 +8,10 @@ class Seq2Seq(nn.Module):
         self.encoder = Encoder(n_src_words, src_pdx, d_model, n_layers, p_drop)
         self.decoder = Decoder(n_tgt_words, tgt_pdx, d_model, n_layers, p_drop)
         self.out_vocab_proj = nn.Linear(d_model, n_tgt_words)
+
+        # We initialized all of the LSTM’s parameters with the uniform distribution between -0.08 and 0.08
+        for _, params in self.named_parameters():
+            nn.init.uniform_(params.data, -0.08, 0.08)
     
     def forward(self, src_tokens, prev_tgt_tokens):
         '''
@@ -28,14 +32,14 @@ class Encoder(nn.Module):
         super().__init__()
         self.d_model, self.n_layers = d_model, n_layers
         self.input_embedding = nn.Embedding(n_src_words, d_model, padding_idx=src_pdx)
-        self.rnn = nn.LSTM(input_size=d_model, hidden_size=d_model, num_layers=n_layers, 
+        self.lstm = nn.LSTM(input_size=d_model, hidden_size=d_model, num_layers=n_layers, 
                           dropout=p_drop, batch_first=True, bidirectional=False)
         self.dropout = nn.Dropout(p=p_drop)
     
     def forward(self, src_tokens):
         # - src_embed: (batch_size, src_len, d_model)
         src_embed = self.dropout(self.input_embedding(src_tokens))
-        _, (hiddens, cells) = self.rnn(src_embed)
+        _, (hiddens, cells) = self.lstm(src_embed)
         # - hiddens & cells: (n_layers, batch_size, d_model)
         return hiddens, cells
 
@@ -44,10 +48,11 @@ class Decoder(nn.Module):
         super().__init__()
         self.d_model, self.n_layers = d_model, n_layers
         self.input_embedding = nn.Embedding(n_tgt_words, d_model, padding_idx=tgt_pdx)
-        self.rnn = nn.RNN(input_size=d_model, hidden_size=d_model, num_layers=n_layers, 
-                          batch_first=True)
-    
-    def forward(self, prev_tgt_tokens, hiddens):
-        tgt_embed = self.input_embedding(prev_tgt_tokens)
-        decoder_out, _ = self.rnn(tgt_embed, hiddens)
+        self.lstm = nn.LSTM(input_size=d_model, hidden_size=d_model, num_layers=n_layers, 
+                          dropout=p_drop, batch_first=True, bidirectional=False)
+        self.dropout = nn.Dropout(p=p_drop)
+
+    def forward(self, prev_tgt_tokens, hiddens, cells):
+        tgt_embed = self.dropout(self.input_embedding(prev_tgt_tokens))
+        decoder_out, _ = self.lstm(tgt_embed, (hiddens, cells))
         return decoder_out
