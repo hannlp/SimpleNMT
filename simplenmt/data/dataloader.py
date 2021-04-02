@@ -45,10 +45,12 @@ class DataLoader(object):
         self.START = Constants.START
         self.END = Constants.END
         self.UNK = Constants.UNK
-        self.SRC = data.Field(pad_token=Constants.PAD)
+        self.SRC = data.Field(pad_token=Constants.PAD, 
+                              batch_first=True)
         self.TGT = data.Field(init_token=Constants.START,
                               eos_token=Constants.END,
-                              pad_token=Constants.PAD)
+                              pad_token=Constants.PAD, 
+                              batch_first=True)
 
     def load_translation(self, exts, data_path=None, train_path=None, valid_path=None, 
                          split_ratio=0.95, batch_size=64, dl_save_path=None,
