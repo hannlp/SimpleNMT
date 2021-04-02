@@ -1,5 +1,6 @@
 import torch
 import time
+import math
 from data.utils import prepare_batch
 
 class Trainer(object):
@@ -36,8 +37,8 @@ class Trainer(object):
             self._save_model(epoch, save_path, is_best_epoch)
 
     def _print_log(self, epoch, valid_loss, start_time):
-        print("Valid | Epoch:{}, loss:{:.5}, training_time:{:.1f} min".format(
-            epoch, valid_loss, (time.time() - start_time) / 60))
+        print("Valid | Epoch: {}, loss: {:.5}, ppl: {:.5}, elapsed: {:.1f} min".format(
+            epoch, valid_loss, math.exp(valid_loss), (time.time() - start_time) / 60))
 
     def _train_epoch(self, train_iter, epoch):
         self.model.train()
@@ -54,9 +55,9 @@ class Trainer(object):
 
             self.optimizer.step()
             if i % 100 == 0:
-                print('{} | Epoch: {}, batch: [{}/{}], lr:{:.5}, loss: {:.5}'
+                print('{} | Epoch: {}, batch: [{}/{}], lr: {:.5}, loss: {:.5}, ppl: {:.5}'
                       .format(time.strftime("%y-%m-%d %H:%M:%S", time.localtime()),
-                              epoch, i, n_batches, self._get_lr(), loss.item()))
+                              epoch, i, n_batches, self._get_lr(), loss.item(), math.exp(loss.item())))
 
     def _valid_epoch(self, valid_iter):
         self.model.eval()
