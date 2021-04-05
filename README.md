@@ -267,7 +267,30 @@ Please input a sentence of zh:须知民粹主义并不是某个心怀恶意的�
 populism is not a malicious external actor in Europe ; it is a source of organic power in Europe , and spreading from real and widespread disaffection .
 ```
 
-It can also **generate translations** in batches for evaluation, which requires a test set in ```/content/drive/MyDrive/Datasets/v15news/```
+It can also **generate translations** in batches for evaluation, which requires a test set in ```/content/drive/MyDrive/Datasets/v15news/```  
 ```bash
 python translate.py -src zh -tgt en -generate -test_path /content/drive/MyDrive/Datasets/v15news/test -dl_path /content/drive/MyDrive/v15news/zh_en.dl -ckpt_path /content/drive/MyDrive/v15news/checkpoint_best.pt
+```
+
+The generate preocess:  
+```bash
+# test.result
+-S	当 利比亚 的 卡扎菲 威胁 要 把 反对派 批评者 像 &quot; 老鼠 &quot; 一样 杀掉 时 ， 联合国 军 根据 新 的 全球 信条 - - 保护 责任 （ respon@@ sib@@ ility to prot@@ ect ） 实施 了 干预 。
+-T	when Libya &apos;s Muammar el-Qaddafi threatened to kill his rebellious detractors like &quot; rats , &quot; a UN coalition intervened under an emerging global doctrine : the responsibility to protect .
+-P	when Libya &apos;s Muammar el-Qaddafi threatened to kill his opponents , like &quot; rats , &quot; the UN force intervened in accordance with a new global creed , which protects the responsibility ( R2P ) .
+
+
+-S	比如 美国 最大 的 网上 汽车 租赁 公司 Z@@ ip@@ car 可以 让 人们 分享 使用 同 一@@ 辆车 （ 但愿 在 每个 中国 人 都 拥有 自己 的 私@@ 家@@ 车 之前 ， 他们 能 发现 这个 行业 ！
+-T	Zi@@ p@@ car , for example , lets people share cars . ( let &apos;s hope the Chinese discover this before everyone in China buys their own car ! )
+-P	for example , the largest US auto rental company Z@@ ic@@ o@@ i@@ o@@ st could enable people to share the same vehicle ( which would , it would be possible , before everyone Chinese owned their own private cars ! ) could find the industry .
+
+
+-S	生于 埃及 、 现@@ 居 悉尼 的 谢赫 · 希拉里 （ She@@ ik H@@ il@@ al@@ y ） 有 可能 只是 描述 了 自己 潜意识 中 的 差别 意识 ， 并 错误 地 把 这种 意识 当成 了 洞察力 。
+-T	Egyp@@ ti@@ an-@@ born She@@ ik Hil@@ aly , in Sydney , may have been ver@@ b@@ alizing a latent sense of other@@ ness and mistaking it for insight .
+-P	She@@ ik She@@ ik , a charismatic and present , is probably merely a description of the difference in his unconscious nature , and a false sense of this awareness .
+
+
+-S	在 联合国 的 相关 机构 宣称 人 道 努力 在 2000 年 避免 了 埃塞俄比亚 大 范围 的 饥荒 发生 之后 ， &quot; 人 道 政策 集团 &quot; 在 2004 年 的 一份 报告 中 引述 了 一项 调查 。
+-T	a 2004 report by the Humanitarian Policy Group cited a survey carried out in Ethiopia after UN agencies said that humanitarian efforts had averted widespread famine in 2000 .
+-P	after the UN &apos;s related agency , the human policy group declared that the humanitarian effort to avert Ethiopia &apos;s broad famine in 2000 , the &quot; humanitarian policy group &quot; cited a survey in a 2004 report .
 ```
