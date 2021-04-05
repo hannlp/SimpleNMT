@@ -28,18 +28,22 @@ python translate.py -dl_path .. -ckpt_path ..
 ```
 
 ## 4 Example
-This is a real example of using SimpleNMT to train a Chinese-English translation model. My parallel corpus is placed in ```/content/drive/MyDrive/```, called ```clean.zh``` and ```clean.en``` respectively.
+### 4.1 Train
+This is a real example of using SimpleNMT to train a Chinese-English translation model. My parallel corpus is placed in ```/content/drive/MyDrive/Datasets/v15news/```, called ```train.zh```, ```train.en```,  ```valid.zh``` and ```valid.en```respectively. About the preprocessing method of parallel corpus, see this [blog](https://hannlp.github.io/2021-01-16-Use-fairseq-to-train-a-Chinese-English-translation-model-from-scratch/).
 ```
-python train.py -data_path /content/drive/MyDrive/clean -dl_path /content/drive/MyDrive/zh_en.dl -ckpt_path /content/drive/MyDrive -batch_size 6400 -n_epochs 5
+python train.py -src zh -tgt en -train_path /content/drive/MyDrive/Datasets/v15news/train -valid_path /content/drive/MyDrive/Datasets/v15news/valid -dl_path /content/drive/MyDrive/v15news/zh_en.dl -ckpt_path /content/drive/MyDrive/v15news -batch_size 9600 -n_epochs 15
 ```
 
 This is the training process:  
 ```
-Namespace(batch_size=6400, betas=(0.9, 0.98), ckpt_path='/content/drive/MyDrive', use_cuda=True, d_model=512, data_path='/content/drive/MyDrive/clean', dl_path='/content/drive/MyDrive/zh_en.dl', lr=0.001, model='Transformer', n_epochs=10, n_head=8, n_layer=6, n_src_words=37125, n_tgt_words=30903, p_drop=0.1, src='zh', src_pdx=1, tgt='en', tgt_pdx=1, warmup_steps=4000)
+Loading train data and valid data from '/content/drive/MyDrive/Datasets/v15news/train', '/content/drive/MyDrive/Datasets/v15news/valid' ... Successful.
+Building src and tgt vocabs ... Successful.
+The dataloader is saved at '/content/drive/MyDrive/v15news/zh_en.dl'
+Namespace(batch_size=9600, betas=(0.9, 0.98), ckpt_path='/content/drive/MyDrive/v15news', d_model=512, data_path='', dl_path='/content/drive/MyDrive/v15news/zh_en.dl', label_smoothing=0.1, lr=0.001, max_seq_len=2048, model='Transformer', n_epochs=15, n_head=8, n_layers=6, n_src_words=37127, n_tgt_words=30891, p_drop=0.1, share_vocab=False, src='zh', src_pdx=1, tgt='en', tgt_pdx=1, train_path='/content/drive/MyDrive/Datasets/v15news/train', valid_path='/content/drive/MyDrive/Datasets/v15news/valid', warmup_steps=4000)
 Transformer(
   (encoder): Encoder(
     (dropout): Dropout(p=0.1, inplace=False)
-    (input_embedding): Embedding(37125, 512, padding_idx=1)
+    (input_embedding): Embedding(37127, 512, padding_idx=1)
     (positional_encode): PositionalEncode()
     (layers): ModuleList(
       (0): EncoderLayer(
@@ -78,7 +82,7 @@ Transformer(
   )
   (decoder): Decoder(
     (dropout): Dropout(p=0.1, inplace=False)
-    (input_embedding): Embedding(30903, 512, padding_idx=1)
+    (input_embedding): Embedding(30891, 512, padding_idx=1)
     (positional_encode): PositionalEncode()
     (layers): ModuleList(
       (0): DecoderLayer(
@@ -127,140 +131,125 @@ Transformer(
         )
       )
     )
-    (vocab_proj): Linear(in_features=512, out_features=30903, bias=True)
   )
+  (out_vocab_proj): Linear(in_features=512, out_features=30891, bias=True)
 )
-21-03-09 09:47:57 | Epoch: 1, batch: [100/1382], lr:1.7469e-05, loss: 6.948
-21-03-09 09:48:38 | Epoch: 1, batch: [200/1382], lr:3.4939e-05, loss: 6.8318
-21-03-09 09:49:19 | Epoch: 1, batch: [300/1382], lr:5.2408e-05, loss: 7.0079
-21-03-09 09:50:01 | Epoch: 1, batch: [400/1382], lr:6.9877e-05, loss: 6.3954
-21-03-09 09:50:42 | Epoch: 1, batch: [500/1382], lr:8.7346e-05, loss: 6.1232
-21-03-09 09:51:23 | Epoch: 1, batch: [600/1382], lr:0.00010482, loss: 5.7747
-21-03-09 09:52:04 | Epoch: 1, batch: [700/1382], lr:0.00012228, loss: 5.6869
-21-03-09 09:52:45 | Epoch: 1, batch: [800/1382], lr:0.00013975, loss: 5.3506
-21-03-09 09:53:26 | Epoch: 1, batch: [900/1382], lr:0.00015722, loss: 5.2774
-21-03-09 09:54:07 | Epoch: 1, batch: [1000/1382], lr:0.00017469, loss: 5.1601
-21-03-09 09:54:48 | Epoch: 1, batch: [1100/1382], lr:0.00019216, loss: 6.1068
-21-03-09 09:55:30 | Epoch: 1, batch: [1200/1382], lr:0.00020963, loss: 4.2476
-21-03-09 09:56:11 | Epoch: 1, batch: [1300/1382], lr:0.0002271, loss: 4.7492
-Valid | Epoch:1, loss:4.5008, training_time:9.8 min
-21-03-09 09:57:52 | Epoch: 2, batch: [100/1382], lr:0.00025889, loss: 5.0385
-21-03-09 09:58:33 | Epoch: 2, batch: [200/1382], lr:0.00027636, loss: 4.3349
-21-03-09 09:59:15 | Epoch: 2, batch: [300/1382], lr:0.00029383, loss: 3.792
-21-03-09 09:59:56 | Epoch: 2, batch: [400/1382], lr:0.0003113, loss: 4.09
-21-03-09 10:00:37 | Epoch: 2, batch: [500/1382], lr:0.00032877, loss: 3.6593
-21-03-09 10:01:18 | Epoch: 2, batch: [600/1382], lr:0.00034624, loss: 3.2719
-21-03-09 10:01:59 | Epoch: 2, batch: [700/1382], lr:0.00036371, loss: 4.3402
-21-03-09 10:02:40 | Epoch: 2, batch: [800/1382], lr:0.00038118, loss: 3.4255
-21-03-09 10:03:21 | Epoch: 2, batch: [900/1382], lr:0.00039865, loss: 4.6646
-21-03-09 10:04:02 | Epoch: 2, batch: [1000/1382], lr:0.00041612, loss: 3.6064
-21-03-09 10:04:43 | Epoch: 2, batch: [1100/1382], lr:0.00043359, loss: 3.2388
-21-03-09 10:05:24 | Epoch: 2, batch: [1200/1382], lr:0.00045106, loss: 2.9552
-21-03-09 10:06:06 | Epoch: 2, batch: [1300/1382], lr:0.00046853, loss: 2.6404
-Valid | Epoch:2, loss:3.1016, training_time:9.9 min
-21-03-09 10:07:47 | Epoch: 3, batch: [100/1382], lr:0.00050032, loss: 2.5212
-21-03-09 10:08:30 | Epoch: 3, batch: [200/1382], lr:0.00051779, loss: 3.0716
-21-03-09 10:09:11 | Epoch: 3, batch: [300/1382], lr:0.00053526, loss: 4.1668
-21-03-09 10:09:52 | Epoch: 3, batch: [400/1382], lr:0.00055273, loss: 4.8759
-21-03-09 10:10:33 | Epoch: 3, batch: [500/1382], lr:0.0005702, loss: 3.0285
-21-03-09 10:11:14 | Epoch: 3, batch: [600/1382], lr:0.00058767, loss: 2.6931
-21-03-09 10:11:55 | Epoch: 3, batch: [700/1382], lr:0.00060514, loss: 2.8964
-21-03-09 10:12:36 | Epoch: 3, batch: [800/1382], lr:0.00062261, loss: 2.5866
-21-03-09 10:13:17 | Epoch: 3, batch: [900/1382], lr:0.00064007, loss: 2.6209
-21-03-09 10:13:58 | Epoch: 3, batch: [1000/1382], lr:0.00065754, loss: 2.5504
-21-03-09 10:14:39 | Epoch: 3, batch: [1100/1382], lr:0.00067501, loss: 2.6558
-21-03-09 10:15:21 | Epoch: 3, batch: [1200/1382], lr:0.00069248, loss: 2.4132
-21-03-09 10:16:02 | Epoch: 3, batch: [1300/1382], lr:0.00069325, loss: 2.3948
-Valid | Epoch:3, loss:2.5894, training_time:9.9 min
-21-03-09 10:17:43 | Epoch: 4, batch: [100/1382], lr:0.00067823, loss: 2.0928
-21-03-09 10:18:24 | Epoch: 4, batch: [200/1382], lr:0.00067038, loss: 2.2669
-21-03-09 10:19:05 | Epoch: 4, batch: [300/1382], lr:0.0006628, loss: 2.2461
-21-03-09 10:19:46 | Epoch: 4, batch: [400/1382], lr:0.00065547, loss: 2.0225
-21-03-09 10:20:27 | Epoch: 4, batch: [500/1382], lr:0.00064837, loss: 1.8909
-21-03-09 10:21:08 | Epoch: 4, batch: [600/1382], lr:0.00064151, loss: 2.4791
-21-03-09 10:21:50 | Epoch: 4, batch: [700/1382], lr:0.00063485, loss: 2.1045
-21-03-09 10:22:31 | Epoch: 4, batch: [800/1382], lr:0.0006284, loss: 1.9807
-21-03-09 10:23:12 | Epoch: 4, batch: [900/1382], lr:0.00062214, loss: 2.414
-21-03-09 10:23:53 | Epoch: 4, batch: [1000/1382], lr:0.00061607, loss: 2.3508
-21-03-09 10:24:34 | Epoch: 4, batch: [1100/1382], lr:0.00061017, loss: 3.2864
-21-03-09 10:25:15 | Epoch: 4, batch: [1200/1382], lr:0.00060444, loss: 2.4069
-21-03-09 10:25:57 | Epoch: 4, batch: [1300/1382], lr:0.00059886, loss: 2.2001
-Valid | Epoch:4, loss:2.2931, training_time:9.9 min
-21-03-09 10:27:39 | Epoch: 5, batch: [100/1382], lr:0.0005891, loss: 2.0385
-21-03-09 10:28:20 | Epoch: 5, batch: [200/1382], lr:0.00058393, loss: 1.9714
-21-03-09 10:29:01 | Epoch: 5, batch: [300/1382], lr:0.0005789, loss: 1.6864
-21-03-09 10:29:43 | Epoch: 5, batch: [400/1382], lr:0.000574, loss: 1.71
-21-03-09 10:30:23 | Epoch: 5, batch: [500/1382], lr:0.00056922, loss: 1.6959
-21-03-09 10:31:05 | Epoch: 5, batch: [600/1382], lr:0.00056455, loss: 1.7439
-21-03-09 10:31:46 | Epoch: 5, batch: [700/1382], lr:0.00056, loss: 1.7868
-21-03-09 10:32:27 | Epoch: 5, batch: [800/1382], lr:0.00055556, loss: 2.0302
-21-03-09 10:33:08 | Epoch: 5, batch: [900/1382], lr:0.00055122, loss: 1.6077
-21-03-09 10:33:49 | Epoch: 5, batch: [1000/1382], lr:0.00054698, loss: 3.1334
-21-03-09 10:34:30 | Epoch: 5, batch: [1100/1382], lr:0.00054284, loss: 1.8202
-21-03-09 10:35:12 | Epoch: 5, batch: [1200/1382], lr:0.00053879, loss: 1.7087
-21-03-09 10:35:53 | Epoch: 5, batch: [1300/1382], lr:0.00053483, loss: 2.0621
-Valid | Epoch:5, loss:2.1809, training_time:9.9 min
-21-03-09 10:37:34 | Epoch: 6, batch: [100/1382], lr:0.00052784, loss: 1.7812
-21-03-09 10:38:15 | Epoch: 6, batch: [200/1382], lr:0.00052412, loss: 1.5168
-21-03-09 10:38:57 | Epoch: 6, batch: [300/1382], lr:0.00052047, loss: 2.2757
-21-03-09 10:39:38 | Epoch: 6, batch: [400/1382], lr:0.0005169, loss: 1.6701
-21-03-09 10:40:19 | Epoch: 6, batch: [500/1382], lr:0.0005134, loss: 1.7323
-21-03-09 10:41:01 | Epoch: 6, batch: [600/1382], lr:0.00050997, loss: 1.6406
-21-03-09 10:41:42 | Epoch: 6, batch: [700/1382], lr:0.00050661, loss: 1.866
-21-03-09 10:42:23 | Epoch: 6, batch: [800/1382], lr:0.00050331, loss: 1.7669
-21-03-09 10:43:04 | Epoch: 6, batch: [900/1382], lr:0.00050008, loss: 1.5675
-21-03-09 10:43:45 | Epoch: 6, batch: [1000/1382], lr:0.00049691, loss: 1.764
-21-03-09 10:44:26 | Epoch: 6, batch: [1100/1382], lr:0.0004938, loss: 1.6566
-21-03-09 10:45:07 | Epoch: 6, batch: [1200/1382], lr:0.00049074, loss: 1.8667
-21-03-09 10:45:48 | Epoch: 6, batch: [1300/1382], lr:0.00048775, loss: 1.6022
-Valid | Epoch:6, loss:2.1723, training_time:9.9 min
-21-03-09 10:47:30 | Epoch: 7, batch: [100/1382], lr:0.00048243, loss: 1.17
-21-03-09 10:48:11 | Epoch: 7, batch: [200/1382], lr:0.00047958, loss: 1.3194
-21-03-09 10:48:52 | Epoch: 7, batch: [300/1382], lr:0.00047678, loss: 1.4456
-21-03-09 10:49:33 | Epoch: 7, batch: [400/1382], lr:0.00047403, loss: 1.5089
-21-03-09 10:50:15 | Epoch: 7, batch: [500/1382], lr:0.00047133, loss: 1.5307
-21-03-09 10:50:56 | Epoch: 7, batch: [600/1382], lr:0.00046867, loss: 1.4507
-21-03-09 10:51:37 | Epoch: 7, batch: [700/1382], lr:0.00046605, loss: 1.4995
-21-03-09 10:52:18 | Epoch: 7, batch: [800/1382], lr:0.00046348, loss: 1.6506
-21-03-09 10:52:59 | Epoch: 7, batch: [900/1382], lr:0.00046096, loss: 1.4541
-21-03-09 10:53:41 | Epoch: 7, batch: [1000/1382], lr:0.00045847, loss: 1.5271
-21-03-09 10:54:22 | Epoch: 7, batch: [1100/1382], lr:0.00045602, loss: 1.5686
-21-03-09 10:55:03 | Epoch: 7, batch: [1200/1382], lr:0.00045361, loss: 1.5683
-21-03-09 10:55:44 | Epoch: 7, batch: [1300/1382], lr:0.00045124, loss: 1.4195
-Valid | Epoch:7, loss:2.1121, training_time:9.9 min
-21-03-09 10:57:26 | Epoch: 8, batch: [100/1382], lr:0.00044702, loss: 1.2943
-21-03-09 10:58:07 | Epoch: 8, batch: [200/1382], lr:0.00044475, loss: 1.3168
-21-03-09 10:58:48 | Epoch: 8, batch: [300/1382], lr:0.00044252, loss: 1.2685
-21-03-09 10:59:29 | Epoch: 8, batch: [400/1382], lr:0.00044032, loss: 1.3403
-21-03-09 11:00:10 | Epoch: 8, batch: [500/1382], lr:0.00043815, loss: 1.3131
-21-03-09 11:00:51 | Epoch: 8, batch: [600/1382], lr:0.00043601, loss: 1.4531
-21-03-09 11:01:32 | Epoch: 8, batch: [700/1382], lr:0.0004339, loss: 1.1512
-21-03-09 11:02:13 | Epoch: 8, batch: [800/1382], lr:0.00043183, loss: 1.4423
-21-03-09 11:02:55 | Epoch: 8, batch: [900/1382], lr:0.00042978, loss: 1.3128
-21-03-09 11:03:36 | Epoch: 8, batch: [1000/1382], lr:0.00042776, loss: 1.461
-21-03-09 11:04:17 | Epoch: 8, batch: [1100/1382], lr:0.00042577, loss: 1.1839
-21-03-09 11:04:58 | Epoch: 8, batch: [1200/1382], lr:0.00042381, loss: 1.3997
-21-03-09 11:05:39 | Epoch: 8, batch: [1300/1382], lr:0.00042187, loss: 1.1995
-Valid | Epoch:8, loss:2.1477, training_time:9.9 min
-21-03-09 11:07:18 | Epoch: 9, batch: [100/1382], lr:0.00041842, loss: 1.0578
-21-03-09 11:07:59 | Epoch: 9, batch: [200/1382], lr:0.00041656, loss: 1.2392
-21-03-09 11:08:41 | Epoch: 9, batch: [300/1382], lr:0.00041472, loss: 1.1342
-21-03-09 11:09:21 | Epoch: 9, batch: [400/1382], lr:0.0004129, loss: 1.2397
-21-03-09 11:10:03 | Epoch: 9, batch: [500/1382], lr:0.00041111, loss: 1.0934
-21-03-09 11:10:44 | Epoch: 9, batch: [600/1382], lr:0.00040935, loss: 1.2356
-21-03-09 11:11:25 | Epoch: 9, batch: [700/1382], lr:0.0004076, loss: 1.1844
-21-03-09 11:12:06 | Epoch: 9, batch: [800/1382], lr:0.00040588, loss: 1.2576
-21-03-09 11:12:47 | Epoch: 9, batch: [900/1382], lr:0.00040418, loss: 1.1385
-21-03-09 11:13:28 | Epoch: 9, batch: [1000/1382], lr:0.0004025, loss: 1.5052
-21-03-09 11:14:10 | Epoch: 9, batch: [1100/1382], lr:0.00040084, loss: 1.1914
-21-03-09 11:14:51 | Epoch: 9, batch: [1200/1382], lr:0.0003992, loss: 1.2752
-21-03-09 11:15:32 | Epoch: 9, batch: [1300/1382], lr:0.00039758, loss: 1.2049
-Valid | Epoch:9, loss:2.1855, training_time:9.8 min
+21-04-03 05:54:47 | Epoch: 1, batch: [100/938], lr: 1.7469e-05, loss: 7.5993, ppl: 1996.7
+21-04-03 05:55:23 | Epoch: 1, batch: [200/938], lr: 3.4939e-05, loss: 7.3019, ppl: 1483.0
+21-04-03 05:55:59 | Epoch: 1, batch: [300/938], lr: 5.2408e-05, loss: 7.5435, ppl: 1888.4
+21-04-03 05:56:35 | Epoch: 1, batch: [400/938], lr: 6.9877e-05, loss: 6.9109, ppl: 1003.1
+21-04-03 05:57:12 | Epoch: 1, batch: [500/938], lr: 8.7346e-05, loss: 6.6026, ppl: 737.04
+21-04-03 05:57:48 | Epoch: 1, batch: [600/938], lr: 0.00010482, loss: 6.3106, ppl: 550.37
+21-04-03 05:58:24 | Epoch: 1, batch: [700/938], lr: 0.00012228, loss: 6.4993, ppl: 664.66
+21-04-03 05:59:00 | Epoch: 1, batch: [800/938], lr: 0.00013975, loss: 6.2946, ppl: 541.62
+21-04-03 05:59:36 | Epoch: 1, batch: [900/938], lr: 0.00015722, loss: 6.3037, ppl: 546.58
+Valid | Epoch: 1, loss: 5.9043, ppl: 366.61, elapsed: 5.9 min
+21-04-03 06:00:43 | Epoch: 2, batch: [100/938], lr: 0.00018133, loss: 5.444, ppl: 231.37
+21-04-03 06:01:19 | Epoch: 2, batch: [200/938], lr: 0.0001988, loss: 5.6483, ppl: 283.81
+21-04-03 06:01:55 | Epoch: 2, batch: [300/938], lr: 0.00021627, loss: 4.7674, ppl: 117.62
+21-04-03 06:02:33 | Epoch: 2, batch: [400/938], lr: 0.00023374, loss: 5.1199, ppl: 167.31
+21-04-03 06:03:09 | Epoch: 2, batch: [500/938], lr: 0.00025121, loss: 4.9192, ppl: 136.89
+21-04-03 06:03:45 | Epoch: 2, batch: [600/938], lr: 0.00026868, loss: 4.7982, ppl: 121.29
+21-04-03 06:04:21 | Epoch: 2, batch: [700/938], lr: 0.00028615, loss: 4.9823, ppl: 145.82
+21-04-03 06:04:58 | Epoch: 2, batch: [800/938], lr: 0.00030362, loss: 4.7086, ppl: 110.9
+21-04-03 06:05:34 | Epoch: 2, batch: [900/938], lr: 0.00032109, loss: 4.8606, ppl: 129.11
+Valid | Epoch: 2, loss: 4.5595, ppl: 95.534, elapsed: 5.9 min
+21-04-03 06:06:40 | Epoch: 3, batch: [100/938], lr: 0.00034519, loss: 4.4961, ppl: 89.664
+21-04-03 06:07:15 | Epoch: 3, batch: [200/938], lr: 0.00036266, loss: 4.4539, ppl: 85.962
+21-04-03 06:07:52 | Epoch: 3, batch: [300/938], lr: 0.00038013, loss: 4.9643, ppl: 143.21
+21-04-03 06:08:27 | Epoch: 3, batch: [400/938], lr: 0.0003976, loss: 4.1596, ppl: 64.044
+21-04-03 06:09:04 | Epoch: 3, batch: [500/938], lr: 0.00041507, loss: 4.2274, ppl: 68.541
+21-04-03 06:09:39 | Epoch: 3, batch: [600/938], lr: 0.00043254, loss: 4.1477, ppl: 63.286
+21-04-03 06:10:15 | Epoch: 3, batch: [700/938], lr: 0.00045001, loss: 3.5308, ppl: 34.15
+21-04-03 06:10:51 | Epoch: 3, batch: [800/938], lr: 0.00046748, loss: 4.029, ppl: 56.205
+21-04-03 06:11:27 | Epoch: 3, batch: [900/938], lr: 0.00048495, loss: 3.8569, ppl: 47.318
+Valid | Epoch: 3, loss: 3.8937, ppl: 49.093, elapsed: 5.8 min
+21-04-03 06:12:33 | Epoch: 4, batch: [100/938], lr: 0.00050905, loss: 3.2992, ppl: 27.09
+21-04-03 06:13:09 | Epoch: 4, batch: [200/938], lr: 0.00052652, loss: 3.8065, ppl: 44.994
+21-04-03 06:13:45 | Epoch: 4, batch: [300/938], lr: 0.00054399, loss: 3.3751, ppl: 29.226
+21-04-03 06:14:20 | Epoch: 4, batch: [400/938], lr: 0.00056146, loss: 3.5185, ppl: 33.735
+21-04-03 06:14:57 | Epoch: 4, batch: [500/938], lr: 0.00057893, loss: 4.5561, ppl: 95.215
+21-04-03 06:15:33 | Epoch: 4, batch: [600/938], lr: 0.0005964, loss: 3.6905, ppl: 40.063
+21-04-03 06:16:08 | Epoch: 4, batch: [700/938], lr: 0.00061387, loss: 3.4279, ppl: 30.811
+21-04-03 06:16:45 | Epoch: 4, batch: [800/938], lr: 0.00063134, loss: 3.6108, ppl: 36.995
+21-04-03 06:17:20 | Epoch: 4, batch: [900/938], lr: 0.00064881, loss: 4.4326, ppl: 84.15
+Valid | Epoch: 4, loss: 3.6058, ppl: 36.812, elapsed: 5.8 min
+21-04-03 06:18:26 | Epoch: 5, batch: [100/938], lr: 0.00067292, loss: 3.0921, ppl: 22.024
+21-04-03 06:19:02 | Epoch: 5, batch: [200/938], lr: 0.00069039, loss: 3.8602, ppl: 47.476
+21-04-03 06:19:38 | Epoch: 5, batch: [300/938], lr: 0.00069427, loss: 3.2486, ppl: 25.754
+21-04-03 06:20:14 | Epoch: 5, batch: [400/938], lr: 0.00068586, loss: 3.5188, ppl: 33.745
+21-04-03 06:20:50 | Epoch: 5, batch: [500/938], lr: 0.00067775, loss: 3.2284, ppl: 25.24
+21-04-03 06:21:26 | Epoch: 5, batch: [600/938], lr: 0.00066992, loss: 3.3343, ppl: 28.058
+21-04-03 06:22:02 | Epoch: 5, batch: [700/938], lr: 0.00066235, loss: 3.4624, ppl: 31.892
+21-04-03 06:22:37 | Epoch: 5, batch: [800/938], lr: 0.00065503, loss: 4.1181, ppl: 61.441
+21-04-03 06:23:14 | Epoch: 5, batch: [900/938], lr: 0.00064796, loss: 3.6578, ppl: 38.775
+Valid | Epoch: 5, loss: 3.4348, ppl: 31.026, elapsed: 5.8 min
+21-04-03 06:24:21 | Epoch: 6, batch: [100/938], lr: 0.00063855, loss: 3.1628, ppl: 23.638
+21-04-03 06:24:57 | Epoch: 6, batch: [200/938], lr: 0.00063199, loss: 3.6315, ppl: 37.768
+21-04-03 06:25:34 | Epoch: 6, batch: [300/938], lr: 0.00062563, loss: 3.1879, ppl: 24.238
+21-04-03 06:26:10 | Epoch: 6, batch: [400/938], lr: 0.00061945, loss: 3.0669, ppl: 21.476
+21-04-03 06:26:46 | Epoch: 6, batch: [500/938], lr: 0.00061345, loss: 3.0862, ppl: 21.893
+21-04-03 06:27:21 | Epoch: 6, batch: [600/938], lr: 0.00060763, loss: 3.1527, ppl: 23.4
+21-04-03 06:27:57 | Epoch: 6, batch: [700/938], lr: 0.00060196, loss: 3.2172, ppl: 24.958
+21-04-03 06:28:34 | Epoch: 6, batch: [800/938], lr: 0.00059646, loss: 2.9256, ppl: 18.645
+21-04-03 06:29:09 | Epoch: 6, batch: [900/938], lr: 0.0005911, loss: 3.027, ppl: 20.635
+Valid | Epoch: 6, loss: 3.3159, ppl: 27.547, elapsed: 5.9 min
+21-04-03 06:30:15 | Epoch: 7, batch: [100/938], lr: 0.00058393, loss: 2.7524, ppl: 15.68
+21-04-03 06:30:51 | Epoch: 7, batch: [200/938], lr: 0.0005789, loss: 3.0642, ppl: 21.417
+21-04-03 06:31:27 | Epoch: 7, batch: [300/938], lr: 0.000574, loss: 2.8816, ppl: 17.843
+21-04-03 06:32:03 | Epoch: 7, batch: [400/938], lr: 0.00056922, loss: 2.8788, ppl: 17.793
+21-04-03 06:32:39 | Epoch: 7, batch: [500/938], lr: 0.00056455, loss: 3.0443, ppl: 20.995
+21-04-03 06:33:15 | Epoch: 7, batch: [600/938], lr: 0.00056, loss: 3.2723, ppl: 26.371
+21-04-03 06:33:50 | Epoch: 7, batch: [700/938], lr: 0.00055556, loss: 3.2764, ppl: 26.482
+21-04-03 06:34:27 | Epoch: 7, batch: [800/938], lr: 0.00055122, loss: 3.2826, ppl: 26.646
+21-04-03 06:35:03 | Epoch: 7, batch: [900/938], lr: 0.00054698, loss: 2.9471, ppl: 19.051
+Valid | Epoch: 7, loss: 3.2457, ppl: 25.68, elapsed: 5.9 min
+21-04-03 06:36:09 | Epoch: 8, batch: [100/938], lr: 0.00054129, loss: 2.6793, ppl: 14.574
+21-04-03 06:36:45 | Epoch: 8, batch: [200/938], lr: 0.00053728, loss: 2.832, ppl: 16.979
+21-04-03 06:37:21 | Epoch: 8, batch: [300/938], lr: 0.00053335, loss: 2.9928, ppl: 19.941
+21-04-03 06:37:57 | Epoch: 8, batch: [400/938], lr: 0.00052951, loss: 2.9814, ppl: 19.715
+21-04-03 06:38:34 | Epoch: 8, batch: [500/938], lr: 0.00052575, loss: 2.8535, ppl: 17.348
+21-04-03 06:39:10 | Epoch: 8, batch: [600/938], lr: 0.00052207, loss: 3.1035, ppl: 22.275
+21-04-03 06:39:46 | Epoch: 8, batch: [700/938], lr: 0.00051846, loss: 2.9771, ppl: 19.63
+21-04-03 06:40:21 | Epoch: 8, batch: [800/938], lr: 0.00051493, loss: 2.9742, ppl: 19.573
+21-04-03 06:40:57 | Epoch: 8, batch: [900/938], lr: 0.00051147, loss: 2.9323, ppl: 18.771
+Valid | Epoch: 8, loss: 3.2259, ppl: 25.176, elapsed: 5.9 min
+21-04-03 06:42:04 | Epoch: 9, batch: [100/938], lr: 0.00050681, loss: 2.8907, ppl: 18.006
+21-04-03 06:42:40 | Epoch: 9, batch: [200/938], lr: 0.00050351, loss: 2.7374, ppl: 15.447
+21-04-03 06:43:15 | Epoch: 9, batch: [300/938], lr: 0.00050027, loss: 2.7775, ppl: 16.078
+21-04-03 06:43:51 | Epoch: 9, batch: [400/938], lr: 0.0004971, loss: 2.7274, ppl: 15.293
+21-04-03 06:44:27 | Epoch: 9, batch: [500/938], lr: 0.00049398, loss: 2.9197, ppl: 18.535
+21-04-03 06:45:03 | Epoch: 9, batch: [600/938], lr: 0.00049093, loss: 2.6709, ppl: 14.453
+21-04-03 06:45:40 | Epoch: 9, batch: [700/938], lr: 0.00048792, loss: 2.8753, ppl: 17.73
+21-04-03 06:46:15 | Epoch: 9, batch: [800/938], lr: 0.00048498, loss: 2.6451, ppl: 14.085
+21-04-03 06:46:52 | Epoch: 9, batch: [900/938], lr: 0.00048208, loss: 2.5538, ppl: 12.856
+Valid | Epoch: 9, loss: 3.2068, ppl: 24.699, elapsed: 5.9 min
+21-04-03 06:48:00 | Epoch: 10, batch: [100/938], lr: 0.00047817, loss: 2.5319, ppl: 12.577
+21-04-03 06:48:36 | Epoch: 10, batch: [200/938], lr: 0.0004754, loss: 2.5545, ppl: 12.865
+21-04-03 06:49:12 | Epoch: 10, batch: [300/938], lr: 0.00047267, loss: 2.5001, ppl: 12.183
+21-04-03 06:49:48 | Epoch: 10, batch: [400/938], lr: 0.00046999, loss: 2.5965, ppl: 13.417
+21-04-03 06:50:24 | Epoch: 10, batch: [500/938], lr: 0.00046736, loss: 2.5852, ppl: 13.266
+21-04-03 06:51:00 | Epoch: 10, batch: [600/938], lr: 0.00046476, loss: 2.6526, ppl: 14.19
+21-04-03 06:51:36 | Epoch: 10, batch: [700/938], lr: 0.00046222, loss: 2.8505, ppl: 17.296
+21-04-03 06:52:12 | Epoch: 10, batch: [800/938], lr: 0.00045971, loss: 2.721, ppl: 15.195
+21-04-03 06:52:48 | Epoch: 10, batch: [900/938], lr: 0.00045724, loss: 2.7036, ppl: 14.934
+Valid | Epoch: 10, loss: 3.2293, ppl: 25.262, elapsed: 5.9 min
+21-04-03 06:53:52 | Epoch: 11, batch: [100/938], lr: 0.0004539, loss: 2.5226, ppl: 12.461
+21-04-03 06:54:28 | Epoch: 11, batch: [200/938], lr: 0.00045153, loss: 2.4941, ppl: 12.11
+21-04-03 06:55:04 | Epoch: 11, batch: [300/938], lr: 0.00044919, loss: 2.5072, ppl: 12.271
+21-04-03 06:55:40 | Epoch: 11, batch: [400/938], lr: 0.00044688, loss: 2.5332, ppl: 12.593
+21-04-03 06:56:16 | Epoch: 11, batch: [500/938], lr: 0.00044462, loss: 2.3391, ppl: 10.372
+21-04-03 06:56:52 | Epoch: 11, batch: [600/938], lr: 0.00044238, loss: 2.6163, ppl: 13.685
+21-04-03 06:57:28 | Epoch: 11, batch: [700/938], lr: 0.00044018, loss: 2.6116, ppl: 13.621
+21-04-03 06:58:03 | Epoch: 11, batch: [800/938], lr: 0.00043802, loss: 2.5893, ppl: 13.321
+21-04-03 06:58:39 | Epoch: 11, batch: [900/938], lr: 0.00043588, loss: 2.7065, ppl: 14.976
+Valid | Epoch: 11, loss: 3.2399, ppl: 25.53, elapsed: 5.8 min
 ```
 
-After training the model, use the following command to use the model for translation
+## 4.2 Translate
+After training the model, use the following command to use your best model for **interactive translation**:  
 ```bash
-python translate.py -dl_path /content/drive/MyDrive/zh_en.dl -ckpt_path /content/drive/MyDrive
+python translate.py -dl_path /content/drive/MyDrive/v15news/zh_en.dl -ckpt_path /content/drive/MyDrive/v15news/checkpoint_best.pt
 ```
 
 The translate results:
@@ -276,4 +265,9 @@ income inequality may start widening again , though the indices for median house
 
 Please input a sentence of zh:须知民粹主义并不是某个心怀恶意的外来势力强加于欧洲身上的；而是在欧洲内部有机地滋生，并在真实存在且广泛的不满情绪的推动下蔓延开来。
 populism is not a malicious external actor in Europe ; it is a source of organic power in Europe , and spreading from real and widespread disaffection .
+```
+
+It can also **generate translations** in batches for evaluation, which requires a test set in ```/content/drive/MyDrive/Datasets/v15news/```
+```bash
+python translate.py -src zh -tgt en -generate -test_path /content/drive/MyDrive/Datasets/v15news/test -dl_path /content/drive/MyDrive/v15news/zh_en.dl -ckpt_path /content/drive/MyDrive/v15news/checkpoint_best.pt
 ```
