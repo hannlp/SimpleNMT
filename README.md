@@ -254,17 +254,20 @@ python translate.py -dl_path /content/drive/MyDrive/v15news/zh_en.dl -ckpt_path 
 
 The translate results:
 ```bash
-Please input a sentence of zh:其中有一些政策被获得竞争优势的欲望所驱使，比如中国对绿色产业的支持。
-some of these policies are driven by the desire to gain a competitive advantage , as China supports the green sector .
+Please input a sentence(zh): 我是一名光荣的共产党员。
+I was a glorious communist .
 
-Please input a sentence of zh:在欧洲，知道目前银行才被明确要求解决资本短缺和杠杆问题，处理残留劣质资产。
-in Europe , knowing that the current bank is explicitly to address its capital shortfalls and leverage problems , and to treat residual assets with residual residual status .
+Please input a sentence(zh): 其中有一些政策被获得竞争优势的欲望所驱使，比如中国对绿色产业的支持。
+some of these policies have been driven by the desire to gain a competitive advantage , as China has been in favor of green industries .
 
-Please input a sentence of zh:收入不平等可能再次开始扩大，尽管去年的中位家庭收入和贫困率指标有了重大改善。
-income inequality may start widening again , though the indices for median household income and poverty improved dramatically during the past year .
+Please input a sentence(zh): 收入不平等可能再次开始扩大，尽管去年的中位家庭收入和贫困率指标有了重大改善。
+income inequality may start to widen again , even though the median family income and poverty rate indicators have improved considerably last year .
 
-Please input a sentence of zh:须知民粹主义并不是某个心怀恶意的外来势力强加于欧洲身上的；而是在欧洲内部有机地滋生，并在真实存在且广泛的不满情绪的推动下蔓延开来。
-populism is not a malicious external actor in Europe ; it is a source of organic power in Europe , and spreading from real and widespread disaffection .
+Please input a sentence(zh): 在欧洲，知道目前银行才被明确要求解决资本短缺和杠杆问题，处理残留劣质资产。
+in Europe , it is now clear that banks are being asked to address capital shortfalls and leverage problems , and that they have residual weak or low-quality assets .
+
+Please input a sentence(zh): 须知民粹主义并不是某个心怀恶意的外来势力强加于欧洲身上的；而是在欧洲内部有机地滋生，并在真 实存在且广泛的不满情绪的推动下蔓延开来。
+populism is not a bad foreign actor , imposing Europe ; it is a recipe for organ@@ ic-@@ ag@@ ro production within Europe , fueled by real and widespread discontent .
 ```
 
 It can also **generate translations** in batches for evaluation, which requires a test set in ```/content/drive/MyDrive/Datasets/v15news/```  
@@ -294,3 +297,27 @@ The generate preocess:
 -T	a 2004 report by the Humanitarian Policy Group cited a survey carried out in Ethiopia after UN agencies said that humanitarian efforts had averted widespread famine in 2000 .
 -P	after the UN &apos;s related agency , the human policy group declared that the humanitarian effort to avert Ethiopia &apos;s broad famine in 2000 , the &quot; humanitarian policy group &quot; cited a survey in a 2004 report .
 ```
+
+## 4.3 Evaluation and comparison
+And then, you can use the script to evaluate the translation results:
+```bash
+grep ^-T /content/drive/MyDrive/Datasets/v15news/test.result | cut -f2 > ref.txt
+grep ^-P /content/drive/MyDrive/Datasets/v15news/test.result | cut -f2 > pred.txt
+perl /content/SimpleNMT/simplenmt/utils/multi-bleu.perl pred.txt < ref.txt
+```
+
+The evaluate result:
+```
+BLEU = 23.73, 55.9/29.3/17.6/11.0 (BP=1.000, ratio=1.012, hyp_len=209262, ref_len=206832)
+```
+
+The following is the evaluation result on the model trained using [fairseq](https://github.com/pytorch/fairseq), it can be found that the two are very close
+```
+BLEU = 23.95, 58.5/31.1/18.9/12.0 (BP=0.945, ratio=0.946, hyp_len=197975, ref_len=209262)
+```
+
+# 5 Acknowledgement
+1. [bentrevett/pytorch-seq2seq](https://github.com/bentrevett/pytorch-seq2seq)
+2. [harvardnlp/annotated-transformer](http://nlp.seas.harvard.edu/2018/04/03/attention.html)
+3. [jadore801120/attention-is-all-you-need](https://github.com/jadore801120/attention-is-all-you-need-pytorch)
+4. [fairseq](https://github.com/pytorch/fairseq), [OpenNMT](https://opennmt.net/), [Tensor2Tensor](https://github.com/tensorflow/tensor2tensor), etc.
