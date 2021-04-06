@@ -6,9 +6,11 @@ class RNNSearch(nn.Module):
     def __init__(self, n_src_words, n_tgt_words, max_src_len, max_tgt_len,
                  d_model, n_layers, src_pdx=0, tgt_pdx=0, bidirectional=True):
         super().__init__()
+        self.src_pdx = src_pdx
         self.encoder = Encoder(n_src_words, max_src_len, d_model, src_pdx, n_layers, bidirectional)
-        self.decoder = Decoder(n_tgt_words, max_tgt_len, d_model, tgt_pdx, n_layers)
-    
+        self.decoder = Decoder(n_tgt_words, max_tgt_len, d_model, tgt_pdx, n_layers, bidirectional)
+        self.out_vocab_proj = nn.Linear(d_model, n_tgt_words)
+
     def forward(self, src_tokens, prev_tgt_tokens):
         '''
         params:
@@ -20,7 +22,7 @@ class RNNSearch(nn.Module):
         src_mask = src_tokens.eq(self.src_pdx)
         encoder_out, hiddens, cells =  self.encoder(src_tokens)
         decoder_out = self.decoder(prev_tgt_tokens, encoder_out, hiddens, cells, src_mask)
-        model_out = decoder_out
+        model_out = self.out_vocab_proj(decoder_out)
         return model_out
 
 class Encoder(nn.Module):
@@ -55,6 +57,7 @@ class Encoder(nn.Module):
             hiddens = self._combine_bidir(hiddens, batch_size)
             cells = self._combine_bidir(cells, batch_size)
         
+        print(encoder_out.shape, hiddens.shape, cells.shape)
         return encoder_out, hiddens, cells
 
     def _combine_bidir(self, outs, batch_size):
@@ -62,22 +65,37 @@ class Encoder(nn.Module):
         return out.view(self.n_layers, batch_size, -1)
 
 class AttentionLayer(nn.Module):
-    def __init__(self):
+    def __init__(self, d_src, d_tgt):
         super().__init__()
+        self.input_proj = nn.Linear(d_tgt, d_src)
+        self.out_proj = nn.Linear(d_src + d_tgt, d_tgt)
 
-    def forward(self, input, encoder_out, src_mask):
-        pass
+    def forward(self, s, encoder_out, src_mask):
+        # - s: (batch_size, d_tgt)
+        # - encoder_out: (batch_size, src_len, d_src)
+        x = self.input_proj(s)
+        # - x: (batch_size, d_src)
+        print(encoder_out.shape, x.shape)
+        e = (encoder_out * x.unsqueeze(1)).sum(dim=-1).masked_fill_(src_mask, -1e9)
+        print(e.shape)
+        attn = F.softmax(e, dim=-1)
+        # - attn: (batch_size, src_len)
+        x = (attn.unsqueeze(2) * encoder_out).sum(dim=1)
+        # - x: (batch_size, d_src)
+        out = torch.tanh(self.out_proj(torch.cat((x, s), dim=1)))
+        # - out: (batch_size, d_tgt)
+        return out
 
 class Decoder(nn.Module):
     def __init__(self, n_tgt_words, max_tgt_len, d_model, tgt_pdx, n_layers, bidirectional):
         super().__init__()
-        self.d_model, self.n_layers, self.src_pdx = d_model, n_layers, tgt_pdx
+        self.d_model, self.n_layers = d_model, n_layers
         self.n_directions = 2 if bidirectional else 1
         self.input_embedding = nn.Embedding(n_tgt_words, d_model, padding_idx=tgt_pdx)
 
         self.layers = nn.ModuleList(
             [nn.LSTMCell(input_size=d_model, hidden_size=d_model) for _ in range(n_layers)])
-        self.attention = AttentionLayer()
+        self.attention = AttentionLayer(d_src=self.n_directions * d_model, d_tgt=d_model)
         # self.lstm = nn.LSTM(input_size=self.n_directions * d_model, hidden_size=d_model, num_layers=n_layers, 
         #                     batch_first=True, bidirectional=False)
     
@@ -88,20 +106,18 @@ class Decoder(nn.Module):
         prev_hiddens, prev_cells = [hiddens[l] for l in range(self.n_layers)], [cells[l] for l in range(self.n_layers)]
         #batch_size, src_len, tgt_len = encoder_out.size[:-1], prev_tgt_tokens.size(1)
         #attn_scores = tgt_embed.new_zeros(batch_size, src_len, tgt_len)
+        outs = []
         for t in range(tgt_len):
             # - y_t: (batch_size, d_model)
             y_t = tgt_embed[:, t, :]
             s = y_t
             for l, layer in enumerate(self.layers):
                 hidden, cell = layer(s, (prev_hiddens[l], prev_cells[l]))
-                s = hidden
-                prev_hiddens[l], prev_hiddens[l] = hidden, cell
-            # - s_t: (batch_size, d_model)
+                s, prev_hiddens[l], prev_hiddens[l] = hidden, hidden, cell
+            # - s_t: (batch_size, d_model) s_t = f(s_t-1, y_t-1, c_t)
 
-            out = self.attention(s, encoder_out, src_mask)
-            #s_t = f(s_t-1, y_t-1, c_t)
-
-            
-
-
+            out_t = self.attention(s, encoder_out, src_mask)
+            # - out: (batch_size, d_model)
+            outs.append(out_t)
+        decoder_out = torch.cat(outs, dim=0).view(-1, tgt_len, self.d_model)
         return decoder_out
