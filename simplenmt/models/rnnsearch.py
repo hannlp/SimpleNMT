@@ -19,7 +19,7 @@ class RNNSearch(nn.Module):
         '''
         src_mask = src_tokens.eq(self.src_pdx)
         encoder_out, hiddens, cells =  self.encoder(src_tokens)
-        decoder_out = self.decoder(prev_tgt_tokens, encoder_out, src_mask)
+        decoder_out = self.decoder(prev_tgt_tokens, encoder_out, hiddens, cells, src_mask)
         model_out = decoder_out
         return model_out
 
@@ -42,7 +42,7 @@ class Encoder(nn.Module):
 
         # - h_0 & c_0: (n_layers * n_directions, batch_size, d_model)
         state_size = self.n_layers * self.n_directions, batch_size, self.d_model
-        h_0, c_0 = src_embed.new_zeros(*state_size), src_embed.new_zeros(*state_size)
+        h_0, c_0 = [src_embed.new_zeros(*state_size)] * 2
         
         packed_encoder_out, (hiddens, cells) = self.lstm(packed_src_embed, (h_0, c_0))
         # - encoder_out: (batch_size, src_len, n_directions * d_model) where 3rd is last layer [h_fwd; h_bkwd]
@@ -74,10 +74,34 @@ class Decoder(nn.Module):
         self.d_model, self.n_layers, self.src_pdx = d_model, n_layers, tgt_pdx
         self.n_directions = 2 if bidirectional else 1
         self.input_embedding = nn.Embedding(n_tgt_words, d_model, padding_idx=tgt_pdx)
-        self.lstm = nn.LSTM(input_size=self.n_directions * d_model, hidden_size=d_model, num_layers=n_layers, 
-                            batch_first=True, bidirectional=False)
+
+        self.layers = nn.ModuleList(
+            [nn.LSTMCell(input_size=d_model, hidden_size=d_model) for _ in range(n_layers)])
+        self.attention = AttentionLayer()
+        # self.lstm = nn.LSTM(input_size=self.n_directions * d_model, hidden_size=d_model, num_layers=n_layers, 
+        #                     batch_first=True, bidirectional=False)
     
-    def forward(self, prev_tgt_tokens, hidden, src_mask):
+    def forward(self, prev_tgt_tokens, encoder_out, hiddens, cells, src_mask):
+        tgt_len = prev_tgt_tokens.size(1)
+        # - tgt_embed: (batch_size, src_len, d_model)
         tgt_embed = self.input_embedding(prev_tgt_tokens)
-        decoder_out, hidden = self.gru(tgt_embed, hidden)
+        prev_hiddens, prev_cells = [hiddens[l] for l in range(self.n_layers)], [cells[l] for l in range(self.n_layers)]
+        #batch_size, src_len, tgt_len = encoder_out.size[:-1], prev_tgt_tokens.size(1)
+        #attn_scores = tgt_embed.new_zeros(batch_size, src_len, tgt_len)
+        for t in range(tgt_len):
+            # - y_t: (batch_size, d_model)
+            y_t = tgt_embed[:, t, :]
+            s = y_t
+            for l, layer in enumerate(self.layers):
+                hidden, cell = layer(s, (prev_hiddens[l], prev_cells[l]))
+                s = hidden
+                prev_hiddens[l], prev_hiddens[l] = hidden, cell
+            # - s_t: (batch_size, d_model)
+
+            out = self.attention(s, encoder_out, src_mask)
+            #s_t = f(s_t-1, y_t-1, c_t)
+
+            
+
+
         return decoder_out
