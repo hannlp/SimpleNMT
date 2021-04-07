@@ -50,9 +50,7 @@ class Encoder(nn.Module):
         packed_encoder_out, (hiddens, cells) = self.lstm(packed_src_embed, (h_0, c_0))
         #encoder_out, (hiddens, cells) = self.lstm(src_embed)
         # - encoder_out: (batch_size, src_len, n_directions * d_model) where 3rd is last layer [h_fwd; h_bkwd]
-        encoder_out, _ = nn.utils.rnn.pad_packed_sequence(
-            packed_encoder_out, batch_first=True
-        )
+        encoder_out, _ = nn.utils.rnn.pad_packed_sequence(packed_encoder_out, batch_first=True)
 
         # - hiddens & cells: (n_layers, batch_size, n_directions * d_model)
         if self.n_directions == 2:
@@ -106,7 +104,8 @@ class Decoder(nn.Module):
         tgt_len = prev_tgt_tokens.size(1)
         # - tgt_embed: (batch_size, src_len, d_model)
         tgt_embed = self.input_embedding(prev_tgt_tokens)
-        prev_hiddens, prev_cells = [hiddens[l] for l in range(self.n_layers)], [cells[l] for l in range(self.n_layers)]
+        prev_hiddens = [hiddens[l] for l in range(self.n_layers)]
+        prev_cells = [cells[l] for l in range(self.n_layers)]
         #batch_size, src_len, tgt_len = encoder_out.size[:-1], prev_tgt_tokens.size(1)
         #attn_scores = tgt_embed.new_zeros(batch_size, src_len, tgt_len)
         outs = []
@@ -114,8 +113,8 @@ class Decoder(nn.Module):
             # - y_t: (batch_size, d_model)
             y_t = tgt_embed[:, t, :]
             s_t = y_t
-            for l, layer in enumerate(self.layers):
-                hidden, cell = layer(s_t, (prev_hiddens[l], prev_cells[l]))
+            for l, lstmcell in enumerate(self.layers):
+                hidden, cell = lstmcell(s_t, (prev_hiddens[l], prev_cells[l]))
                 prev_hiddens[l], prev_hiddens[l] = hidden, cell
                 s_t = hidden
 
