@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 class RNNSearch(nn.Module):
     def __init__(self, n_src_words, n_tgt_words, max_src_len, max_tgt_len,
-                 d_model, n_layers, src_pdx=0, tgt_pdx=0, bidirectional=True):
+                 d_model, n_layers, src_pdx=0, tgt_pdx=0, bidirectional=False):
         super().__init__()
         self.src_pdx = src_pdx
         self.encoder = Encoder(n_src_words, max_src_len, d_model, src_pdx, n_layers, bidirectional)
@@ -34,7 +34,8 @@ class Encoder(nn.Module):
         self.lstm = nn.LSTM(input_size=d_model, hidden_size=d_model, num_layers=n_layers, 
                             batch_first=True, bidirectional=bidirectional)
     
-    def forward(self, src_tokens):        
+    def forward(self, src_tokens):
+        print(src_tokens.shape)
         # - src_embed: (batch_size, src_len, d_model)
         src_embed = self.input_embedding(src_tokens)
         batch_size, src_lens = src_tokens.size(0), src_tokens.ne(self.src_pdx).long().sum(dim=-1)
@@ -47,6 +48,7 @@ class Encoder(nn.Module):
         h_0, c_0 = [src_embed.new_zeros(*state_size)] * 2
         
         packed_encoder_out, (hiddens, cells) = self.lstm(packed_src_embed, (h_0, c_0))
+        #encoder_out, (hiddens, cells) = self.lstm(src_embed)
         # - encoder_out: (batch_size, src_len, n_directions * d_model) where 3rd is last layer [h_fwd; h_bkwd]
         encoder_out, _ = nn.utils.rnn.pad_packed_sequence(
             packed_encoder_out, batch_first=True
@@ -58,6 +60,7 @@ class Encoder(nn.Module):
             cells = self._combine_bidir(cells, batch_size)
         
         print(encoder_out.shape, hiddens.shape, cells.shape)
+        #print(encoder_out)
         return encoder_out, hiddens, cells
 
     def _combine_bidir(self, outs, batch_size):
@@ -75,7 +78,7 @@ class AttentionLayer(nn.Module):
         # - encoder_out: (batch_size, src_len, d_src)
         x = self.input_proj(s)
         # - x: (batch_size, d_src)
-        print(encoder_out.shape, x.shape)
+        print(encoder_out.shape, x.shape, src_mask.shape)
         e = (encoder_out * x.unsqueeze(1)).sum(dim=-1).masked_fill_(src_mask, -1e9)
         print(e.shape)
         attn = F.softmax(e, dim=-1)
@@ -110,14 +113,17 @@ class Decoder(nn.Module):
         for t in range(tgt_len):
             # - y_t: (batch_size, d_model)
             y_t = tgt_embed[:, t, :]
-            s = y_t
+            s_t = y_t
             for l, layer in enumerate(self.layers):
-                hidden, cell = layer(s, (prev_hiddens[l], prev_cells[l]))
-                s, prev_hiddens[l], prev_hiddens[l] = hidden, hidden, cell
+                hidden, cell = layer(s_t, (prev_hiddens[l], prev_cells[l]))
+                prev_hiddens[l], prev_hiddens[l] = hidden, cell
+                s_t = hidden
+
             # - s_t: (batch_size, d_model) s_t = f(s_t-1, y_t-1, c_t)
 
-            out_t = self.attention(s, encoder_out, src_mask)
+            out_t = self.attention(s_t, encoder_out, src_mask)
             # - out: (batch_size, d_model)
             outs.append(out_t)
         decoder_out = torch.cat(outs, dim=0).view(-1, tgt_len, self.d_model)
+        print(decoder_out.shape)
         return decoder_out
