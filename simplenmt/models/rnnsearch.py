@@ -35,7 +35,7 @@ class Encoder(nn.Module):
                             batch_first=True, bidirectional=bidirectional)
     
     def forward(self, src_tokens):
-        print(src_tokens.shape)
+        #print(src_tokens.shape)
         # - src_embed: (batch_size, src_len, d_model)
         src_embed = self.input_embedding(src_tokens)
         batch_size, src_lens = src_tokens.size(0), src_tokens.ne(self.src_pdx).long().sum(dim=-1)
@@ -59,7 +59,7 @@ class Encoder(nn.Module):
             hiddens = self._combine_bidir(hiddens, batch_size)
             cells = self._combine_bidir(cells, batch_size)
         
-        print(encoder_out.shape, hiddens.shape, cells.shape)
+        #print(encoder_out.shape, hiddens.shape, cells.shape)
         #print(encoder_out)
         return encoder_out, hiddens, cells
 
@@ -78,9 +78,9 @@ class AttentionLayer(nn.Module):
         # - encoder_out: (batch_size, src_len, d_src)
         x = self.input_proj(s)
         # - x: (batch_size, d_src)
-        print(encoder_out.shape, x.shape, src_mask.shape)
+        #print(encoder_out.shape, x.shape, src_mask.shape)
         e = (encoder_out * x.unsqueeze(1)).sum(dim=-1).masked_fill_(src_mask, -1e9)
-        print(e.shape)
+        #print(e.shape)
         attn = F.softmax(e, dim=-1)
         # - attn: (batch_size, src_len)
         x = (attn.unsqueeze(2) * encoder_out).sum(dim=1)
@@ -125,5 +125,5 @@ class Decoder(nn.Module):
             # - out: (batch_size, d_model)
             outs.append(out_t)
         decoder_out = torch.cat(outs, dim=0).view(-1, tgt_len, self.d_model)
-        print(decoder_out.shape)
+        #print(decoder_out.shape)
         return decoder_out
