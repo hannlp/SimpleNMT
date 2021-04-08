@@ -78,11 +78,11 @@ class DataLoader(object):
         else:
             self.SRC.build_vocab(train.src, train.trg)
             self.TGT.vocab = self.SRC.vocab
-        print("Successful.")
+        print("Successful. ", end=" ")
         self._add_index()
 
         torch.save(self, dl_save_path, pickle_module=dill)
-        print("The dataloader is saved at \'{}\'".format(dl_save_path))
+        print("The dataloader has saved at \'{}\'".format(dl_save_path))
 
         train_iter = MyIterator(train, batch_size=batch_size, device=None,
                                 repeat=False, sort_key=lambda x:
