@@ -56,7 +56,8 @@ class Transformer(nn.Module):
 
 
 class Encoder(nn.Module):
-    def __init__(self, n_src_words, src_pdx, n_head, d_model, n_layers, p_drop, max_seq_len) -> None:
+    def __init__(self, n_src_words, src_pdx, n_head, d_model, 
+                 n_layers, p_drop, max_seq_len) -> None:
         super().__init__()
         self.d_model = d_model
         self.dropout = nn.Dropout(p=p_drop)
@@ -65,8 +66,7 @@ class Encoder(nn.Module):
         self.positional_encode = PositionalEncode(d_model, max_seq_len)
         self.layers = nn.ModuleList(
             [EncoderLayer(d_model, n_head, p_drop) for _ in range(n_layers)])
-        # - layer_norm: (d_model)
-        self.layer_norm = nn.LayerNorm(d_model)
+        self.layer_norm = nn.LayerNorm(d_model) # for memory
 
     def forward(self, src_tokens, src_mask):
         # - src_embed: (batch_size, src_len, d_model)
@@ -98,7 +98,8 @@ class EncoderLayer(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, n_tgt_words, tgt_pdx, n_head, d_model, n_layers, p_drop, max_seq_len) -> None:
+    def __init__(self, n_tgt_words, tgt_pdx, n_head, d_model, 
+                 n_layers, p_drop, max_seq_len) -> None:
         super().__init__()
         self.d_model = d_model
         self.dropout = nn.Dropout(p=p_drop)
@@ -107,19 +108,16 @@ class Decoder(nn.Module):
         self.positional_encode = PositionalEncode(d_model, max_seq_len)
         self.layers = nn.ModuleList(
             [DecoderLayer(d_model, n_head, p_drop) for _ in range(n_layers)])
-        # TODO : 这个LayerNorm试了一下，没看出有没有用，一开始的时候loss变高了，但是也能降到2左右
-        #self.layer_norm = nn.LayerNorm(d_model)
 
     def forward(self, prev_tgt_tokens, encoder_out, src_mask, tgt_mask):
         # - tgt_embed: (batch_size, src_len, d_model)
-        tgt_embed = self.input_embedding(
-            prev_tgt_tokens) * (self.d_model ** 0.5)
+        tgt_embed = self.input_embedding(prev_tgt_tokens) * (self.d_model ** 0.5)
         x = self.dropout(self.positional_encode(tgt_embed))
         for layer in self.layers:
             x = layer(x, encoder_out, src_mask, tgt_mask)
         # - decoder_out: (batch_size, tgt_len, n_tgt_words)
-        #decoder_out = self.layer_norm(x)
-        return x#decoder_out
+        decoder_out = x
+        return decoder_out
 
 
 class DecoderLayer(nn.Module):
@@ -127,8 +125,7 @@ class DecoderLayer(nn.Module):
         super().__init__()
         self.dropout = nn.Dropout(p=p_drop)
         self.sublayer1_prenorm = nn.LayerNorm(d_model)
-        self.masked_multi_head_attention = MultiHeadAttention(
-            d_model, n_head)
+        self.masked_multi_head_attention = MultiHeadAttention(d_model, n_head)
         self.sublayer2_prenorm = nn.LayerNorm(d_model)
         self.multi_head_attention = MultiHeadAttention(d_model, n_head)
         self.sublayer3_prenorm = nn.LayerNorm(d_model)
@@ -136,13 +133,11 @@ class DecoderLayer(nn.Module):
 
     def forward(self, x, memory, src_mask, tgt_mask):
         res, x_ln = x, self.sublayer1_prenorm(x)
-        x = res + self.dropout(
-              self.masked_multi_head_attention(q=x_ln, k=x_ln, v=x_ln,
-                mask=self._add_subsequent_mask(tgt_mask)))
+        x = res + self.dropout(self.masked_multi_head_attention(
+            q=x_ln, k=x_ln, v=x_ln, mask=self._add_subsequent_mask(tgt_mask)))
         res, x_ln = x, self.sublayer2_prenorm(x)
-        x = res + self.dropout(
-              self.multi_head_attention(q=x_ln, k=memory, v=memory, 
-                mask=src_mask.unsqueeze(1).unsqueeze(1)))
+        x = res + self.dropout(self.multi_head_attention(
+            q=x_ln, k=memory, v=memory, mask=src_mask.unsqueeze(1).unsqueeze(1)))
         res, x_ln = x, self.sublayer3_prenorm(x)
         x = res + self.dropout(self.pos_wise_ffn(x_ln))
         return x
@@ -160,26 +155,21 @@ class MultiHeadAttention(nn.Module):
     # - src_embed_dim = d_model
     def __init__(self, d_model, n_head) -> None:
         super().__init__()
-        self.n_head = n_head
-        self.one_head_dim = d_model // self.n_head
-        self.w_q = nn.Linear(d_model, self.one_head_dim *
-                             self.n_head, bias=False)
-        self.w_k = nn.Linear(d_model, self.one_head_dim *
-                             self.n_head, bias=False)
-        self.w_v = nn.Linear(d_model, self.one_head_dim *
-                             self.n_head, bias=False)
-        self.w_out = nn.Linear(
-            self.one_head_dim * self.n_head, d_model, bias=False)
+        self.n_head, self.one_head_dim = n_head, d_model // n_head
+        self.w_q = nn.Linear(d_model, self.one_head_dim * self.n_head, bias=False)
+        self.w_k = nn.Linear(d_model, self.one_head_dim * self.n_head, bias=False)
+        self.w_v = nn.Linear(d_model, self.one_head_dim * self.n_head, bias=False)
+        self.w_out = nn.Linear(self.one_head_dim * self.n_head, d_model, bias=False)
 
     def forward(self, q, k, v, mask=None):
         # - x: (batch_size, seq_len, d_model)
         batch_size, q_len, kv_len = q.size(0), q.size(1), k.size(1)
-        Q = self.w_q(q).view(batch_size, q_len,
-                             self.n_head, self.one_head_dim).transpose(1, 2)
-        K = self.w_k(k).view(batch_size, kv_len,
-                             self.n_head, self.one_head_dim).transpose(1, 2)
-        V = self.w_v(v).view(batch_size, kv_len,
-                             self.n_head, self.one_head_dim).transpose(1, 2)
+        Q = self.w_q(q).view(batch_size, q_len, self.n_head, 
+                             self.one_head_dim).transpose(1, 2)
+        K = self.w_k(k).view(batch_size, kv_len, self.n_head,
+                             self.one_head_dim).transpose(1, 2)
+        V = self.w_v(v).view(batch_size, kv_len, self.n_head,
+                             self.one_head_dim).transpose(1, 2)
         # - Q, K, V: (batch_size, n_head, seq_len, one_head_dim)
 
         Q_KT = torch.matmul(Q, torch.transpose(K, 2, 3))
@@ -189,8 +179,8 @@ class MultiHeadAttention(nn.Module):
 
         attn = F.softmax(Q_KT / self.one_head_dim ** 0.5, dim=-1)
 
-        O = self.w_out(torch.matmul(attn, V).transpose(1, 2).reshape(batch_size, q_len,
-                                                                     self.one_head_dim * self.n_head))
+        O = self.w_out(torch.matmul(attn, V).transpose(1, 2).reshape(
+                batch_size, q_len, self.one_head_dim * self.n_head))
         # - O: (batch_size, seq_len, d_model)
         return O
 
