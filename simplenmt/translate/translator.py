@@ -26,10 +26,10 @@ class Translator(object):
 
         self.max_seq_length = args.max_seq_length
 
-        self.model = self._load_model(args)
+        self.model = self._load_model(args.ckpt_path)
         self.model.eval()
 
-    def _load_model(self, args):
+    def _load_model(self, ckpt_path):
         '''
         checkpoint(dict):
             - epoch(int)
@@ -37,7 +37,7 @@ class Translator(object):
             - settings(NameSpace): train_args
         '''
 
-        checkpoint = torch.load(args.ckpt_path, map_location=self.device)
+        checkpoint = torch.load(ckpt_path, map_location=self.device)
 
         model = build_model(checkpoint['settings'], use_cuda=torch.cuda.is_available())
         model.load_state_dict(checkpoint['model'])
@@ -116,7 +116,6 @@ class Translator(object):
         
         for step in range(2, self.max_seq_length):           
             done = done | max_idxs.eq(self.tgt_eos_idx).squeeze() #TODO : stop rules
-            #print(step, done)
             if all(done):
                 break
             

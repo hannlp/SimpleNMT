@@ -65,8 +65,7 @@ class AttentionLayer(nn.Module):
         self.linear_in = nn.Linear(d_tgt, d_src, bias=False)
 
     def forward(self, source, memory, mask):
-        # - source: (batch_size, tgt_len, d_tgt)
-        # - memory: (batch_size, src_len, d_src)
+        # - source: (batch_size, tgt_len, d_tgt), memory: (batch_size, src_len, d_src)
         score = torch.matmul(self.linear_in(source), memory.transpose(1, 2))
         score.masked_fill_(mask, -1e9)
         # - score: (batch_size, tgt_len, src_len)
