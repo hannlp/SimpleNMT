@@ -3,12 +3,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Luong(nn.Module):
-    def __init__(self, n_src_words, n_tgt_words, max_src_len, max_tgt_len,
-                 d_model, n_layers, src_pdx=0, tgt_pdx=0, bidirectional=False):
+    def __init__(self, n_src_words, n_tgt_words, d_model, n_layers, 
+                 src_pdx=-1, tgt_pdx=-1, p_drop=0.2, bidirectional=True):
         super().__init__()
         self.src_pdx = src_pdx
-        self.encoder = Encoder(n_src_words, max_src_len, d_model, src_pdx, n_layers, bidirectional)
-        self.decoder = Decoder(n_tgt_words, max_tgt_len, d_model, tgt_pdx, n_layers, bidirectional)
+        self.encoder = Encoder(n_src_words, d_model, src_pdx, n_layers, p_drop, bidirectional)
+        self.decoder = Decoder(n_tgt_words, d_model, tgt_pdx, n_layers, p_drop, bidirectional)
         self.out_vocab_proj = nn.Linear(d_model, n_tgt_words)
 
     def forward(self, src_tokens, prev_tgt_tokens):
@@ -26,13 +26,13 @@ class Luong(nn.Module):
         return model_out
 
 class Encoder(nn.Module):
-    def __init__(self, n_src_words, max_src_len, d_model, src_pdx, n_layers, bidirectional):
+    def __init__(self, n_src_words, d_model, src_pdx, n_layers, p_drop, bidirectional):
         super().__init__()
         self.d_model, self.n_layers, self.src_pdx = d_model, n_layers, src_pdx
         self.n_directions = 2 if bidirectional else 1
         self.input_embedding = nn.Embedding(n_src_words, d_model, padding_idx=src_pdx)
         self.lstm = nn.LSTM(input_size=d_model, hidden_size=d_model, num_layers=n_layers, 
-                            batch_first=True, bidirectional=bidirectional)
+                            dropout=p_drop, batch_first=True, bidirectional=bidirectional)
     
     def forward(self, src_tokens):
         # - src_embed: (batch_size, src_len, d_model)
@@ -62,7 +62,7 @@ class AttentionLayer(nn.Module):
     # general attention in 2015 luong et.
     def __init__(self, d_src, d_tgt):
         super().__init__()
-        self.linear_in = nn.Linear(d_src, d_tgt, bias=False)
+        self.linear_in = nn.Linear(d_tgt, d_src, bias=False)
 
     def forward(self, source, memory, mask):
         # - source: (batch_size, tgt_len, d_tgt)
@@ -74,7 +74,7 @@ class AttentionLayer(nn.Module):
         return attn
 
 class Decoder(nn.Module):
-    def __init__(self, n_tgt_words, max_tgt_len, d_model, tgt_pdx, n_layers, bidirectional):
+    def __init__(self, n_tgt_words, d_model, tgt_pdx, n_layers, p_drop, bidirectional):
         super().__init__()
         self.d_model, self.n_layers = d_model, n_layers
         self.n_directions = 2 if bidirectional else 1
@@ -82,12 +82,12 @@ class Decoder(nn.Module):
 
         self.attention = AttentionLayer(d_src=self.n_directions * d_model, d_tgt=d_model)
         self.lstm = nn.LSTM(input_size=d_model, hidden_size=d_model, num_layers=n_layers, 
-                            batch_first=True, bidirectional=False)
+                            dropout=p_drop, batch_first=True, bidirectional=False)
 
         self.linear_out = nn.Linear(self.n_directions * d_model + d_model, d_model, bias=False)
-        
+        self.dropout = nn.Dropout(p=p_drop)
+
     def forward(self, prev_tgt_tokens, encoder_out, hiddens, cells, src_mask):
-        tgt_len = prev_tgt_tokens.size(1)
         # - tgt_embed: (batch_size, src_len, d_model)
         tgt_embed = self.input_embedding(prev_tgt_tokens)
 
@@ -100,6 +100,6 @@ class Decoder(nn.Module):
         context = torch.matmul(attn, encoder_out)
         # - context: (batch_size, tgt_len, d_src)
         
-        decoder_out = self.linear_out(torch.cat([context, decoder_states], dim=-1))
+        decoder_out = self.dropout(self.linear_out(torch.cat([context, decoder_states], dim=-1)))
         # - decoder_out: (batch_size, tgt_len, d_model)
         return decoder_out
