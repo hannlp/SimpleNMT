@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 class Luong(nn.Module):
     def __init__(self, n_src_words, n_tgt_words, d_model, n_layers, 
-                 src_pdx=-1, tgt_pdx=-1, p_drop=0.2, bidirectional=True):
+                 src_pdx=-1, tgt_pdx=-1, p_drop=0.2, bidirectional=False):
         super().__init__()
         self.src_pdx = src_pdx
         self.encoder = Encoder(n_src_words, d_model, src_pdx, n_layers, p_drop, bidirectional)

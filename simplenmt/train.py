@@ -31,6 +31,9 @@ def parse():
     parser.add_argument("-max_seq_len", type=int, default=2048)
     parser.add_argument("-share_vocab", help="share src tgt embeddings and share decoder embeddings", action="store_true")
     #parser.add_argument("-share_decoder_embeddings", action="store_true")
+
+    # The arguments for RNNs
+    parser.add_argument("-bidirectional", help="use bidirectional rnns", action="store_true")
     
     parser.add_argument("-label_smoothing", type=float, default=0.1)
     args = parser.parse_args()

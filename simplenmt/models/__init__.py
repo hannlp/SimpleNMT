@@ -46,8 +46,8 @@ def build_model(args, use_cuda):
             'n_layers': args.n_layers, 
             'src_pdx': args.src_pdx, 
             'tgt_pdx': args.tgt_pdx,
-            'max_src_len': args.max_seq_len,
-            'max_tgt_len': args.max_seq_len
+            'p_drop': args.p_drop,
+            'bidirectional': args.bidirectional
         },
         "RNNSearch": {
             'n_src_words': args.n_src_words,
