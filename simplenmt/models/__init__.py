@@ -38,6 +38,16 @@ def build_model(args, use_cuda):
             'share_decoder_embeddings': args.share_vocab,
             'max_seq_len': args.max_seq_len
             }, 
+        "Luong": {
+            'n_src_words': args.n_src_words,
+            'n_tgt_words': args.n_tgt_words,
+            'd_model': args.d_model, 
+            'n_layers': args.n_layers, 
+            'src_pdx': args.src_pdx, 
+            'tgt_pdx': args.tgt_pdx,
+            'max_src_len': args.max_seq_len,
+            'max_tgt_len': args.max_seq_len
+        },
         "RNNSearch": {
             'n_src_words': args.n_src_words,
             'n_tgt_words': args.n_tgt_words,
