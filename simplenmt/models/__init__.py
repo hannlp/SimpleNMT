@@ -3,6 +3,7 @@ import torch.nn as nn
 from .transformer import Transformer
 from .rnnsearch import RNNSearch
 from .seq2seq import Seq2Seq
+from .luong import Luong
 
 '''
 transformer:
@@ -20,7 +21,7 @@ transformer:
 
 '''
 
-str2model = {"Transformer": Transformer, "RNNSearch": RNNSearch, "Seq2Seq": Seq2Seq}
+str2model = {"Transformer": Transformer, "RNNSearch": RNNSearch, "Seq2Seq": Seq2Seq, "Luong": Luong}
 
 def build_model(args, use_cuda):
 
