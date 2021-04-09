@@ -18,7 +18,7 @@ def parse():
     parser.add_argument("-ckpt_path", help="the checkpoint save path", type=str, default=".")
     parser.add_argument("-batch_size", type=int, default=3200)
     parser.add_argument("-warmup_steps", help="warmup steps of learning rate update", type=int, default=4000)
-    parser.add_argument("-n_epochs", type=int, default=20)
+    parser.add_argument("-n_epochs", type=int, default=30)
 
     # The arguments for Transformer
     parser.add_argument("-model", help="model name", type=str, default='Transformer')
