@@ -317,19 +317,33 @@ class Translator(object):
 
         return all_hyp, all_scores
 
+    # temp(for transformer)
+    # def _encode(self, src_tokens):
+    #     src_mask = src_tokens.eq(self.src_pdx).to(self.device)
+    #     encoder_out = self.model.encoder(src_tokens, src_mask)
+    #     return encoder_out, src_mask
+    
+    # def _decode(self, prev_tgt_tokens, encoder_out, src_mask):
+    #     tgt_mask = prev_tgt_tokens.eq(self.tgt_pdx).to(self.device)
+    #     decoder_out = self.model.decoder(
+    #         prev_tgt_tokens, encoder_out, src_mask, tgt_mask)
+    #     decoder_out = decoder_out[:,-1,:] # get last token
+    #     model_out = self.model.out_vocab_proj(decoder_out)
+    #     return model_out
+
+    # for luong
     def _encode(self, src_tokens):
         src_mask = src_tokens.eq(self.src_pdx).to(self.device)
-        encoder_out = self.model.encoder(src_tokens, src_mask)
-        return encoder_out, src_mask
+        encoder_outs = self.model.encoder(src_tokens)
+        return encoder_outs, src_mask
     
-    def _decode(self, prev_tgt_tokens, encoder_out, src_mask):
-        tgt_mask = prev_tgt_tokens.eq(self.tgt_pdx).to(self.device)
+    def _decode(self, prev_tgt_tokens, encoder_outs, src_mask):
         decoder_out = self.model.decoder(
-            prev_tgt_tokens, encoder_out, src_mask, tgt_mask)
+            prev_tgt_tokens, encoder_outs[0], encoder_outs[1], encoder_outs[2], src_mask)
         decoder_out = decoder_out[:,-1,:] # get last token
         model_out = self.model.out_vocab_proj(decoder_out)
         return model_out
-
+    
     def translate(self, sentence: str, beam_size=8):
         jieba.setLogLevel(logging.INFO)
         word_list = [w for w in list(jieba.cut(sentence)) if w.strip()]
