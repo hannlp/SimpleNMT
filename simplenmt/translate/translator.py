@@ -10,7 +10,7 @@ from translate.beam import Beam
 from models import build_model
 from data.dataloader import MyIterator, batch_size_fn
 from data.utils import prepare_batch
-from data.constants import Constants
+from .utils import de_numericalize
 
 class Translator(object):
     def __init__(self, args):
@@ -48,32 +48,15 @@ class Translator(object):
 
     def generate(self, test_path, exts, batch_size=3200):
 
-        def de_numericalize(vocab, tokens, remove_constants=
-                            {Constants.PAD, Constants.START, Constants.END}):
-            
-            sentences = []
-            for ex in tokens:
-                end, words_list = False, []
-                for x in ex:
-                    word = vocab.itos[x]
-                    end = True if word == Constants.END else end
-                    if word not in remove_constants and not end:
-                        words_list.append(word)
-                    else:
-                        pass
-                sentences.append(words_list)
-
-            return sentences
-
         test = datasets.TranslationDataset(
             path=test_path, exts=exts, 
             fields=(('src', self.dl.SRC), ('trg', self.dl.TGT)))
         
         test_iter = MyIterator(test, batch_size=batch_size, device=None,
-                                repeat=False, sort_key=lambda x:
-                                (len(x.src), len(x.trg)),
-                                batch_size_fn=batch_size_fn, train=False,
-                                shuffle=True)
+                               repeat=False, sort_key=lambda x:
+                               (len(x.src), len(x.trg)),
+                               batch_size_fn=batch_size_fn, train=False,
+                               shuffle=True)
        
         with open(test_path + '.result', 'w', encoding='utf8') as f:
             start_time = time.time()
@@ -87,10 +70,8 @@ class Translator(object):
                     src_sentences = de_numericalize(self.dl.SRC.vocab, src_tokens)
                     tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
                     
-                    #print("start batch greedy search")
                     #pred_tokens = self.batch_beam_search(src_tokens, beam_size=4)
                     pred_tokens = self.batch_greedy_search(src_tokens)
-                    #print("end batch greedy search")
 
                     pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens)
 
@@ -350,7 +331,7 @@ class Translator(object):
         word_list = [w for w in list(jieba.cut(sentence)) if w.strip()]
 
         with torch.no_grad():
-            if beam_size == 1:
-                return print(self._greedy_search(word_list), end="\n")
-            else:
-                return print(self._beam_search(word_list), end="\n")
+            src_tokens = self.dl.SRC.numericalize([word_list]).to(self.device) # (1, src_len)
+            gen_seqs = self.batch_greedy_search(src_tokens)
+            translated = de_numericalize(gen_seqs)[0]
+            print(' '.join(translated), end="\n")
