@@ -301,7 +301,7 @@ class Translator(object):
         word_list = [w for w in list(jieba.cut(sentence)) if w.strip()]
 
         with torch.no_grad():
-            src_tokens = self.dl.SRC.numericalize([word_list]).to(self.device) # (1, src_len)
+            src_tokens = self.dl.SRC.numericalize([word_list], self.device) # (1, src_len)
             gen_seqs = self.batch_greedy_search(src_tokens)
             translated = de_numericalize(self.dl.TGT.vocab, gen_seqs)[0]
             print(' '.join(translated), end="\n")
