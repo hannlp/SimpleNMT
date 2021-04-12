@@ -47,7 +47,9 @@ def build_model(args, use_cuda):
             'src_pdx': args.src_pdx, 
             'tgt_pdx': args.tgt_pdx,
             'p_drop': args.p_drop,
-            'bidirectional': args.bidirectional
+            'bidirectional': args.bidirectional,
+            'attn_type': args.attn_type, 
+            'rnn_type': args.rnn_type
         },
         "RNNSearch": {
             'n_src_words': args.n_src_words,

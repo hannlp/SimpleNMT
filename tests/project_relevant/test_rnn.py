@@ -24,6 +24,7 @@ if rnnsearch: # RNNSearch
                       d_model=256, n_layers=3, src_pdx=1, tgt_pdx=-1, bidirectional=False); #print(model)
     out = model(src_tokens, prev_output_tokens); print(out.shape)
 if luong: #Luong
+
     model = Luong(n_src_words, n_tgt_words, d_model=256, n_layers=3, 
-                  src_pdx=1, tgt_pdx=-1, bidirectional=True); #print(model)
+                  src_pdx=1, tgt_pdx=-1, bidirectional=True, rnn_type='lstm', attn_type='general'); print(model)
     out = model(src_tokens, prev_output_tokens); print(out.shape)

@@ -34,6 +34,8 @@ def parse():
 
     # The arguments for RNNs
     parser.add_argument("-bidirectional", help="use bidirectional rnns", action="store_true")
+    parser.add_argument("-attn_type", help="type of attention from luong's paper", type=str, default='general')
+    parser.add_argument("-rnn_type", help="type of RNNs", type=str, default='gru')
     
     parser.add_argument("-label_smoothing", type=float, default=0.1)
     args = parser.parse_args()
