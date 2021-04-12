@@ -10,7 +10,8 @@ from translate.beam import Beam
 from models import build_model
 from data.dataloader import MyIterator, batch_size_fn
 from data.utils import prepare_batch
-from .utils import de_numericalize
+#from .utils import de_numericalize
+from data.constants import Constants
 
 class Translator(object):
     def __init__(self, args):
@@ -47,6 +48,26 @@ class Translator(object):
         return model
 
     def generate(self, test_path, exts, batch_size=3200):
+
+        def de_numericalize(vocab, tokens):
+            #remove_constants={}
+            remove_constants={
+                Constants.PAD, Constants.START, Constants.END}
+                
+            sentences = []
+            for sentence in tokens:
+                end = False
+                words_list = []
+                for word_id in sentence:
+                    word = vocab.itos[word_id]
+                    end = True if word == Constants.END else end
+                    if word not in remove_constants and not end:
+                        words_list.append(word)
+                    else:
+                        pass
+                sentences.append(words_list)
+
+            return sentences
 
         test = datasets.TranslationDataset(
             path=test_path, exts=exts, 
@@ -87,12 +108,12 @@ class Translator(object):
         batch_size = src_tokens.size(0)
         done = torch.tensor([False] * batch_size).to(self.device)
         
-        encoder_out, src_mask = self.model._encode(src_tokens)
+        encoder_out, src_mask = self._encode(src_tokens)
 
         gen_seqs = torch.full((batch_size, 1), self.tgt_sos_idx).to(self.device)
         # - gen_seqs: (batch_size, 1) -> <sos>
 
-        probs = F.softmax(self.model._decode(gen_seqs, encoder_out, src_mask), dim=-1) # TODO: use log_softmax
+        probs = F.softmax(self._decode(gen_seqs, encoder_out, src_mask), dim=-1) # TODO: use log_softmax
         _, max_idxs = probs.topk(1) # new words
         
         for step in range(2, self.max_seq_length):           
@@ -103,7 +124,7 @@ class Translator(object):
             gen_seqs = torch.cat((gen_seqs, max_idxs.to(self.device)), dim=1)
             # - gen_seqs: (batch_size, step) -> batch seqs
 
-            probs = F.softmax(self.model._decode(gen_seqs, encoder_out, src_mask), dim=-1)
+            probs = F.softmax(self._decode(gen_seqs, encoder_out, src_mask), dim=-1)
             _, max_idxs = probs.topk(1)
         
         return gen_seqs

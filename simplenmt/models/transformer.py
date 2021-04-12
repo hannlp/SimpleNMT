@@ -55,18 +55,6 @@ class Transformer(nn.Module):
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
 
-    def _encode(self, src_tokens):
-        src_mask = src_tokens.eq(self.src_pdx)
-        encoder_out = self.encoder(src_tokens, src_mask)
-        return encoder_out, src_mask
-    
-    def _decode(self, prev_tgt_tokens, encoder_out, src_mask):
-        decoder_out = self.decoder(
-            prev_tgt_tokens, encoder_out, src_mask, None)
-        decoder_out = decoder_out[:,-1,:] # get last token
-        model_out = self.out_vocab_proj(decoder_out)
-        return model_out
-
 
 class Encoder(nn.Module):
     def __init__(self, n_src_words, src_pdx, n_head, d_model, 
