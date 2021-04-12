@@ -1,12 +1,11 @@
-import torch
-import torch.nn as nn
 import time
-import torch.nn.functional as F
 import dill
 import jieba
 import logging
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 from torchtext.legacy import datasets
-from translate.beam import Beam
 from models import build_model
 from data.dataloader import MyIterator, batch_size_fn
 from data.utils import prepare_batch
@@ -195,111 +194,4 @@ def _beam_search(self, word_list, beam_size=8):
                 break
     
     return ''.join([self.tgt_itos[s] for s in gen_seqs[ans_idx, :seq_lens[ans_idx]]])
-
-#TODO :to fix this fucntion
-def batch_beam_search(self, src_tokens, beam_size=4):
-    # Batch size is in different location depending on data.
-    batch_size = src_tokens.size(0) # src_tokens: [batch_size x src_len]
-
-    # Encode
-    encoder_out, src_mask =  self._encode(src_tokens)
-
-    # Repeat data for beam
-    src_tokens = src_tokens.repeat(1, beam_size).view(batch_size * beam_size, -1)
-    src_mask = src_mask.repeat(1, beam_size).view(batch_size * beam_size, -1)
-
-    encoder_out =  encoder_out.repeat(1, beam_size, 1).view(
-        batch_size * beam_size, encoder_out.size(1), encoder_out.size(2))
-
-    # Prepare beams
-    beams = [Beam(beam_size, pdx=self.tgt_pdx, bos_idx=self.tgt_sos_idx, eos_idx=self.tgt_eos_idx) for _ in range(batch_size)]
-    beam_inst_idx_map = {
-        beam_idx: inst_idx for inst_idx, beam_idx in enumerate(range(batch_size))
-    }
-    n_remaining_sents = batch_size
-
-    print("开始解码了")
-    # Decode
-    for i in range(self.max_seq_length):
-        len_dec_seq = i + 1
-        # Preparing decoded data_seq
-        # size: [batch_size x beam_size x seq_len]
-        dec_partial_inputs = torch.stack([
-            b.get_current_state() for b in beams if not b.done])
-        # size: [batch_size * beam_size x seq_len]
-        dec_partial_inputs = dec_partial_inputs.view(-1, len_dec_seq)
-
-        print("解到第{}步了".format(len_dec_seq))
-        # Decoding
-        model_out = self._decode(dec_partial_inputs, encoder_out, src_mask)
-        out = F.log_softmax(model_out, dim=-1)
-
-        # [batch_size x beam_size x tgt_vocab_size]
-        word_lk = out.view(n_remaining_sents, beam_size, -1).contiguous()
-
-        active_beam_idx_list = []
-        for beam_idx in range(batch_size):
-            if beams[beam_idx].done:
-                continue
-
-            inst_idx = beam_inst_idx_map[beam_idx] # 해당 beam_idx 의 데이터가 실제 data 에서 몇번째 idx인지
-            if not beams[beam_idx].advance(word_lk.data[inst_idx]):
-                active_beam_idx_list += [beam_idx]
-
-        if not active_beam_idx_list: # all instances have finished their path to <eos>
-            break
-
-        # In this section, the sentences that are still active are
-        # compacted so that the decoder is not run on completed sentences
-        active_inst_idxs = torch.LongTensor(
-            [beam_inst_idx_map[k] for k in active_beam_idx_list]) # TODO: fix
-
-        # update the idx mapping
-        beam_inst_idx_map = {
-            beam_idx: inst_idx for inst_idx, beam_idx in enumerate(active_beam_idx_list)}
-
-        def update_active_seq(seq_var, active_inst_idxs):
-            # Remove the encoder outputs of finished instances in one batch. 
-            inst_idx_dim_size, *rest_dim_sizes = seq_var.size()
-            inst_idx_dim_size = inst_idx_dim_size * len(active_inst_idxs) // n_remaining_sents
-            new_size = (inst_idx_dim_size, *rest_dim_sizes)
-
-            # select the active instances in batch
-            original_seq_data = seq_var.data.view(n_remaining_sents, -1)
-            active_seq_data = original_seq_data.index_select(0, active_inst_idxs)
-            active_seq_data = active_seq_data.view(*new_size)
-            return active_seq_data
-
-        def update_active_enc_info(enc_info_var, active_inst_idxs):
-            # Remove the encoder outputs of finished instances in one batch.
-
-            inst_idx_dim_size, *rest_dim_sizes = enc_info_var.size()
-            inst_idx_dim_size = inst_idx_dim_size * len(active_inst_idxs) // n_remaining_sents
-            new_size = (inst_idx_dim_size, *rest_dim_sizes)
-
-            # select the active instances in batch
-            original_enc_info_data = enc_info_var.data.view(
-                n_remaining_sents, -1, self.model.d_model)
-            active_enc_info_data = original_enc_info_data.index_select(0, active_inst_idxs)
-            active_enc_info_data = active_enc_info_data.view(*new_size)
-            return active_enc_info_data
-
-        src_tokens = update_active_seq(src_tokens, active_inst_idxs)
-        encoder_out = update_active_enc_info(encoder_out, active_inst_idxs)
-
-        # update the remaining size
-        n_remaining_sents = len(active_inst_idxs)
-
-    # Return useful information
-    all_hyp, all_scores = [], []
-    n_best = 8
-
-    for beam_idx in range(batch_size):
-        scores, tail_idxs = beams[beam_idx].sort_scores()
-        all_scores += [scores[:n_best]]
-
-        hyps = [beams[beam_idx].get_hypothesis(i) for i in tail_idxs[:n_best]]
-        all_hyp += [hyps]
-
-    return all_hyp, all_scores
 '''
