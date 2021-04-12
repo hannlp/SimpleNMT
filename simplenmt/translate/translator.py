@@ -87,12 +87,12 @@ class Translator(object):
         batch_size = src_tokens.size(0)
         done = torch.tensor([False] * batch_size).to(self.device)
         
-        encoder_out, src_mask = self._encode(src_tokens)
+        encoder_out, src_mask = self.model._encode(src_tokens)
 
         gen_seqs = torch.full((batch_size, 1), self.tgt_sos_idx).to(self.device)
         # - gen_seqs: (batch_size, 1) -> <sos>
 
-        probs = F.softmax(self._decode(gen_seqs, encoder_out, src_mask), dim=-1) # TODO: use log_softmax
+        probs = F.softmax(self.model._decode(gen_seqs, encoder_out, src_mask), dim=-1) # TODO: use log_softmax
         _, max_idxs = probs.topk(1) # new words
         
         for step in range(2, self.max_seq_length):           
@@ -103,7 +103,7 @@ class Translator(object):
             gen_seqs = torch.cat((gen_seqs, max_idxs.to(self.device)), dim=1)
             # - gen_seqs: (batch_size, step) -> batch seqs
 
-            probs = F.softmax(self._decode(gen_seqs, encoder_out, src_mask), dim=-1)
+            probs = F.softmax(self.model._decode(gen_seqs, encoder_out, src_mask), dim=-1)
             _, max_idxs = probs.topk(1)
         
         return gen_seqs
@@ -283,17 +283,17 @@ class Translator(object):
     #     return model_out
 
     #for luong
-    def _encode(self, src_tokens):
-        src_mask = src_tokens.eq(self.src_pdx).to(self.device)
-        encoder_outs = self.model.encoder(src_tokens)
-        return encoder_outs, src_mask
+    # def _encode(self, src_tokens):
+    #     src_mask = src_tokens.eq(self.src_pdx).to(self.device)
+    #     encoder_outs = self.model.encoder(src_tokens)
+    #     return encoder_outs, src_mask
     
-    def _decode(self, prev_tgt_tokens, encoder_outs, src_mask):
-        decoder_out = self.model.decoder(
-            prev_tgt_tokens, encoder_outs[0], encoder_outs[1], encoder_outs[2], src_mask)
-        decoder_out = decoder_out[:,-1,:] # get last token
-        model_out = self.model.out_vocab_proj(decoder_out)
-        return model_out
+    # def _decode(self, prev_tgt_tokens, encoder_outs, src_mask):
+    #     decoder_out = self.model.decoder(
+    #         prev_tgt_tokens, encoder_outs[0], encoder_outs[1], encoder_outs[2], src_mask)
+    #     decoder_out = decoder_out[:,-1,:] # get last token
+    #     model_out = self.model.out_vocab_proj(decoder_out)
+    #     return model_out
     
     def translate(self, sentence: str, beam_size=8):
         jieba.setLogLevel(logging.INFO)

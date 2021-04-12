@@ -25,6 +25,18 @@ class Luong(nn.Module):
         model_out = self.out_vocab_proj(decoder_out)
         return model_out
 
+    def _encode(self, src_tokens):
+        src_mask = src_tokens.eq(self.src_pdx)
+        encoder_outs = self.encoder(src_tokens)
+        return encoder_outs, src_mask
+    
+    def _decode(self, prev_tgt_tokens, encoder_outs, src_mask):
+        decoder_out = self.decoder(
+            prev_tgt_tokens, encoder_outs[0], encoder_outs[1], encoder_outs[2], src_mask)
+        decoder_out = decoder_out[:,-1,:] # get last token
+        model_out = self.out_vocab_proj(decoder_out)
+        return model_out
+
 class Encoder(nn.Module):
     def __init__(self, n_src_words, d_model, src_pdx, n_layers, p_drop, bidirectional):
         super().__init__()
