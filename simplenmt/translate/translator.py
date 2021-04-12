@@ -56,28 +56,26 @@ class Translator(object):
                                (len(x.src), len(x.trg)),
                                batch_size_fn=batch_size_fn, train=False,
                                shuffle=True)
-       
-        with open(test_path + '.result', 'w', encoding='utf8') as f:
-            start_time = time.time()
-            print('Writing result to {} ...'.format(test_path + '.result'))
-            with torch.no_grad():
-                for i, batch in enumerate(test_iter, start=1):
-                    #print("batch {}: preparing batch".format(i))
-                    src_tokens, _, tgt_tokens = prepare_batch(
-                        batch, use_cuda=torch.cuda.is_available())
+        
+        print('Writing result to {} ...'.format(test_path + '.result'))
+        start_time = time.time()
+        with open(test_path + '.result', 'w', encoding='utf8') as f, torch.no_grad():     
+            for i, batch in enumerate(test_iter, start=1):
+                #print("batch {}: preparing batch".format(i))
+                src_tokens, _, tgt_tokens = prepare_batch(
+                    batch, use_cuda=torch.cuda.is_available())
 
-                    src_sentences = de_numericalize(self.dl.SRC.vocab, src_tokens)
-                    tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
-                    
-                    #pred_tokens = self.batch_beam_search(src_tokens, beam_size=4)
-                    pred_tokens = self.batch_greedy_search(src_tokens)
+                src_sentences = de_numericalize(self.dl.SRC.vocab, src_tokens)
+                tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
+                
+                #pred_tokens = self.batch_beam_search(src_tokens, beam_size=4)
+                pred_tokens = self.batch_greedy_search(src_tokens)
+                pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens)
 
-                    pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens)
-
-                    for src_words, tgt_words, pred_words in zip(src_sentences, tgt_sentences, pred_sentences):
-                        content = '-S\t{}\n-T\t{}\n-P\t{}\n\n'.format(
-                            ' '.join(src_words), ' '.join(tgt_words), ' '.join(pred_words))            
-                        f.write(content); print(content)
+                for src_words, tgt_words, pred_words in zip(src_sentences, tgt_sentences, pred_sentences):
+                    content = '-S\t{}\n-T\t{}\n-P\t{}\n\n'.format(
+                        ' '.join(src_words), ' '.join(tgt_words), ' '.join(pred_words))            
+                    f.write(content); print(content)
 
         print('Successful. Generate time:{:.1f} min, results were saved at{}'
                 .format((time.time() - start_time) / 60, test_path + '.result'))
