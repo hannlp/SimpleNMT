@@ -6,10 +6,11 @@ def de_numericalize(vocab, tokens):
         Constants.PAD, Constants.START, Constants.END}
           
     sentences = []
-    for ex in tokens:
-        end, words_list = False, []
-        for x in ex:
-            word = vocab.itos[x]
+    for sentence in tokens:
+        end = False
+        words_list = []
+        for word_id in sentence:
+            word = vocab.itos[word_id]
             end = True if word == Constants.END else end
             if word not in remove_constants and not end:
                 words_list.append(word)
