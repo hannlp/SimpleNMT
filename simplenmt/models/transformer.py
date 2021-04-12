@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 
 class Transformer(nn.Module):
-    def __init__(self, n_src_words, n_tgt_words, src_pdx=0, tgt_pdx=0, 
+    def __init__(self, n_src_words, n_tgt_words, src_pdx=-1, tgt_pdx=-1, 
                  d_model=512, n_head=8, n_layers=6, p_drop=0.1, 
                  share_embeddings=False, share_decoder_embeddings=False,
                  max_seq_len=512) -> None:
@@ -53,6 +53,19 @@ class Transformer(nn.Module):
         for p in self.parameters():
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
+
+    def _encode(self, src_tokens):
+        src_mask = src_tokens.eq(self.src_pdx)
+        encoder_out = self.encoder(src_tokens, src_mask)
+        return encoder_out, src_mask
+    
+    def _decode(self, prev_tgt_tokens, encoder_out, src_mask):
+        tgt_mask = prev_tgt_tokens.eq(self.tgt_pdx)
+        decoder_out = self.decoder(
+            prev_tgt_tokens, encoder_out, src_mask, tgt_mask)
+        decoder_out = decoder_out[:,-1,:] # get last token
+        model_out = self.out_vocab_proj(decoder_out)
+        return model_out
 
 
 class Encoder(nn.Module):
