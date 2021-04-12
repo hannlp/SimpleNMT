@@ -36,6 +36,7 @@ class Transformer(nn.Module):
         params:
           - src_tokens: (batch_size, src_len)
           - prev_tgt_tokens: (batch_size, tgt_len)
+        
         returns:
           - model_out: (batch_size, tgt_len, n_tgt_words)
         '''
