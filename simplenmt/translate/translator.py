@@ -10,8 +10,7 @@ from translate.beam import Beam
 from models import build_model
 from data.dataloader import MyIterator, batch_size_fn
 from data.utils import prepare_batch
-#from .utils import de_numericalize
-from data.constants import Constants
+from .utils import de_numericalize
 
 class Translator(object):
     def __init__(self, args):
@@ -48,27 +47,6 @@ class Translator(object):
         return model
 
     def generate(self, test_path, exts, batch_size=3200):
-
-        def de_numericalize(vocab, tokens):
-            #remove_constants={}
-            remove_constants={
-                Constants.PAD, Constants.START, Constants.END}
-                
-            sentences = []
-            for sentence in tokens:
-                end = False
-                words_list = []
-                for word_id in sentence:
-                    word = vocab.itos[word_id]
-                    end = True if word == Constants.END else end
-                    if word not in remove_constants and not end:
-                        words_list.append(word)
-                    else:
-                        pass
-                sentences.append(words_list)
-
-            return sentences
-
         test = datasets.TranslationDataset(
             path=test_path, exts=exts, 
             fields=(('src', self.dl.SRC), ('trg', self.dl.TGT)))
