@@ -120,50 +120,20 @@ class Translator(object):
             print(' '.join(translated), end="\n")
 
 '''
-已弃用代码段，留念一下。
-def _greedy_search(self, word_list):
-    src_tokens = torch.tensor([[self.src_stoi[s]
-                                for s in word_list]]).to(self.device)
+已弃用代码段
+# temp(for transformer)
+def _encode(self, src_tokens):
     src_mask = src_tokens.eq(self.src_pdx).to(self.device)
     encoder_out = self.model.encoder(src_tokens, src_mask)
+    return encoder_out, src_mask
 
-    prev_tgt_tokens = torch.tensor([[self.tgt_sos_idx]]).to(self.device)  # <sos>
+def _decode(self, prev_tgt_tokens, encoder_out, src_mask):
     tgt_mask = prev_tgt_tokens.eq(self.tgt_pdx).to(self.device)
     decoder_out = self.model.decoder(
         prev_tgt_tokens, encoder_out, src_mask, tgt_mask)
-    out = F.softmax(self.model.out_vocab_proj(decoder_out), dim=-1)
-
-    _, max_idx = out[:, -1, :].topk(1)
-
-    for step in range(2, self.max_seq_length):
-        new_word = max_idx[:, 0].unsqueeze(0).to(self.device)
-        if new_word == self.tgt_eos_idx:
-            break
-        prev_tgt_tokens = torch.cat(
-            (prev_tgt_tokens, new_word), dim=1)  # (1, step)
-        tgt_mask = prev_tgt_tokens.eq(self.tgt_pdx).to(self.device)
-
-        decoder_out = self.model.decoder(
-            prev_tgt_tokens, encoder_out, src_mask, tgt_mask)
-        out = F.softmax(self.model.out_vocab_proj(decoder_out), dim=-1)
-        # print(out.shape) # (1, 1(step), tgt_vocab_size)
-        _, max_idx = out[:, -1, :].topk(1)
-    
-    return ' '.join([self.tgt_itos[w_id] for w_id in list(prev_tgt_tokens.squeeze().detach()[1:])])
-
-    # temp(for transformer)
-    def _encode(self, src_tokens):
-        src_mask = src_tokens.eq(self.src_pdx).to(self.device)
-        encoder_out = self.model.encoder(src_tokens, src_mask)
-        return encoder_out, src_mask
-    
-    def _decode(self, prev_tgt_tokens, encoder_out, src_mask):
-        tgt_mask = prev_tgt_tokens.eq(self.tgt_pdx).to(self.device)
-        decoder_out = self.model.decoder(
-            prev_tgt_tokens, encoder_out, src_mask, tgt_mask)
-        decoder_out = decoder_out[:,-1,:] # get last token
-        model_out = self.model.out_vocab_proj(decoder_out)
-        return model_out
+    decoder_out = decoder_out[:,-1,:] # get last token
+    model_out = self.model.out_vocab_proj(decoder_out)
+    return model_out
 
 def _beam_search(self, word_list, beam_size=8):
     len_map = torch.arange(1, self.max_seq_len + 1, dtype=torch.long).unsqueeze(0).to(self.device)
