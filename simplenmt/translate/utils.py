@@ -1,9 +1,9 @@
 from data.constants import Constants
 
 def de_numericalize(vocab, tokens):
-    remove_constants={}
-    # remove_constants={
-    #     Constants.PAD, Constants.START, Constants.END}
+    #remove_constants={}
+    remove_constants={
+        Constants.PAD, Constants.START, Constants.END}
           
     sentences = []
     for ex in tokens:
