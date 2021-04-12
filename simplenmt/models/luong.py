@@ -33,10 +33,11 @@ class Encoder(nn.Module):
         self.input_embedding = nn.Embedding(n_src_words, d_model, padding_idx=src_pdx)
         self.lstm = nn.LSTM(input_size=d_model, hidden_size=d_model, num_layers=n_layers, 
                             dropout=p_drop, batch_first=True, bidirectional=bidirectional)
+        self.dropout = nn.Dropout(p=p_drop)
     
     def forward(self, src_tokens):
         # - src_embed: (batch_size, src_len, d_model)
-        src_embed = self.input_embedding(src_tokens)
+        src_embed = self.dropout(self.input_embedding(src_tokens))
         batch_size, src_lens = src_tokens.size(0), src_tokens.ne(self.src_pdx).long().sum(dim=-1)
         packed_src_embed = nn.utils.rnn.pack_padded_sequence(
             src_embed, src_lens.to('cpu'), batch_first=True, enforce_sorted=False
@@ -88,7 +89,7 @@ class Decoder(nn.Module):
 
     def forward(self, prev_tgt_tokens, encoder_out, hiddens, cells, src_mask):
         # - tgt_embed: (batch_size, src_len, d_model)
-        tgt_embed = self.input_embedding(prev_tgt_tokens)
+        tgt_embed = self.dropout(self.input_embedding(prev_tgt_tokens))
 
         # - decoder_states: (batch_size, tgt_len, d_model)
         decoder_states, _ = self.lstm(tgt_embed)
