@@ -77,9 +77,9 @@ class AttentionLayer(nn.Module):
         # - encoder_out: (batch_size, src_len, d_src)
         x = self.input_proj(s)
         # - x: (batch_size, d_src)
-        #print(encoder_out.shape, x.shape, src_mask.shape)
+
         e = (encoder_out * x.unsqueeze(1)).sum(dim=-1).masked_fill_(src_mask, -1e9)
-        #print(e.shape)
+
         attn = F.softmax(e, dim=-1)
         # - attn: (batch_size, src_len)
         x = (attn.unsqueeze(2) * encoder_out).sum(dim=1)
