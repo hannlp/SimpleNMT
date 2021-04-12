@@ -60,9 +60,8 @@ class Transformer(nn.Module):
         return encoder_out, src_mask
     
     def _decode(self, prev_tgt_tokens, encoder_out, src_mask):
-        tgt_mask = prev_tgt_tokens.eq(self.tgt_pdx)
         decoder_out = self.decoder(
-            prev_tgt_tokens, encoder_out, src_mask, tgt_mask)
+            prev_tgt_tokens, encoder_out, src_mask, tgt_mask=None)
         decoder_out = decoder_out[:,-1,:] # get last token
         model_out = self.out_vocab_proj(decoder_out)
         return model_out
@@ -156,6 +155,8 @@ class DecoderLayer(nn.Module):
         return x
 
     def _add_subsequent_mask(self, padding_mask):
+        if padding_mask == None:
+            return None
         # - padding_mask: (batch_size, seq_len)
         seq_len = padding_mask.size(1)
         subsequent_mask = torch.ones((seq_len, seq_len), 
