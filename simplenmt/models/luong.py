@@ -111,7 +111,7 @@ class Decoder(nn.Module):
         self.dropout = nn.Dropout(p=p_drop)
 
     def forward(self, prev_tgt_tokens, encoder_out, src_mask):
-        # - tgt_embed: (batch_size, src_len, d_model)
+        # - tgt_embed: (batch_size, tgt_len, d_model)
         tgt_embed = self.dropout(self.input_embedding(prev_tgt_tokens))
 
         # - decoder_states: (batch_size, tgt_len, d_model)
