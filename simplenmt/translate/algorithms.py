@@ -32,5 +32,6 @@ def greedy_search(self, src_tokens, f_enc, f_dec, device):
     
     return gen_seqs
 
-def beam_search(self, src_tokens, device):
+def beam_search(self, src_tokens):
+    
     pass

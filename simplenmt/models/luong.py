@@ -36,8 +36,7 @@ class Encoder(nn.Module):
         super().__init__()
         self.d_model, self.n_layers, self.src_pdx = d_model, n_layers, src_pdx
         self.n_directions = 2 if bidirectional else 1
-        self.input_embedding = nn.Embedding(n_src_words, d_model, padding_idx=src_pdx)
-        
+        self.input_embedding = nn.Embedding(n_src_words, d_model, padding_idx=src_pdx)   
         self.rnn = str2rnn[rnn_type](input_size=d_model, hidden_size=d_model // self.n_directions, 
                             num_layers=n_layers, dropout=p_drop, 
                             batch_first=True, bidirectional=bidirectional)
@@ -106,7 +105,6 @@ class Decoder(nn.Module):
         self.attention = AttentionLayer(d_model=d_model, attn_type=attn_type)
         self.rnn = str2rnn[rnn_type](input_size=d_model, hidden_size=d_model, num_layers=n_layers, 
                             dropout=p_drop, batch_first=True, bidirectional=False)
-
         self.W_context = nn.Linear(2 * d_model, d_model, bias=False) # for concat [c; h]
         self.dropout = nn.Dropout(p=p_drop)
 

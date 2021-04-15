@@ -2,6 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+'''
+The development version of luong seq2seq
+'''
+
 class Luong(nn.Module):
     def __init__(self, n_src_words, n_tgt_words, d_model, n_layers, 
                  src_pdx=-1, tgt_pdx=-1, p_drop=0.2, bidirectional=False):
