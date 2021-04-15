@@ -19,7 +19,7 @@ def greedy_search(self, src_tokens, f_enc, f_dec, device):
     probs = F.softmax(self._decode(gen_seqs, encoder_out, src_mask), dim=-1) # TODO: use log_softmax
     _, max_idxs = probs.topk(1) # new words
     
-    for step in range(2, self.max_seq_length):           
+    for step in range(2, self.max_seq_length):
         done = done | max_idxs.eq(self.tgt_eos_idx).squeeze() #TODO : stop rules
         if all(done):
             break
@@ -32,6 +32,24 @@ def greedy_search(self, src_tokens, f_enc, f_dec, device):
     
     return gen_seqs
 
-def beam_search(self, src_tokens):
-    
-    pass
+def beam_search(self, src_tokens, beam_width=4):
+    # init
+    bos = -1
+    MAX_LENGTH = 512
+    batch_size = src_tokens.size(0)
+    # - gen_seqs: (B x beam_width, step)
+    gen_seqs = torch.full((batch_size * beam_width, 1), bos)
+    done = torch.tensor([False] * (batch_size * beam_width))
+
+
+    encoder_out, src_mask = f_enc(src_tokens) # mask 可以广播，不用repeat
+    # - encoder_out: (batch_size, src_len, d_model)
+    encoder_outs = encoder_out.repeat(beam_width, 1, 1)
+    # - encoder_outs: (batch_size * beam_width, src_len, d_model)
+
+    for step in range(2, MAX_LENGTH):
+        
+        decoder_in = gen_seqs[:, -1]
+        decoder_out = f_dec(decoder_in, encoder_outs)
+        
+        pass
