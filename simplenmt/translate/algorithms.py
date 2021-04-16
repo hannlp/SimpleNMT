@@ -43,7 +43,7 @@ def beam_search(self, src_tokens, beam_size=4):
     done = torch.tensor([False] * (batch_size * beam_size))
     best_scores = torch.full([batch_size], -1e10)
     _beam_offset = torch.arange(0, batch_size * beam_size, step=beam_size)
-    topk_log_probs = torch.tensor([0.0] + [float("-inf")] * (beam_size - 1)).repeat(self.batch_size)
+    topk_log_probs = torch.tensor([0.0] + [float("-inf")] * (beam_size - 1)).repeat(batch_size)
     
     # buffers for the topk scores and 'backpointer'
     topk_scores = torch.empty((self.batch_size, self.beam_size))
@@ -71,15 +71,15 @@ def beam_search(self, src_tokens, beam_size=4):
         _B = B_times_beam // beam_size
 
         # Multiply probs by the beam probability.
-        log_probs += topk_log_probs.view(_B * self.beam_size, 1)
+        log_probs += topk_log_probs.view(_B * beam_size, 1)
 
         # May be length penalty
         curr_scores = log_probs
 
         # Pick up candidate token by curr_scores
         # Flatten probs into a list of possibilities.
-        curr_scores = curr_scores.reshape(-1, self.beam_size * vocab_size)
-        topk_scores, topk_ids = torch.topk(curr_scores, self.beam_size, dim=-1)
+        curr_scores = curr_scores.reshape(-1, beam_size * vocab_size)
+        topk_scores, topk_ids = torch.topk(curr_scores, beam_size, dim=-1)
 
-        
+
         pass
