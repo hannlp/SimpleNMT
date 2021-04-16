@@ -89,15 +89,15 @@ def beam_search(self, src_tokens, beam_size=4):
         curr_scores = curr_scores.reshape(-1, beam_size * vocab_size) # Flatten probs into a list of possibilities.
         # 这里的reshape，会按照行优先的顺序，所以这里每一行还是一个句子，一共有batch_size行
         # 每行的形式为: (0+log_p[0], 0+log_p[1], ..., 0+log_p[-1], -inf+log_p[0], -inf+log_p[1],..., -inf+log_p[-1])
-        # 后面含有-inf+词表log_p的项，会重复beam_size-1 次
+        # 后面含有-inf+词表log_p的项，会重复beam_size-1次
 
         # 在这里已经选出了每一行中概率最大的beam_size个词的索引
         topk_scores, topk_ids = torch.topk(curr_scores, beam_size, dim=-1)
         # - topk_scores, topk_ids: (batch_size, beam_size)
 
         # Resolve beam origin and map to batch index flat representation.
-        _batch_index = topk_ids // vocab_size # 找到索引所在的batch
-        _batch_index += _beam_offset[:_B].unsqueeze(1)
+        _batch_index = topk_ids // vocab_size # 找到索引所在的batch, (batch_size, beam_size(这里的id本来是beam * vocab))
+        _batch_index += _beam_offset[:_B].unsqueeze(1) # (0, beam, 2*beam, ...), (1)
         select_indices = _batch_index.view(_B * beam_size)
         topk_ids.fmod_(vocab_size)  # resolve true word ids
 
