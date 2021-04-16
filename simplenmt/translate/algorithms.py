@@ -49,7 +49,9 @@ def beam_search(self, src_tokens, beam_width=4):
 
     for step in range(2, MAX_LENGTH):
         
-        decoder_in = gen_seqs[:, -1]
+        decoder_in = gen_seqs[:, -1].view(-1, 1, 1)
+
+        # Decoder forward, takes [tgt_len, batch, nfeats] as input
         decoder_out = f_dec(decoder_in, encoder_outs)
-        
+
         pass
