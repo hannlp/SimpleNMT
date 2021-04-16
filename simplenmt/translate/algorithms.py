@@ -45,6 +45,11 @@ def beam_search(self, src_tokens, beam_size=4):
     done = torch.tensor([False] * (batch_size * beam_size))
     best_scores = torch.full([batch_size], -1e10)
     _beam_offset = torch.arange(0, batch_size * beam_size, step=beam_size)
+    # beam偏移：(0, beam, 2*beam, ...) 一共有batch_size个beam _beam_offset[:batch_size]
+    # 例子: offset = torch.arange(0, 6 * 5, step=5): tensor([ 0,  5, 10, 15, 20, 25])
+    # offset[:5]: tensor([ 0,  5, 10, 15, 20]), offset[:6]: tensor([ 0,  5, 10, 15, 20, 25])
+
+    # 记录每个batch中beam个最高的概率，初始化为这个样子的原因是：一开始全是bos，只需要取一条即可
     topk_log_probs = torch.tensor([0.0] + [float("-inf")] * (beam_size - 1)).repeat(batch_size)
     
     # buffers for the topk scores and 'backpointer'
@@ -62,7 +67,7 @@ def beam_search(self, src_tokens, beam_size=4):
 
         # Decoder forward, takes [tgt_len, batch, nfeats] as input
         model_out = f_dec(decoder_in, encoder_outs, src_mask) # log softmax
-        # - model_out: (batch_size * beam_size, n_tgt_words)
+        # - model_out: (batch_size * beam_size, vocab_size)
 
         log_probs = model_out
 
@@ -71,21 +76,34 @@ def beam_search(self, src_tokens, beam_size=4):
         _B = B_times_beam // beam_size
 
         # Multiply probs by the beam probability.
-        log_probs += topk_log_probs.view(_B * beam_size, 1)
+        log_probs += topk_log_probs.view(_B * beam_size, 1) # 此处有广播，topk_log_probs (B * beam, 1) -> (B * beam, vocab_size)
+        # 形式是：每个生成的beam中的vocab都会加一遍topk_log_probs
+        # - log_probs: (batch_size * beam_size, vocab_size)
 
         # May be step length penalty
         # ...
         curr_scores = log_probs
 
         # Pick up candidate token by curr_scores
+        
         curr_scores = curr_scores.reshape(-1, beam_size * vocab_size) # Flatten probs into a list of possibilities.
+        # 这里的reshape，会按照行优先的顺序，所以这里每一行还是一个句子，一共有batch_size行
+        # 每行的形式为: (0+log_p[0], 0+log_p[1], ..., 0+log_p[-1], -inf+log_p[0], -inf+log_p[1],..., -inf+log_p[-1])
+        # 后面含有-inf+词表log_p的项，会重复beam_size-1 次
+
+        # 在这里已经选出了每一行中概率最大的beam_size个词的索引
         topk_scores, topk_ids = torch.topk(curr_scores, beam_size, dim=-1)
         # - topk_scores, topk_ids: (batch_size, beam_size)
 
         # Resolve beam origin and map to batch index flat representation.
-        _batch_index = topk_ids // vocab_size
+        _batch_index = topk_ids // vocab_size # 找到索引所在的batch
         _batch_index += _beam_offset[:_B].unsqueeze(1)
         select_indices = _batch_index.view(_B * beam_size)
         topk_ids.fmod_(vocab_size)  # resolve true word ids
 
-        pass
+        # Append last prediction.
+        gen_seqs = torch.cat(
+            [gen_seqs.index_select(0, select_indices),
+             topk_ids.view(_B * beam_size, 1)], -1)
+        
+    return gen_seqs 
