@@ -4,38 +4,40 @@ import torch.functional as F
 translate algorithms, whitch supprot a batch src_tokens input:
     - greedy search
 '''
-
+MAX_LENGTH = 512
+bos = -1
+eos = -2
+f_enc = None
+f_dec = None
 # TODO:!!! 把算法和translator分离出来
 
-def greedy_search(self, src_tokens, f_enc, f_dec, device):
+def greedy_search(self, src_tokens):
     batch_size = src_tokens.size(0)
-    done = torch.tensor([False] * batch_size).to(device)
+    done = torch.tensor([False] * batch_size)
     
     encoder_out, src_mask = f_enc(src_tokens)
 
-    gen_seqs = torch.full((batch_size, 1), self.tgt_sos_idx).to(device)
+    gen_seqs = torch.full((batch_size, 1), bos)
     # - gen_seqs: (batch_size, 1) -> <sos>
 
-    probs = F.softmax(self._decode(gen_seqs, encoder_out, src_mask), dim=-1) # TODO: use log_softmax
+    probs = F.softmax(f_dec(gen_seqs, encoder_out, src_mask), dim=-1) # TODO: use log_softmax
     _, max_idxs = probs.topk(1) # new words
     
-    for step in range(2, self.max_seq_length):
-        done = done | max_idxs.eq(self.tgt_eos_idx).squeeze() #TODO : stop rules
+    for step in range(2, MAX_LENGTH):
+        done = done | max_idxs.eq(eos).squeeze() #TODO : stop rules
         if all(done):
             break
         
-        gen_seqs = torch.cat((gen_seqs, max_idxs.to(device)), dim=1)
+        gen_seqs = torch.cat((gen_seqs, max_idxs), dim=1)
         # - gen_seqs: (batch_size, step) -> batch seqs
 
-        probs = F.softmax(self._decode(gen_seqs, encoder_out, src_mask), dim=-1)
+        probs = F.softmax(f_dec(gen_seqs, encoder_out, src_mask), dim=-1)
         _, max_idxs = probs.topk(1)
     
     return gen_seqs
 
 def beam_search(self, src_tokens, beam_size=4):
     # init
-    bos = -1
-    MAX_LENGTH = 512
     batch_size = src_tokens.size(0)
 
     # - gen_seqs: (B x beam_size, step)
@@ -46,9 +48,7 @@ def beam_search(self, src_tokens, beam_size=4):
     topk_log_probs = torch.tensor([0.0] + [float("-inf")] * (beam_size - 1)).repeat(batch_size)
     
     # buffers for the topk scores and 'backpointer'
-    topk_scores = torch.empty((self.batch_size, self.beam_size))
-    topk_ids = torch.empty((self.batch_size, self.beam_size))
-    _batch_index = torch.empty([self.batch_size, self.beam_size])
+    topk_scores, topk_ids, _batch_index = [torch.empty((batch_size, beam_size))] * 3
 
     encoder_out, src_mask = f_enc(src_tokens) # mask 可以广播，不用repeat
     # - encoder_out: (batch_size, src_len, d_model)
@@ -73,13 +73,19 @@ def beam_search(self, src_tokens, beam_size=4):
         # Multiply probs by the beam probability.
         log_probs += topk_log_probs.view(_B * beam_size, 1)
 
-        # May be length penalty
+        # May be step length penalty
+        # ...
         curr_scores = log_probs
 
         # Pick up candidate token by curr_scores
-        # Flatten probs into a list of possibilities.
-        curr_scores = curr_scores.reshape(-1, beam_size * vocab_size)
+        curr_scores = curr_scores.reshape(-1, beam_size * vocab_size) # Flatten probs into a list of possibilities.
         topk_scores, topk_ids = torch.topk(curr_scores, beam_size, dim=-1)
+        # - topk_scores, topk_ids: (batch_size, beam_size)
 
+        # Resolve beam origin and map to batch index flat representation.
+        _batch_index = topk_ids // vocab_size
+        _batch_index += _beam_offset[:_B].unsqueeze(1)
+        select_indices = _batch_index.view(_B * beam_size)
+        topk_ids.fmod_(vocab_size)  # resolve true word ids
 
         pass
