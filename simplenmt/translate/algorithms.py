@@ -205,7 +205,7 @@ class BeamScorer:
 
 
 # XLM的实现
-def generate_beam(self, src_enc, beam_size, length_penalty, early_stopping, max_len=200):
+def generate_beam(self, src_enc, beam_size, length_penalty, max_len=200):
     """
     Decode a sentence given initial start.
     `x`:
@@ -232,16 +232,16 @@ def generate_beam(self, src_enc, beam_size, length_penalty, early_stopping, max_
     src_mask = src_enc.eq(self.eos_index)
 
     # generated sentences (batch with beam current hypotheses)
-    generated = src_enc.new(max_len, bs * beam_size)  # upcoming output
+    generated = src_enc.new(bs * beam_size, max_len)  # upcoming output
     generated.fill_(self.pad_index)                   # fill upcoming ouput with <PAD>
     generated[0].fill_(self.eos_index)                # we use <EOS> for <BOS> everywhere
 
     # generated hypotheses
-    generated_hyps = [BeamHypotheses(beam_size, max_len, length_penalty, early_stopping) for _ in range(bs)]
+    generated_hyps = [BeamHypotheses(beam_size, max_len, length_penalty) for _ in range(bs)]
 
     # positions
     positions = src_enc.new(max_len).long()
-    positions = torch.arange(max_len, out=positions).unsqueeze(1).expand_as(generated)
+    positions = torch.arange(max_len, out=positions).unsqueeze(0).expand_as(generated)
 
     # scores for each sentence in the beam
     beam_scores = src_enc.new(bs, beam_size).fill_(0)
@@ -250,9 +250,6 @@ def generate_beam(self, src_enc, beam_size, length_penalty, early_stopping, max_
 
     # current position
     cur_len = 1
-
-    # cache compute states
-    cache = {'slen': 0}
 
     # done sentences
     done = [False for _ in range(bs)]
@@ -316,14 +313,11 @@ def generate_beam(self, src_enc, beam_size, length_penalty, early_stopping, max_
         assert len(next_batch_beam) == bs * beam_size
         beam_scores = beam_scores.new([x[0] for x in next_batch_beam])
         beam_words = generated.new([x[1] for x in next_batch_beam])
-        beam_idx = src_len.new([x[2] for x in next_batch_beam])
+        beam_idx = src_enc.new([x[2] for x in next_batch_beam])
 
         # re-order batch and internal states
         generated = generated[:, beam_idx]
         generated[cur_len] = beam_words
-        for k in cache.keys():
-            if k != 'slen':
-                cache[k] = (cache[k][0][beam_idx], cache[k][1][beam_idx])
 
         # update current length
         cur_len = cur_len + 1
@@ -332,29 +326,19 @@ def generate_beam(self, src_enc, beam_size, length_penalty, early_stopping, max_
         if all(done):
             break
 
-    # visualize hypotheses
-    # print([len(x) for x in generated_hyps], cur_len)
-    # globals().update( locals() );
-    # !import code; code.interact(local=vars())
-    # for ii in range(bs):
-    #     for ss, ww in sorted(generated_hyps[ii].hyp, key=lambda x: x[0], reverse=True):
-    #         print("%.3f " % ss + " ".join(self.dico[x] for x in ww.tolist()))
-    #     print("")
-
     # select the best hypotheses
-    tgt_len = src_len.new(bs)
+    tgt_len = src_enc.new(bs)
     best = []
 
     for i, hypotheses in enumerate(generated_hyps):
         best_hyp = max(hypotheses.hyp, key=lambda x: x[0])[1]
         tgt_len[i] = len(best_hyp) + 1  # +1 for the <EOS> symbol
         best.append(best_hyp)
-
     # generate target batch
-    decoded = src_len.new(tgt_len.max().item(), bs).fill_(self.pad_index)
+    decoded = src_enc.new(bs, tgt_len.max().item()).fill_(self.pad_index)
     for i, hypo in enumerate(best):
-        decoded[:tgt_len[i] - 1, i] = hypo
-        decoded[tgt_len[i] - 1, i] = self.eos_index
+        decoded[i, :tgt_len[i] - 1] = hypo
+        decoded[i, tgt_len[i] - 1] = self.eos_index
 
     # sanity check
     assert (decoded == self.eos_index).sum() == 2 * bs
@@ -363,13 +347,12 @@ def generate_beam(self, src_enc, beam_size, length_penalty, early_stopping, max_
 
 
 class BeamHypotheses(object):
-    def __init__(self, n_hyp, max_len, length_penalty, early_stopping):
+    def __init__(self, n_hyp, max_len, length_penalty):
         """
         Initialize n-best list of hypotheses.
         """
         self.max_len = max_len - 1  # ignoring <BOS>
         self.length_penalty = length_penalty
-        self.early_stopping = early_stopping
         self.n_hyp = n_hyp
         self.hyp = []
         self.worst_score = 1e9
@@ -401,7 +384,5 @@ class BeamHypotheses(object):
         """
         if len(self) < self.n_hyp:
             return False
-        elif self.early_stopping:
-            return True
         else:
             return self.worst_score >= best_sum_logprobs / self.max_len ** self.length_penalty
