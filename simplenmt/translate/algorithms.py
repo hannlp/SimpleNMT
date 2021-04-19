@@ -7,6 +7,7 @@ translate algorithms, whitch supprot a batch src_tokens input:
 MAX_LENGTH = 512
 bos = -1
 eos = -2
+pad = -3
 f_enc = None
 f_dec = None
 # TODO:!!! 把算法和translator分离出来
@@ -36,6 +37,8 @@ def greedy_search(self, src_tokens):
     
     return gen_seqs
 
+
+# 参考OpenNMT的实现
 def beam_search(self, src_tokens, beam_size=4):
     # init
     batch_size = src_tokens.size(0)
@@ -106,4 +109,42 @@ def beam_search(self, src_tokens, beam_size=4):
             [gen_seqs.index_select(0, select_indices),
              topk_ids.view(_B * beam_size, 1)], -1)
         
-    return gen_seqs 
+    return gen_seqs
+
+# 参考transformers库的实现
+def beam_search_(src_tokens, beam_size=4):
+    # init
+    batch_size = src_tokens.size(0)
+
+    # - gen_seqs: (B x beam_size, step)
+    gen_seqs = torch.full((batch_size * beam_size, 1), bos)
+
+    # 记录每个batch中beam个最高的概率，初始化为这个样子的原因是：一开始全是bos，只需要取一条即可
+    beam_scores = torch.tensor([0.0] + [float("-inf")] * (beam_size - 1)).repeat(batch_size)
+
+    encoder_out, src_mask = f_enc(src_tokens) # mask 可以广播，不用repeat
+    # - encoder_out: (batch_size, src_len, d_model)
+    encoder_outs = encoder_out.repeat_interleave(beam_size, 1, 1)
+    # - encoder_outs: (batch_size * beam_size, src_len, d_model)
+    src_mask = encoder_outs.eq(pad)
+
+    for step in range(2, MAX_LENGTH):
+        model_out = f_dec(gen_seqs, encoder_outs, src_mask) # log softmax
+        # - model_out: (batch_size * beam_size, vocab_size)
+        
+        next_token_scores = F.log_softmax(model_out, dim=-1)
+        next_token_scores = next_token_scores + beam_scores.view(-1, 1).expand_as(next_token_scores)
+
+        # reshape for beam search
+        vocab_size = model_out.size(-1)
+        next_token_scores = next_token_scores.view(batch_size, beam_size * vocab_size)
+        next_token_scores, next_tokens = torch.topk(
+            next_token_scores, 2 * beam_size, dim=1, largest=True, sorted=True
+        )
+
+        next_indices = next_tokens // vocab_size
+        next_tokens = next_tokens % vocab_size
+        
+
+
+    return decoded 
