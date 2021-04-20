@@ -1,5 +1,5 @@
 import torch
-import torch.functional as F
+import torch.nn.functional as F
 '''
 translate algorithms, whitch supprot a batch src_tokens input:
     - greedy search
@@ -227,7 +227,7 @@ def generate_beam(model, src_tokens, beam_size, length_penalty, max_len=256, bos
             <EOS> W1 W2 W3   W4  <EOS>
     `lengths`:
         - LongTensor(bs) [5, 6]
-    `positions`:
+    `positions`: ?
         - False, for regular "arange" positions (LM)
         - True, to reset positions from the new generation (MT)
 
@@ -239,23 +239,21 @@ def generate_beam(model, src_tokens, beam_size, length_penalty, max_len=256, bos
     # batch size
     bs = len(src_tokens)
 
-    src_enc, _ = f_enc(model, src_tokens, pad)
+    src_enc, src_mask = f_enc(model, src_tokens, pad)
 
     # expand to beam size the source latent representations
     src_enc = src_enc.repeat_interleave(beam_size, dim=0)
-    src_mask = src_enc.eq(eos)
+    print(src_enc[0, :2, :2], src_enc[1, :2, :2], src_enc[2, :2, :2], src_enc[3, :2, :2])
+    print(src_enc[4, :2, :2], src_enc[5, :2, :2], src_enc[8, :2, :2], src_enc[9, :2, :2])
+    src_mask = src_mask.repeat_interleave(beam_size, dim=0)
 
     # generated sentences (batch with beam current hypotheses)
-    generated = src_enc.new(bs * beam_size, max_len)  # upcoming output
+    generated = src_tokens.new(bs * beam_size, max_len)  # upcoming output
     generated.fill_(pad)                   # fill upcoming ouput with <PAD>
     generated[:, 0].fill_(bos)                # we use <EOS> for <BOS> everywhere ????
 
     # generated hypotheses
     generated_hyps = [BeamHypotheses(beam_size, max_len, length_penalty) for _ in range(bs)]
-
-    # positions
-    positions = src_enc.new(max_len).long()
-    positions = torch.arange(max_len, out=positions).unsqueeze(0).expand_as(generated)
 
     # scores for each sentence in the beam
     beam_scores = src_enc.new(bs, beam_size).fill_(0)
@@ -328,7 +326,7 @@ def generate_beam(model, src_tokens, beam_size, length_penalty, max_len=256, bos
         assert len(next_batch_beam) == bs * beam_size
         beam_scores = beam_scores.new([x[0] for x in next_batch_beam])
         beam_words = generated.new([x[1] for x in next_batch_beam])
-        beam_idx = src_enc.new([x[2] for x in next_batch_beam])
+        beam_idx = src_tokens.new([x[2] for x in next_batch_beam])
 
         # re-order batch and internal states
         generated = generated[beam_idx, :]
