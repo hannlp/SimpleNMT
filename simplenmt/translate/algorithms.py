@@ -205,7 +205,7 @@ class BeamScorer:
 
 
 # XLM的实现
-def generate_beam(self, src_enc, beam_size, length_penalty, max_len=200):
+def generate_beam(self, src_tokens, beam_size, length_penalty, max_len=256, bos=-1, eos=-2, pad=-3):
     """
     Decode a sentence given initial start.
     `x`:
@@ -224,17 +224,19 @@ def generate_beam(self, src_enc, beam_size, length_penalty, max_len=200):
     assert beam_size >= 1
 
     # batch size / number of words
-    bs = len(src_enc)
-    n_words = self.n_words # 目标词表大小
+    bs = len(src_tokens)
 
-    # expand to beam size the source latent representations / source lengths
-    src_enc = src_enc.unsqueeze(1).expand((bs, beam_size) + src_enc.shape[1:]).contiguous().view((bs * beam_size,) + src_enc.shape[1:])
-    src_mask = src_enc.eq(self.eos_index)
+    src_enc = f_enc(src_tokens)
+    n_words = src_enc.size(-1)
+
+    # expand to beam size the source latent representations
+    src_enc = src_enc.repeat_interleave(beam_size, 1, 1)
+    src_mask = src_enc.eq(eos)
 
     # generated sentences (batch with beam current hypotheses)
     generated = src_enc.new(bs * beam_size, max_len)  # upcoming output
-    generated.fill_(self.pad_index)                   # fill upcoming ouput with <PAD>
-    generated[0].fill_(self.eos_index)                # we use <EOS> for <BOS> everywhere
+    generated.fill_(pad)                   # fill upcoming ouput with <PAD>
+    generated[:, 0].fill_(bos)                # we use <EOS> for <BOS> everywhere ????
 
     # generated hypotheses
     generated_hyps = [BeamHypotheses(beam_size, max_len, length_penalty) for _ in range(bs)]
@@ -257,7 +259,7 @@ def generate_beam(self, src_enc, beam_size, length_penalty, max_len=200):
     while cur_len < max_len:
 
         # compute word scores
-        model_out = f_dec(generated[:cur_len], src_enc, src_mask) # log softmax
+        model_out = f_dec(generated[:, :cur_len], src_enc, src_mask) # log softmax
         # - model_out: (batch_size * beam_size, vocab_size)
         scores = F.log_softmax(model_out, dim=-1)       # (bs * beam_size, n_words)
         assert scores.size() == (bs * beam_size, n_words)
@@ -279,7 +281,7 @@ def generate_beam(self, src_enc, beam_size, length_penalty, max_len=200):
             # if we are done with this sentence
             done[sent_id] = done[sent_id] or generated_hyps[sent_id].is_done(next_scores[sent_id].max().item())
             if done[sent_id]:
-                next_batch_beam.extend([(0, self.pad_index, 0)] * beam_size)  # pad the batch
+                next_batch_beam.extend([(0, pad, 0)] * beam_size)  # pad the batch
                 continue
 
             # next sentence beam content
@@ -293,8 +295,8 @@ def generate_beam(self, src_enc, beam_size, length_penalty, max_len=200):
                 word_id = idx % n_words
 
                 # end of sentence, or next word
-                if word_id == self.eos_index or cur_len + 1 == max_len:
-                    generated_hyps[sent_id].add(generated[:cur_len, sent_id * beam_size + beam_id].clone(), value.item())
+                if word_id == eos or cur_len + 1 == max_len:
+                    generated_hyps[sent_id].add(generated[sent_id * beam_size + beam_id, :cur_len].clone(), value.item())
                 else:
                     next_sent_beam.append((value, word_id, sent_id * beam_size + beam_id))
 
@@ -305,7 +307,7 @@ def generate_beam(self, src_enc, beam_size, length_penalty, max_len=200):
             # update next beam content
             assert len(next_sent_beam) == 0 if cur_len + 1 == max_len else beam_size
             if len(next_sent_beam) == 0:
-                next_sent_beam = [(0, self.pad_index, 0)] * beam_size  # pad the batch
+                next_sent_beam = [(0, pad, 0)] * beam_size  # pad the batch
             next_batch_beam.extend(next_sent_beam)
             assert len(next_batch_beam) == beam_size * (sent_id + 1)
 
@@ -316,8 +318,8 @@ def generate_beam(self, src_enc, beam_size, length_penalty, max_len=200):
         beam_idx = src_enc.new([x[2] for x in next_batch_beam])
 
         # re-order batch and internal states
-        generated = generated[:, beam_idx]
-        generated[cur_len] = beam_words
+        generated = generated[beam_idx, :]
+        generated[:, cur_len] = beam_words
 
         # update current length
         cur_len = cur_len + 1
@@ -335,13 +337,13 @@ def generate_beam(self, src_enc, beam_size, length_penalty, max_len=200):
         tgt_len[i] = len(best_hyp) + 1  # +1 for the <EOS> symbol
         best.append(best_hyp)
     # generate target batch
-    decoded = src_enc.new(bs, tgt_len.max().item()).fill_(self.pad_index)
+    decoded = src_enc.new(bs, tgt_len.max().item()).fill_(pad)
     for i, hypo in enumerate(best):
         decoded[i, :tgt_len[i] - 1] = hypo
-        decoded[i, tgt_len[i] - 1] = self.eos_index
+        decoded[i, tgt_len[i] - 1] = eos
 
     # sanity check
-    assert (decoded == self.eos_index).sum() == 2 * bs
+    assert (decoded == eos).sum() == 2 * bs
 
     return decoded, tgt_len
 
