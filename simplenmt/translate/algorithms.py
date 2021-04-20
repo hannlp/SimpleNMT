@@ -12,6 +12,18 @@ f_enc = None
 f_dec = None
 # TODO:!!! 把算法和translator分离出来
 
+def f_enc(model, src_tokens, pad):
+    src_mask = src_tokens.eq(pad)
+    encoder_out = model.encoder(src_tokens, src_mask)
+    return encoder_out, src_mask
+
+def f_dec(model, prev_tgt_tokens, src_enc, src_mask):
+    decoder_out = model.decoder(
+        prev_tgt_tokens, src_enc, src_mask, None)
+    decoder_out = decoder_out[:,-1,:] # get last token
+    model_out = model.out_vocab_proj(decoder_out)
+    return model_out
+
 def greedy_search(self, src_tokens):
     batch_size = src_tokens.size(0)
     done = torch.tensor([False] * batch_size)
@@ -162,6 +174,7 @@ def beam_search_(src_tokens, beam_scorer, beam_size=4):
     return decoded
 
 
+'''
 class BeamHypotheses:
     def __init__(self, beam_size, length_penalty=1.0) -> None:
         self.beam_size = beam_size
@@ -174,7 +187,7 @@ class BeamHypotheses:
 
     def add(self):
         pass
-
+'''
 class BeamScorer:
     def __init__(self, batch_size, beam_size, length_penalty) -> None:
         self.beam_size = beam_size
@@ -205,7 +218,7 @@ class BeamScorer:
 
 
 # XLM的实现
-def generate_beam(self, src_tokens, beam_size, length_penalty, max_len=256, bos=-1, eos=-2, pad=-3):
+def generate_beam(model, src_tokens, beam_size, length_penalty, max_len=256, bos=-1, eos=-2, pad=-3):
     """
     Decode a sentence given initial start.
     `x`:
@@ -223,14 +236,13 @@ def generate_beam(self, src_tokens, beam_size, length_penalty, max_len=256, bos=
     # check inputs
     assert beam_size >= 1
 
-    # batch size / number of words
+    # batch size
     bs = len(src_tokens)
 
-    src_enc = f_enc(src_tokens)
-    n_words = src_enc.size(-1)
+    src_enc, _ = f_enc(model, src_tokens, pad)
 
     # expand to beam size the source latent representations
-    src_enc = src_enc.repeat_interleave(beam_size, 1, 1)
+    src_enc = src_enc.repeat_interleave(beam_size, dim=0)
     src_mask = src_enc.eq(eos)
 
     # generated sentences (batch with beam current hypotheses)
@@ -259,9 +271,10 @@ def generate_beam(self, src_tokens, beam_size, length_penalty, max_len=256, bos=
     while cur_len < max_len:
 
         # compute word scores
-        model_out = f_dec(generated[:, :cur_len], src_enc, src_mask) # log softmax
+        model_out = f_dec(model, generated[:, :cur_len], src_enc, src_mask) # log softmax
         # - model_out: (batch_size * beam_size, vocab_size)
         scores = F.log_softmax(model_out, dim=-1)       # (bs * beam_size, n_words)
+        n_words = scores.size(-1)
         assert scores.size() == (bs * beam_size, n_words)
 
         # select next words with scores
