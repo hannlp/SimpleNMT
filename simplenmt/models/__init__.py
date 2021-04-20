@@ -39,7 +39,7 @@ def build_model(args, use_cuda):
             'share_decoder_embeddings': args.share_vocab,
             'max_seq_len': args.max_seq_len
             }, 
-        "Luong": {
+        '''"Luong": {
             'n_src_words': args.n_src_words,
             'n_tgt_words': args.n_tgt_words,
             'd_model': args.d_model, 
@@ -50,7 +50,7 @@ def build_model(args, use_cuda):
             'bidirectional': args.bidirectional,
             'attn_type': args.attn_type, 
             'rnn_type': args.rnn_type
-        },
+        },'''
         "RNNSearch": {
             'n_src_words': args.n_src_words,
             'n_tgt_words': args.n_tgt_words,
