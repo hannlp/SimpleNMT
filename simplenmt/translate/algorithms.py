@@ -243,8 +243,8 @@ def generate_beam(model, src_tokens, beam_size, length_penalty, max_len=256, bos
 
     # expand to beam size the source latent representations
     src_enc = src_enc.repeat_interleave(beam_size, dim=0)
-    print(src_enc[0, :2, :2], src_enc[1, :2, :2], src_enc[2, :2, :2], src_enc[3, :2, :2])
-    print(src_enc[4, :2, :2], src_enc[5, :2, :2], src_enc[8, :2, :2], src_enc[9, :2, :2])
+    #print(src_enc[0, :2, :2], src_enc[1, :2, :2], src_enc[2, :2, :2], src_enc[3, :2, :2])
+    #print(src_enc[4, :2, :2], src_enc[5, :2, :2], src_enc[8, :2, :2], src_enc[9, :2, :2])
     src_mask = src_mask.repeat_interleave(beam_size, dim=0)
 
     # generated sentences (batch with beam current hypotheses)
@@ -348,7 +348,7 @@ def generate_beam(model, src_tokens, beam_size, length_penalty, max_len=256, bos
         tgt_len[i] = len(best_hyp) + 1  # +1 for the <EOS> symbol
         best.append(best_hyp)
 
-    print(tgt_len, tgt_len.max(), tgt_len.shape)
+    #print(tgt_len, tgt_len.max(), tgt_len.shape)
     # generate target batch
     decoded = src_tokens.new(bs, tgt_len.max().item()).fill_(pad)
     for i, hypo in enumerate(best):
