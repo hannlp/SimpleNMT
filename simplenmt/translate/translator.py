@@ -122,7 +122,7 @@ class Translator(object):
         # batch size
         bs = len(src_tokens)
 
-        src_enc, src_mask = self.f_enc(src_tokens)
+        src_enc, src_mask = self._encode(src_tokens)
 
         # expand to beam size the source latent representations
         src_enc = src_enc.repeat_interleave(beam_size, dim=0)
@@ -149,7 +149,7 @@ class Translator(object):
         while cur_len < self.max_seq_length:
 
             # compute word scores
-            model_out = self.f_dec(generated[:, :cur_len], src_enc, src_mask) # log softmax
+            model_out = self._decode(generated[:, :cur_len], src_enc, src_mask) # log softmax
             # - model_out: (batch_size * beam_size, vocab_size)
             scores = F.log_softmax(model_out, dim=-1)       # (bs * beam_size, n_words)
             n_words = scores.size(-1)
