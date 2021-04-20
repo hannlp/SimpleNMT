@@ -217,7 +217,7 @@ class BeamScorer:
 
 
 
-# XLM的实现
+# 参考XLM的实现
 def generate_beam(model, src_tokens, beam_size, length_penalty, max_len=256, bos=-1, eos=-2, pad=-3):
     """
     Decode a sentence given initial start.
@@ -248,9 +248,8 @@ def generate_beam(model, src_tokens, beam_size, length_penalty, max_len=256, bos
     src_mask = src_mask.repeat_interleave(beam_size, dim=0)
 
     # generated sentences (batch with beam current hypotheses)
-    generated = src_tokens.new(bs * beam_size, max_len)  # upcoming output
-    generated.fill_(pad)                   # fill upcoming ouput with <PAD>
-    generated[:, 0].fill_(bos)                # we use <EOS> for <BOS> everywhere ????
+    generated = src_tokens.new(bs * beam_size, max_len).fill_(pad)  # upcoming output
+    generated[:, 0].fill_(bos)
 
     # generated hypotheses
     generated_hyps = [BeamHypotheses(beam_size, max_len, length_penalty) for _ in range(bs)]
@@ -264,7 +263,7 @@ def generate_beam(model, src_tokens, beam_size, length_penalty, max_len=256, bos
     cur_len = 1
 
     # done sentences
-    done = [False for _ in range(bs)]
+    done = [False] * bs
 
     while cur_len < max_len:
 
@@ -273,18 +272,17 @@ def generate_beam(model, src_tokens, beam_size, length_penalty, max_len=256, bos
         # - model_out: (batch_size * beam_size, vocab_size)
         scores = F.log_softmax(model_out, dim=-1)       # (bs * beam_size, n_words)
         n_words = scores.size(-1)
-        assert scores.size() == (bs * beam_size, n_words)
+        # - scores: (bs * beam_size, n_words)
 
         # select next words with scores
-        _scores = scores + beam_scores[:, None].expand_as(scores)  # (bs * beam_size, n_words)
-        _scores = _scores.view(bs, beam_size * n_words)            # (bs, beam_size * n_words)
+        _scores = scores + beam_scores.view(bs * beam_size, 1)      # (bs * beam_size, n_words)
+        _scores = _scores.view(bs, beam_size * n_words)             # (bs, beam_size * n_words)
 
         next_scores, next_words = torch.topk(_scores, 2 * beam_size, dim=-1, largest=True, sorted=True)
-        assert next_scores.size() == next_words.size() == (bs, 2 * beam_size)
+        # - next_scores, next_words: (bs, 2 * beam_size)
 
         # next batch beam content
-        # list of (bs * beam_size) tuple(next hypothesis score, next word, current position in the batch)
-        next_batch_beam = []
+        next_batch_beam = []  # list of (bs * beam_size) tuple(next hypothesis score, next word, current position in the batch)
 
         # for each sentence
         for sent_id in range(bs):
@@ -316,14 +314,14 @@ def generate_beam(model, src_tokens, beam_size, length_penalty, max_len=256, bos
                     break
 
             # update next beam content
-            assert len(next_sent_beam) == 0 if cur_len + 1 == max_len else beam_size
+            #assert len(next_sent_beam) == 0 if cur_len + 1 == max_len else beam_size
             if len(next_sent_beam) == 0:
                 next_sent_beam = [(0, pad, 0)] * beam_size  # pad the batch
             next_batch_beam.extend(next_sent_beam)
-            assert len(next_batch_beam) == beam_size * (sent_id + 1)
+            #assert len(next_batch_beam) == beam_size * (sent_id + 1)
 
         # sanity check / prepare next batch
-        assert len(next_batch_beam) == bs * beam_size
+        #assert len(next_batch_beam) == bs * beam_size
         beam_scores = beam_scores.new([x[0] for x in next_batch_beam])
         beam_words = generated.new([x[1] for x in next_batch_beam])
         beam_idx = src_tokens.new([x[2] for x in next_batch_beam])
@@ -348,7 +346,6 @@ def generate_beam(model, src_tokens, beam_size, length_penalty, max_len=256, bos
         tgt_len[i] = len(best_hyp) + 1  # +1 for the <EOS> symbol
         best.append(best_hyp)
 
-    #print(tgt_len, tgt_len.max(), tgt_len.shape)
     # generate target batch
     decoded = src_tokens.new(bs, tgt_len.max().item()).fill_(pad)
     for i, hypo in enumerate(best):
