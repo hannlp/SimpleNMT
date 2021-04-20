@@ -340,21 +340,26 @@ def generate_beam(model, src_tokens, beam_size, length_penalty, max_len=256, bos
             break
 
     # select the best hypotheses
-    tgt_len = src_enc.new(bs)
+    tgt_len = src_tokens.new(bs)
     best = []
 
     for i, hypotheses in enumerate(generated_hyps):
         best_hyp = max(hypotheses.hyp, key=lambda x: x[0])[1]
         tgt_len[i] = len(best_hyp) + 1  # +1 for the <EOS> symbol
         best.append(best_hyp)
+
+    print(tgt_len, tgt_len.max(), tgt_len.shape)
     # generate target batch
-    decoded = src_enc.new(bs, tgt_len.max().item()).fill_(pad)
+    decoded = src_tokens.new(bs, tgt_len.max().item()).fill_(pad)
     for i, hypo in enumerate(best):
         decoded[i, :tgt_len[i] - 1] = hypo
         decoded[i, tgt_len[i] - 1] = eos
 
     # sanity check
-    assert (decoded == eos).sum() == 2 * bs
+    try:
+        assert (decoded == eos).sum() == 2 * bs
+    except:
+        print('sanity check error!')
 
     return decoded, tgt_len
 

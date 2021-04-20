@@ -21,3 +21,4 @@ model = Transformer(n_src_words=n_src_words, n_tgt_words=n_tgt_words)
 src_tokens = torch.randint(n_src_words, (batch_size, src_len))
 
 a = generate_beam(model=model, src_tokens=src_tokens, beam_size=4, length_penalty=1.0, max_len=5, bos=1, eos=2, pad=0)
+print(a)

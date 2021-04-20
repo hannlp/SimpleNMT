@@ -10,6 +10,8 @@ from models import build_model
 from data.dataloader import MyIterator, batch_size_fn
 from data.utils import prepare_batch
 from .utils import de_numericalize
+from .algorithms import generate_beam
+
 
 class Translator(object):
     def __init__(self, args):
@@ -67,8 +69,15 @@ class Translator(object):
                 src_sentences = de_numericalize(self.dl.SRC.vocab, src_tokens)
                 tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
                 
-                #pred_tokens = self.batch_beam_search(src_tokens, beam_size=4)
-                pred_tokens = self.batch_greedy_search(src_tokens)
+                pred_tokens, _ = generate_beam(model=self.model, 
+                                            src_tokens=src_tokens,
+                                            beam_size=4,
+                                            length_penalty=1.0,
+                                            max_len=self.max_seq_length,
+                                            bos=self.tgt_sos_idx,
+                                            eos=self.tgt_eos_idx,
+                                            pad=self.tgt_pdx)
+                #pred_tokens = self.batch_greedy_search(src_tokens)
                 pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens)
 
                 for src_words, tgt_words, pred_words in zip(src_sentences, tgt_sentences, pred_sentences):
@@ -110,9 +119,8 @@ class Translator(object):
         return encoder_out, src_mask
 
     def _decode(self, prev_tgt_tokens, encoder_out, src_mask):
-        tgt_mask = prev_tgt_tokens.eq(self.tgt_pdx)
         decoder_out = self.model.decoder(
-            prev_tgt_tokens, encoder_out, src_mask, tgt_mask)
+            prev_tgt_tokens, encoder_out, src_mask, None)
         decoder_out = decoder_out[:,-1,:] # get last token
         model_out = self.model.out_vocab_proj(decoder_out)
         return model_out
