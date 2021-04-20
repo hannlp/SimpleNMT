@@ -78,9 +78,13 @@ class Translator(object):
                 #                             bos=self.tgt_sos_idx,
                 #                             eos=self.tgt_eos_idx,
                 #                             pad=self.tgt_pdx)
-                pred_tokens = self.batch_beam_search(src_tokens=src_tokens,
+
+                if self.beam_size > 1:
+                    pred_tokens = self.batch_beam_search(src_tokens=src_tokens,
                                                      beam_size=self.beam_size,
                                                      length_penalty=1.0)
+                else:
+                    pred_tokens = self.batch_greedy_search(src_tokens)
 
                 #pred_tokens = self.batch_greedy_search(src_tokens)
                 pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens)
