@@ -10,7 +10,7 @@ from models import build_model
 from data.dataloader import MyIterator, batch_size_fn
 from data.utils import prepare_batch
 from .utils import de_numericalize
-from .algorithms import BeamHypotheses
+from .algorithms import generate_beam, BeamHypotheses
 
 
 class Translator(object):
@@ -70,21 +70,21 @@ class Translator(object):
                 src_sentences = de_numericalize(self.dl.SRC.vocab, src_tokens)
                 tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
                 
-                # pred_tokens, _ = generate_beam(model=self.model, 
-                #                             src_tokens=src_tokens,
-                #                             beam_size=4,
-                #                             length_penalty=1.0,
-                #                             max_len=self.max_seq_length,
-                #                             bos=self.tgt_sos_idx,
-                #                             eos=self.tgt_eos_idx,
-                #                             pad=self.tgt_pdx)
+                pred_tokens, _ = generate_beam(model=self.model, 
+                                            src_tokens=src_tokens,
+                                            beam_size=self.beam_size,
+                                            length_penalty=1.0,
+                                            max_len=self.max_seq_length,
+                                            bos=self.tgt_sos_idx,
+                                            eos=self.tgt_eos_idx,
+                                            pad=self.tgt_pdx)
 
-                if self.beam_size > 1:
-                    pred_tokens = self.batch_beam_search(src_tokens=src_tokens,
-                                                     beam_size=self.beam_size,
-                                                     length_penalty=1.0)
-                else:
-                    pred_tokens = self.batch_greedy_search(src_tokens)
+                # if self.beam_size > 1:
+                #     pred_tokens = self.batch_beam_search(src_tokens=src_tokens,
+                #                                      beam_size=self.beam_size,
+                #                                      length_penalty=1.0)
+                # else:
+                #     pred_tokens = self.batch_greedy_search(src_tokens)
 
                 #pred_tokens = self.batch_greedy_search(src_tokens)
                 pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens)
