@@ -352,12 +352,6 @@ def generate_beam(model, src_tokens, beam_size, length_penalty, max_len=256, bos
         decoded[i, :tgt_len[i] - 1] = hypo
         decoded[i, tgt_len[i] - 1] = eos
 
-    # sanity check
-    try:
-        assert (decoded == eos).sum() == 2 * bs
-    except:
-        print('sanity check error!')
-
     return decoded, tgt_len
 
 

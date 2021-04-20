@@ -28,9 +28,9 @@ a = generate_beam(model=model, src_tokens=src_tokens, beam_size=4, length_penalt
 elapsed = (time.time() - start_time)
 print(a, elapsed, 's')
 
-avg_elapsed = []
-for i in range(10):
-    start_time = time.time()
-    generate_beam(model=model, src_tokens=src_tokens, beam_size=4, length_penalty=1.0, max_len=32, bos=1, eos=2, pad=0)
-    avg_elapsed.append((time.time() - start_time))
-print(sum(avg_elapsed) / len(avg_elapsed), 's')
+# avg_elapsed = []
+# for i in range(10):
+#     start_time = time.time()
+#     generate_beam(model=model, src_tokens=src_tokens, beam_size=4, length_penalty=3.0, max_len=10, bos=1, eos=2, pad=0)
+#     avg_elapsed.append((time.time() - start_time))
+# print(sum(avg_elapsed) / len(avg_elapsed), 's')
