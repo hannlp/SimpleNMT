@@ -24,6 +24,7 @@ class Translator(object):
         self.tgt_eos_idx = self.dl.TGT.vocab.stoi[self.dl.END]
         self.src_stoi = self.dl.SRC.vocab.stoi
         self.tgt_itos = self.dl.TGT.vocab.itos
+        self.beam_size = args.beam_size
 
         self.max_seq_length = args.max_seq_length
 
@@ -78,7 +79,7 @@ class Translator(object):
                 #                             eos=self.tgt_eos_idx,
                 #                             pad=self.tgt_pdx)
                 pred_tokens = self.batch_beam_search(src_tokens=src_tokens,
-                                                     beam_size=6,
+                                                     beam_size=self.beam_size,
                                                      length_penalty=1.0)
 
                 #pred_tokens = self.batch_greedy_search(src_tokens)

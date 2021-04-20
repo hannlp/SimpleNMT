@@ -9,7 +9,7 @@ def parse():
     parser.add_argument("-dl_path", help="the dataloader save path", type=str, default="./")
     parser.add_argument("-ckpt_path", help="the checkpoint save path", type=str, default="./")
     parser.add_argument("-max_seq_length", help="the max length of sequence", type=int, default=256)
-    parser.add_argument("-beam_size", help="the width of beam search", type=int, default=1)
+    parser.add_argument("-beam_size", help="the width of beam search", type=int, default=4)
 
     parser.add_argument("-generate", help="repalce the translate to generate", action="store_true")
     parser.add_argument("-test_path", help="the test corpus path prefix", type=str, default="./")
