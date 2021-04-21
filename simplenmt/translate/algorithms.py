@@ -1,33 +1,38 @@
 import torch
 import torch.nn.functional as F
+
 '''
-translate algorithms, whitch supprot a batch src_tokens input:
+Translate algorithms, whitch supprot a batch input - src_tokens: (batch_size, src_len):
     - greedy search
+    - beam search
 '''
+
 MAX_LENGTH = 256
-bos = -1
-eos = -2
-pad = -3
+BOS = -1
+EOS = -2
+PAD = -3
 f_enc = None
 f_dec = None
 # TODO:!!! 把算法和translator分离出来
 
 def f_enc(model, src_tokens, pad):
+    # for Transformer's encode
     src_mask = src_tokens.eq(pad)
     encoder_out = model.encoder(src_tokens, src_mask)
     return encoder_out, src_mask
 
 def f_dec(model, prev_tgt_tokens, src_enc, src_mask):
+    # for Transformer's decode
     decoder_out = model.decoder(
         prev_tgt_tokens, src_enc, src_mask, None)
     decoder_out = decoder_out[:, -1, :] # get last token
     model_out = model.out_vocab_proj(decoder_out)
     return model_out
 
-def greedy_search(model, src_tokens, max_len=MAX_LENGTH, bos=-1, eos=-2, pad=-3):
+def greedy_search(model, src_tokens, max_len=MAX_LENGTH, bos=BOS, eos=EOS, pad=PAD):
     batch_size = len(src_tokens)
     done = src_tokens.new([False] * batch_size)
-  
+
     encoder_out, src_mask = f_enc(model, src_tokens, pad)
 
     gen_seqs = src_tokens.new(batch_size, max_len).fill_(pad)
@@ -45,33 +50,6 @@ def greedy_search(model, src_tokens, max_len=MAX_LENGTH, bos=-1, eos=-2, pad=-3)
         gen_seqs[:, step] = next_words.view(-1)
 
     return gen_seqs
-
-"""
-def greedy_search(model, src_tokens, max_len=MAX_LENGTH, bos=-1, eos=-2, pad=-3):
-    batch_size = len(src_tokens)
-    done = src_tokens.new([False] * batch_size)
-    
-    encoder_out, src_mask = f_enc(model, src_tokens, pad)
-
-    gen_seqs = src_tokens.new(batch_size, 1).fill_(bos)
-    # - gen_seqs: (batch_size, 1) -> <sos>
-
-    probs = F.log_softmax(f_dec(model, gen_seqs, encoder_out, src_mask), dim=-1)
-    _, max_idxs = probs.topk(1) # new words
-    
-    for step in range(2, max_len):
-        done = done | max_idxs.eq(eos).squeeze() #TODO : stop rules
-        if all(done):
-            break
-        
-        gen_seqs = torch.cat((gen_seqs, max_idxs), dim=1)
-        # - gen_seqs: (batch_size, step) -> batch seqs
-
-        probs = F.log_softmax(f_dec(model, gen_seqs, encoder_out, src_mask), dim=-1)
-        _, max_idxs = probs.topk(1)
-    
-    return gen_seqs
-"""
 
 """
 Referenced from OpenNMT(unfinished)
@@ -197,7 +175,7 @@ class BeamHypotheses(object):
         else:
             return self.worst_score >= best_sum_logprobs / self.max_len ** self.length_penalty
 
-def beam_search(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH, bos=-1, eos=-2, pad=-3):
+def beam_search(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH, bos=BOS, eos=EOS, pad=PAD):
     # batch size
     batch_size = len(src_tokens)
 
