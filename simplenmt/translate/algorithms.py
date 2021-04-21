@@ -24,19 +24,19 @@ def f_dec(model, prev_tgt_tokens, src_enc, src_mask):
     model_out = model.out_vocab_proj(decoder_out)
     return model_out
 
-def greedy_search(self, src_tokens):
+def greedy_search(model, src_tokens, max_len=MAX_LENGTH, bos=-1, eos=-2, pad=-3):
     batch_size = src_tokens.size(0)
-    done = torch.tensor([False] * batch_size)
+    done = src_tokens.new([False] * batch_size)
     
-    encoder_out, src_mask = f_enc(src_tokens)
+    encoder_out, src_mask = f_enc(model, src_tokens, pad)
 
-    gen_seqs = torch.full((batch_size, 1), bos)
+    gen_seqs = src_tokens.new(batch_size, 1).fill_(bos)
     # - gen_seqs: (batch_size, 1) -> <sos>
 
-    probs = F.softmax(f_dec(gen_seqs, encoder_out, src_mask), dim=-1) # TODO: use log_softmax
+    probs = F.log_softmax(f_dec(gen_seqs, encoder_out, src_mask), dim=-1)
     _, max_idxs = probs.topk(1) # new words
     
-    for step in range(2, MAX_LENGTH):
+    for step in range(2, max_len):
         done = done | max_idxs.eq(eos).squeeze() #TODO : stop rules
         if all(done):
             break
@@ -44,14 +44,16 @@ def greedy_search(self, src_tokens):
         gen_seqs = torch.cat((gen_seqs, max_idxs), dim=1)
         # - gen_seqs: (batch_size, step) -> batch seqs
 
-        probs = F.softmax(f_dec(gen_seqs, encoder_out, src_mask), dim=-1)
+        probs = F.log_softmax(f_dec(gen_seqs, encoder_out, src_mask), dim=-1)
         _, max_idxs = probs.topk(1)
     
     return gen_seqs
 
 
-# 参考OpenNMT的实现
-def beam_search(self, src_tokens, beam_size=4):
+"""
+Borrowed from OpenNMT(unfinished)
+"""
+def beam_search_(self, src_tokens, beam_size=4):
     # init
     batch_size = src_tokens.size(0)
 
@@ -123,7 +125,10 @@ def beam_search(self, src_tokens, beam_size=4):
         
     return gen_seqs
 
-# 参考XLM的实现
+"""
+Borrowed from facebookresearch/XLM,
+ at https://github.com/facebookresearch/XLM/blob/master/xlm/model/transformer.py
+"""
 class BeamHypotheses(object):
     def __init__(self, n_hyp, max_len, length_penalty):
         """
@@ -165,7 +170,7 @@ class BeamHypotheses(object):
         else:
             return self.worst_score >= best_sum_logprobs / self.max_len ** self.length_penalty
 
-def generate_beam(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH, bos=-1, eos=-2, pad=-3):
+def beam_search(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH, bos=-1, eos=-2, pad=-3):
     # batch size
     batch_size = len(src_tokens)
 
@@ -197,20 +202,19 @@ def generate_beam(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENG
         # compute word scores
         model_out = f_dec(model, generated[:, :cur_len], src_enc, src_mask) # log softmax
         # - model_out: (batch_size * beam_size, vocab_size)
-        scores = F.log_softmax(model_out, dim=-1)       # (bs * beam_size, n_tgt_words)
-        
+        scores = F.log_softmax(model_out, dim=-1)       # (batch_size * beam_size, n_tgt_words)      
         n_tgt_words = scores.size(-1)
-        # - scores: (bs * beam_size, n_tgt_words)
+        # - scores: (batch_size * beam_size, n_tgt_words)
 
         # select next words with scores
-        _scores = scores + beam_scores.view(batch_size * beam_size, 1)  # (bs * beam_size, n_tgt_words)
-        _scores = _scores.view(batch_size, beam_size * n_tgt_words)     # (bs, beam_size * n_tgt_words)
+        _scores = scores + beam_scores.view(batch_size * beam_size, 1)  # (batch_size * beam_size, n_tgt_words)
+        _scores = _scores.view(batch_size, beam_size * n_tgt_words)     # (batch_size, beam_size * n_tgt_words)
 
         next_scores, next_words = torch.topk(_scores, 2 * beam_size, dim=-1, largest=True, sorted=True)
-        # - next_scores, next_words: (bs, 2 * beam_size)
+        # - next_scores, next_words: (batch_size, 2 * beam_size)
 
         # next batch beam content
-        next_batch_beam = []  # list of (bs * beam_size) tuple(next hypothesis score, next word, current position in the batch)
+        next_batch_beam = []  # list of (batch_size * beam_size) tuple(next hypothesis score, next word, current position in the batch)
 
         # for each sentence
         for sent_id in range(batch_size):

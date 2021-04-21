@@ -10,7 +10,7 @@ from models import build_model
 from data.dataloader import MyIterator, batch_size_fn
 from data.utils import prepare_batch
 from .utils import de_numericalize
-from .algorithms import generate_beam, BeamHypotheses
+from .algorithms import beam_search, greedy_search
 
 
 class Translator(object):
@@ -70,7 +70,8 @@ class Translator(object):
                 src_sentences = de_numericalize(self.dl.SRC.vocab, src_tokens)
                 tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
                 
-                pred_tokens, _ = generate_beam(model=self.model, 
+                if self.beam_size > 1:
+                    pred_tokens, _ = beam_search(model=self.model, 
                                             src_tokens=src_tokens,
                                             beam_size=self.beam_size,
                                             length_penalty=1.0,
@@ -78,13 +79,13 @@ class Translator(object):
                                             bos=self.tgt_sos_idx,
                                             eos=self.tgt_eos_idx,
                                             pad=self.tgt_pdx)
-
-                # if self.beam_size > 1:
-                #     pred_tokens = self.batch_beam_search(src_tokens=src_tokens,
-                #                                      beam_size=self.beam_size,
-                #                                      length_penalty=1.0)
-                # else:
-                #     pred_tokens = self.batch_greedy_search(src_tokens)
+                else:
+                    pred_tokens = greedy_search(model=self.model,
+                                                src_tokens=src_tokens,
+                                                max_len=self.max_seq_length,
+                                                bos=self.tgt_sos_idx,
+                                                eos=self.tgt_eos_idx,
+                                                pad=self.tgt_pdx)
 
                 #pred_tokens = self.batch_greedy_search(src_tokens)
                 pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens)
@@ -121,120 +122,6 @@ class Translator(object):
             _, max_idxs = probs.topk(1)
         
         return gen_seqs
-
-    def batch_beam_search(self, src_tokens, beam_size, length_penalty):
-        # batch size
-        bs = len(src_tokens)
-
-        src_enc, src_mask = self._encode(src_tokens)
-
-        # expand to beam size the source latent representations
-        src_enc = src_enc.repeat_interleave(beam_size, dim=0)
-        src_mask = src_mask.repeat_interleave(beam_size, dim=0)
-
-        # generated sentences (batch with beam current hypotheses)
-        generated = src_tokens.new(bs * beam_size, self.max_seq_length).fill_(self.tgt_pdx)  # upcoming output
-        generated[:, 0].fill_(self.tgt_sos_idx)
-
-        # generated hypotheses
-        generated_hyps = [BeamHypotheses(beam_size, self.max_seq_length, length_penalty) for _ in range(bs)]
-
-        # scores for each sentence in the beam
-        beam_scores = src_enc.new(bs, beam_size).fill_(0)
-        beam_scores[:, 1:] = -1e9
-        beam_scores = beam_scores.view(-1)
-
-        # current position
-        cur_len = 1
-
-        # done sentences
-        done = [False] * bs
-
-        while cur_len < self.max_seq_length:
-
-            # compute word scores
-            model_out = self._decode(generated[:, :cur_len], src_enc, src_mask) # log softmax
-            # - model_out: (batch_size * beam_size, vocab_size)
-            scores = F.log_softmax(model_out, dim=-1)       # (bs * beam_size, n_words)
-            n_words = scores.size(-1)
-            # - scores: (bs * beam_size, n_words)
-
-            # select next words with scores
-            _scores = scores + beam_scores.view(bs * beam_size, 1)      # (bs * beam_size, n_words)
-            _scores = _scores.view(bs, beam_size * n_words)             # (bs, beam_size * n_words)
-
-            next_scores, next_words = torch.topk(_scores, 2 * beam_size, dim=-1, largest=True, sorted=True)
-            # - next_scores, next_words: (bs, 2 * beam_size)
-
-            # next batch beam content
-            next_batch_beam = []  # list of (bs * beam_size) tuple(next hypothesis score, next word, current position in the batch)
-
-            # for each sentence
-            for sent_id in range(bs):
-
-                # if we are done with this sentence
-                done[sent_id] = done[sent_id] or generated_hyps[sent_id].is_done(next_scores[sent_id].max().item())
-                if done[sent_id]:
-                    next_batch_beam.extend([(0, self.tgt_pdx, 0)] * beam_size)  # pad the batch
-                    continue
-
-                # next sentence beam content
-                next_sent_beam = []
-
-                # next words for this sentence
-                for idx, value in zip(next_words[sent_id], next_scores[sent_id]):
-
-                    # get beam and word IDs
-                    beam_id = idx // n_words
-                    word_id = idx % n_words
-
-                    # end of sentence, or next word
-                    if word_id == self.tgt_eos_idx or cur_len + 1 == self.max_seq_length:
-                        generated_hyps[sent_id].add(generated[sent_id * beam_size + beam_id, :cur_len].clone(), value.item())
-                    else:
-                        next_sent_beam.append((value, word_id, sent_id * beam_size + beam_id))
-
-                    # the beam for next step is full
-                    if len(next_sent_beam) == beam_size:
-                        break
-
-                # update next beam content
-                if len(next_sent_beam) == 0:
-                    next_sent_beam = [(0, self.tgt_pdx, 0)] * beam_size  # pad the batch
-                next_batch_beam.extend(next_sent_beam)
-
-            # sanity check / prepare next batch
-            beam_scores = beam_scores.new([x[0] for x in next_batch_beam])
-            beam_words = generated.new([x[1] for x in next_batch_beam])
-            beam_idx = src_tokens.new([x[2] for x in next_batch_beam])
-
-            # re-order batch and internal states
-            generated = generated[beam_idx, :]
-            generated[:, cur_len] = beam_words
-
-            # update current length
-            cur_len = cur_len + 1
-
-            # stop when we are done with each sentence
-            if all(done):
-                break
-
-        # select the best hypotheses
-        tgt_len = src_tokens.new(bs)
-        best = []
-
-        for i, hypotheses in enumerate(generated_hyps):
-            best_hyp = max(hypotheses.hyp, key=lambda x: x[0])[1]
-            tgt_len[i] = len(best_hyp) + 1  # +1 for the <EOS> symbol
-            best.append(best_hyp)
-
-        # generate target batch
-        decoded = src_tokens.new(bs, tgt_len.max().item()).fill_(self.tgt_pdx)
-        for i, hypo in enumerate(best):
-            decoded[i, :tgt_len[i] - 1] = hypo
-            decoded[i, tgt_len[i] - 1] = self.tgt_eos_idx
-
-        return decoded
 
     def _encode(self, src_tokens):
         src_mask = src_tokens.eq(self.src_pdx)
