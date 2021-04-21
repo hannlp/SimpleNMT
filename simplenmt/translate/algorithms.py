@@ -25,7 +25,30 @@ def f_dec(model, prev_tgt_tokens, src_enc, src_mask):
     return model_out
 
 def greedy_search(model, src_tokens, max_len=MAX_LENGTH, bos=-1, eos=-2, pad=-3):
-    batch_size = src_tokens.size(0)
+    batch_size = len(src_tokens)
+    done = src_tokens.new([False] * batch_size)
+  
+    encoder_out, src_mask = f_enc(model, src_tokens, pad)
+
+    gen_seqs = src_tokens.new(batch_size, max_len).fill_(pad)
+    gen_seqs[:, 0] = bos
+    # - gen_seqs: (batch_size, max_len)
+    
+    for step in range(1, max_len):
+        probs = F.log_softmax(f_dec(model, gen_seqs[:, :step], encoder_out, src_mask), dim=-1)
+        _, next_words = probs.topk(1)
+        
+        done = done | next_words.eq(eos).squeeze() #TODO : stop rules
+        if all(done):
+            break
+        
+        gen_seqs[:, step] = next_words
+
+    return gen_seqs
+
+"""
+def greedy_search(model, src_tokens, max_len=MAX_LENGTH, bos=-1, eos=-2, pad=-3):
+    batch_size = len(src_tokens)
     done = src_tokens.new([False] * batch_size)
     
     encoder_out, src_mask = f_enc(model, src_tokens, pad)
@@ -48,7 +71,7 @@ def greedy_search(model, src_tokens, max_len=MAX_LENGTH, bos=-1, eos=-2, pad=-3)
         _, max_idxs = probs.topk(1)
     
     return gen_seqs
-
+"""
 
 """
 Borrowed from OpenNMT(unfinished)
