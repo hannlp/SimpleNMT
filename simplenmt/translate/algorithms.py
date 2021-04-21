@@ -41,8 +41,8 @@ def greedy_search(model, src_tokens, max_len=MAX_LENGTH, bos=-1, eos=-2, pad=-3)
         done = done | next_words.eq(eos).squeeze() #TODO : stop rules
         if all(done):
             break
-        
-        gen_seqs[:, step] = next_words
+
+        gen_seqs[:, step] = next_words.view(-1)
 
     return gen_seqs
 
@@ -174,8 +174,8 @@ class BeamHypotheses(object):
         Add a new hypothesis to the list.
         """
 
-        #lp = len(hyp) ** self.length_penalty
-        lp = pow(5 + len(hyp), self.length_penalty) / pow(5 + 1, self.length_penalty) # Google GNMT's length penalty
+        lp = len(hyp) ** self.length_penalty # deafult length penalty
+        #lp = pow(5 + len(hyp), self.length_penalty) / pow(5 + 1, self.length_penalty) # Google GNMT's length penalty
         score = sum_logprobs / lp
 
         if len(self) < self.n_hyp or score > self.worst_score:
