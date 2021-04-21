@@ -25,7 +25,7 @@ class Translator(object):
         self.src_stoi = self.dl.SRC.vocab.stoi
         self.tgt_itos = self.dl.TGT.vocab.itos
         self.beam_size = args.beam_size
-
+        self.length_penalty = args.length_penalty
         self.max_seq_length = args.max_seq_length
 
         self.model = self._load_model(args.ckpt_path)
@@ -74,7 +74,7 @@ class Translator(object):
                     pred_tokens, tgt_len = beam_search(model=self.model, 
                                             src_tokens=src_tokens,
                                             beam_size=self.beam_size,
-                                            length_penalty=0.4,
+                                            length_penalty=self.length_penalty,
                                             max_len=self.max_seq_length,
                                             bos=self.tgt_sos_idx,
                                             eos=self.tgt_eos_idx,
