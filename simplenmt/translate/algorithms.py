@@ -266,10 +266,10 @@ def beam_search(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH
         # update current length
         cur_len = cur_len + 1
 
+        if cur_len % 5 == 0:
+            print(cur_len, done)
         # stop when we are done with each sentence
         if all(done):
-            if cur_len % 5 == 0:
-                print(cur_len, done)
             break
 
     # select the best hypotheses
