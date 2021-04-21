@@ -17,9 +17,6 @@ def parse():
     parser.add_argument("-beam_size", help="the width of beam search", type=int, default=0)
     parser.add_argument("-length_penalty", type=float, default=1.0)
 
-
-
-
     args = parser.parse_args()
     return args
 

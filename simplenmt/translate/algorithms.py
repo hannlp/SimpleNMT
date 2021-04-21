@@ -74,7 +74,7 @@ def greedy_search(model, src_tokens, max_len=MAX_LENGTH, bos=-1, eos=-2, pad=-3)
 """
 
 """
-Borrowed from OpenNMT(unfinished)
+Referenced from OpenNMT(unfinished)
 """
 def beam_search_(self, src_tokens, beam_size=4):
     # init
@@ -149,7 +149,7 @@ def beam_search_(self, src_tokens, beam_size=4):
     return gen_seqs
 
 """
-Borrowed from facebookresearch/XLM,
+Referenced from facebookresearch/XLM,
  at https://github.com/facebookresearch/XLM/blob/master/xlm/model/transformer.py
 """
 class BeamHypotheses(object):
