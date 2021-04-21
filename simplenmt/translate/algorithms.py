@@ -33,7 +33,7 @@ def greedy_search(model, src_tokens, max_len=MAX_LENGTH, bos=-1, eos=-2, pad=-3)
     gen_seqs = src_tokens.new(batch_size, 1).fill_(bos)
     # - gen_seqs: (batch_size, 1) -> <sos>
 
-    probs = F.log_softmax(f_dec(gen_seqs, encoder_out, src_mask), dim=-1)
+    probs = F.log_softmax(f_dec(model, gen_seqs, encoder_out, src_mask), dim=-1)
     _, max_idxs = probs.topk(1) # new words
     
     for step in range(2, max_len):
