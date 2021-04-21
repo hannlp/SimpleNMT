@@ -71,7 +71,7 @@ class Translator(object):
                 tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
                 
                 if self.beam_size > 1:
-                    pred_tokens, _ = beam_search(model=self.model, 
+                    pred_tokens, tgt_len = beam_search(model=self.model, 
                                             src_tokens=src_tokens,
                                             beam_size=self.beam_size,
                                             length_penalty=0.4,
@@ -86,6 +86,8 @@ class Translator(object):
                                                 bos=self.tgt_sos_idx,
                                                 eos=self.tgt_eos_idx,
                                                 pad=self.tgt_pdx)
+                print(len(tgt_len), tgt_len)
+                input()
 
                 #pred_tokens = self.batch_greedy_search(src_tokens)
                 pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens)
