@@ -87,7 +87,7 @@ class Translator(object):
                                                 eos=self.tgt_eos_idx,
                                                 pad=self.tgt_pdx)
                 
-                # TODO: 优化beam search 停止时间
+                # TODO: 优化beam search 停止时间s
                 # print(len(tgt_len), tgt_len)
                 # input()
 
