@@ -70,7 +70,7 @@ class Translator(object):
                 src_sentences = de_numericalize(self.dl.SRC.vocab, src_tokens)
                 tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
                 
-                if self.beam_size > 1:
+                if self.beam_size > 0:
                     pred_tokens, tgt_len = beam_search(model=self.model, 
                                             src_tokens=src_tokens,
                                             beam_size=self.beam_size,
