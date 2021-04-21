@@ -44,7 +44,7 @@ def greedy_search(model, src_tokens, max_len=MAX_LENGTH, bos=-1, eos=-2, pad=-3)
         gen_seqs = torch.cat((gen_seqs, max_idxs), dim=1)
         # - gen_seqs: (batch_size, step) -> batch seqs
 
-        probs = F.log_softmax(f_dec(gen_seqs, encoder_out, src_mask), dim=-1)
+        probs = F.log_softmax(f_dec(model, gen_seqs, encoder_out, src_mask), dim=-1)
         _, max_idxs = probs.topk(1)
     
     return gen_seqs
@@ -266,8 +266,10 @@ def beam_search(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH
         # update current length
         cur_len = cur_len + 1
 
-        if cur_len % 5 == 0:
-            print(cur_len, done)
+        # TODO: 优化beam search停止时间
+        # if cur_len % 5 == 0:
+        #     print(cur_len, done)
+
         # stop when we are done with each sentence
         if all(done):
             break
