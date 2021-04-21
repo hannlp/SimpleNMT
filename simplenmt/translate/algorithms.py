@@ -150,7 +150,9 @@ class BeamHypotheses(object):
         """
         Add a new hypothesis to the list.
         """
-        score = sum_logprobs / len(hyp) ** self.length_penalty
+        lp = pow(5 + len(hyp), self.length_penalty) / pow(5 + 1, self.length_penalty)
+        score = sum_logprobs / lp
+        #score = sum_logprobs / len(hyp) ** self.length_penalty
         if len(self) < self.n_hyp or score > self.worst_score:
             self.hyp.append((score, hyp))
             if len(self) > self.n_hyp:

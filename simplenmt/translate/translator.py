@@ -74,7 +74,7 @@ class Translator(object):
                     pred_tokens, _ = beam_search(model=self.model, 
                                             src_tokens=src_tokens,
                                             beam_size=self.beam_size,
-                                            length_penalty=1.0,
+                                            length_penalty=0.4,
                                             max_len=self.max_seq_length,
                                             bos=self.tgt_sos_idx,
                                             eos=self.tgt_eos_idx,
