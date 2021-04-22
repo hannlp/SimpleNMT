@@ -92,7 +92,7 @@ class BeamHypotheses(object):
             else:
                 self.worst_score = min(score, self.worst_score)
 
-    def is_done(self, best_sum_logprobs):
+    def is_done(self, best_sum_logprobs, cur_len):
         """
         If there are enough hypotheses and that none of the hypotheses being generated
         can become better than the worst one in the heap, then we are done with this sentence.
@@ -101,7 +101,8 @@ class BeamHypotheses(object):
         if len(self) < self.n_hyp:
             return False
         else:
-            return self.worst_score >= best_sum_logprobs / self.max_len ** self.length_penalty
+            return self.worst_score >= best_sum_logprobs / cur_len ** self.length_penalty 
+            #return self.worst_score >= best_sum_logprobs / self.max_len ** self.length_penalty # BUG: 感觉不应该用max len，用cur_len就可以
 
 def beam_search(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH, bos=BOS, eos=EOS, pad=PAD):
     # batch size
@@ -153,7 +154,7 @@ def beam_search(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH
         for sent_id in range(batch_size):
 
             # if we are done with this sentence
-            done[sent_id] = done[sent_id] or generated_hyps[sent_id].is_done(next_scores[sent_id].max().item()) # arg eos is I added
+            done[sent_id] = done[sent_id] or generated_hyps[sent_id].is_done(next_scores[sent_id].max().item(), cur_len)
             if done[sent_id]:
                 next_batch_beam.extend([(0, pad, 0)] * beam_size)  # pad the batch
                 continue
