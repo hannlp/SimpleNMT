@@ -132,7 +132,7 @@ def beam_search(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH
         # compute word scores
         model_out = f_dec(model, generated[:, :cur_len], src_enc, src_mask) # log softmax
         # - model_out: (batch_size * beam_size, vocab_size)
-        scores = F.log_softmax(model_out, dim=-1)       # (batch_size * beam_size, n_tgt_words)      
+        scores = F.log_softmax(model_out, dim=-1) # (batch_size * beam_size, n_tgt_words)      
         n_tgt_words = scores.size(-1)
         # - scores: (batch_size * beam_size, n_tgt_words)
 
@@ -243,13 +243,13 @@ def beam_search_(self, src_tokens, beam_size=4):
     # 例子: offset = torch.arange(0, 6 * 5, step=5): tensor([ 0,  5, 10, 15, 20, 25])
     # offset[:5]: tensor([ 0,  5, 10, 15, 20]), offset[:6]: tensor([ 0,  5, 10, 15, 20, 25])
 
-    # 记录每个batch中beam个最高的概率，初始化为这个样子的原因是：一开始全是bos，只需要取一条即可
+    # 记录每个batch中beam个最高的概率，初始化为这个样子的原因是：一开始每个句子的输入是beam个bos，只需要从其中的一个bos计算topk，不然会重复
     topk_log_probs = torch.tensor([0.0] + [float("-inf")] * (beam_size - 1)).repeat(batch_size)
     
     # buffers for the topk scores and 'backpointer'
     topk_scores, topk_ids, _batch_index = [torch.empty((batch_size, beam_size))] * 3
 
-    encoder_out, src_mask = f_enc(src_tokens) # mask 可以广播，不用repeat
+    encoder_out, src_mask = f_enc(src_tokens)
     # - encoder_out: (batch_size, src_len, d_model)
     encoder_outs = encoder_out.repeat(beam_size, 1, 1)
     # - encoder_outs: (batch_size * beam_size, src_len, d_model)

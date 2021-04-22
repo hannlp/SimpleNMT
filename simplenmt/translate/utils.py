@@ -1,15 +1,19 @@
 from data.constants import Constants
 
 def de_numericalize(vocab, tokens):
-    #remove_constants={}
+    """
+    Use vocab to transform tokens to sentences.
+    """
+
+   # Some constants don't wish to print, like <sos>, <pad> and <eos> 
     remove_constants={
         Constants.PAD, Constants.START, Constants.END}
-          
-    sentences = []
-    for sentence in tokens:
+
+    sentences = list()
+    for row in tokens:
         end = False
-        words_list = []
-        for word_id in sentence:
+        words_list = list()
+        for word_id in row:
             word = vocab.itos[word_id]
             end = True if word == Constants.END else end
             if word not in remove_constants and not end:
