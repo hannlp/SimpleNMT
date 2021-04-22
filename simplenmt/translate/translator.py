@@ -96,8 +96,8 @@ class Translator(object):
                     f.write(content); print(content)
                 
                 # TODO: 优化beam search 停止时间
-                # print(len(tgt_len), tgt_len)
-                # input()
+                print(len(tgt_len), tgt_len)
+                input()
 
         print('Successful. Generate time:{:.1f} min, results were saved at{}'
                 .format((time.time() - start_time) / 60, test_path + '.result'))
