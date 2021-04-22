@@ -90,11 +90,17 @@ class BeamHypotheses(object):
             else:
                 self.worst_score = min(score, self.worst_score)
 
-    def is_done(self, best_sum_logprobs):
+    def is_done(self, best_sum_logprobs, eos):
         """
         If there are enough hypotheses and that none of the hypotheses being generated
         can become better than the worst one in the heap, then we are done with this sentence.
         """
+
+        # eos and this code is to accelerate
+        sorted_scores = sorted([(s, idx) for idx, (s, _) in enumerate(self.hyp)])
+        if eos in self.hyp[sorted_scores[-1][1]][1]:
+            return True
+
         if len(self) < self.n_hyp:
             return False
         else:
@@ -195,13 +201,13 @@ def beam_search(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH
         # TODO: 优化beam search停止时间
         if cur_len % 5 == 0:
             print(cur_len, done)
-            try:
-                print(len(generated_hyps[0].hyp[0][1]), generated_hyps[0].hyp[0])
-                print(len(generated_hyps[1].hyp[0][1]), generated_hyps[1].hyp[0])
-                print(len(generated_hyps[2].hyp[0][1]), generated_hyps[2].hyp[0])
-                print(len(generated_hyps[3].hyp[0][1]), generated_hyps[3].hyp[0])
-            except:
-                print("haven't generate any sentence!")
+            # try:
+            #     print(len(generated_hyps[0].hyp[0][1]), generated_hyps[0].hyp[0])
+            #     print(len(generated_hyps[1].hyp[0][1]), generated_hyps[1].hyp[0])
+            #     print(len(generated_hyps[2].hyp[0][1]), generated_hyps[2].hyp[0])
+            #     print(len(generated_hyps[3].hyp[0][1]), generated_hyps[3].hyp[0])
+            # except:
+            #     print("haven't generate any sentence!")
 
         # stop when we are done with each sentence
         if all(done):
