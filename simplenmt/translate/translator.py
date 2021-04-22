@@ -88,8 +88,8 @@ class Translator(object):
                                                 pad=self.tgt_pdx)
                 
                 # TODO: 优化beam search 停止时间
-                # print(len(tgt_len), tgt_len)
-                # input()
+                print(len(tgt_len), tgt_len)
+                input()
 
                 #pred_tokens = self.batch_greedy_search(src_tokens)
                 pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens)

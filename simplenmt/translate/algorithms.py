@@ -193,8 +193,8 @@ def beam_search(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH
         cur_len = cur_len + 1
 
         # TODO: 优化beam search停止时间
-        # if cur_len % 5 == 0:
-        #     print(cur_len, done)
+        if cur_len % 5 == 0:
+            print(cur_len, done)
 
         # stop when we are done with each sentence
         if all(done):
