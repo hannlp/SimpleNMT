@@ -98,7 +98,7 @@ class BeamHypotheses(object):
 
         # eos and this code is to accelerate
         sorted_scores = sorted([(s, idx) for idx, (s, _) in enumerate(self.hyp)])
-        if eos in self.hyp[sorted_scores[-1][1]][1]:
+        if len(sorted_scores) > 0 and eos in self.hyp[sorted_scores[-1][1]][1]:
             return True
 
         if len(self) < self.n_hyp:
@@ -156,7 +156,7 @@ def beam_search(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH
         for sent_id in range(batch_size):
 
             # if we are done with this sentence
-            done[sent_id] = done[sent_id] or generated_hyps[sent_id].is_done(next_scores[sent_id].max().item())
+            done[sent_id] = done[sent_id] or generated_hyps[sent_id].is_done(next_scores[sent_id].max().item(), eos=eos) # arg eos is I added
             if done[sent_id]:
                 next_batch_beam.extend([(0, pad, 0)] * beam_size)  # pad the batch
                 continue
@@ -199,8 +199,8 @@ def beam_search(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH
         cur_len = cur_len + 1
 
         # TODO: 优化beam search停止时间
-        if cur_len % 5 == 0:
-            print(cur_len, done)
+        # if cur_len % 5 == 0:
+        #     print(cur_len, done)
             # try:
             #     print(len(generated_hyps[0].hyp[0][1]), generated_hyps[0].hyp[0])
             #     print(len(generated_hyps[1].hyp[0][1]), generated_hyps[1].hyp[0])
