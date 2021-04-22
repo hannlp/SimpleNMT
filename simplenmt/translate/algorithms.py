@@ -193,11 +193,13 @@ def beam_search(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH
         cur_len = cur_len + 1
 
         # TODO: 优化beam search停止时间
-        if cur_len % 4 == 0:
+        if cur_len % 5 == 0:
             print(cur_len, done)
             try:
                 print(len(generated_hyps[0].hyp[0][1]), generated_hyps[0].hyp[0])
                 print(len(generated_hyps[1].hyp[0][1]), generated_hyps[1].hyp[0])
+                print(len(generated_hyps[2].hyp[0][1]), generated_hyps[2].hyp[0])
+                print(len(generated_hyps[3].hyp[0][1]), generated_hyps[3].hyp[0])
             except:
                 print("haven't generate any sentence!")
 

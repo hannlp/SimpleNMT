@@ -87,10 +87,6 @@ class Translator(object):
                                                 eos=self.tgt_eos_idx,
                                                 pad=self.tgt_pdx)
                 
-                # TODO: 优化beam search 停止时间
-                print(len(tgt_len), tgt_len)
-                input()
-
                 #pred_tokens = self.batch_greedy_search(src_tokens)
                 pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens)
 
@@ -98,6 +94,10 @@ class Translator(object):
                     content = '-S\t{}\n-T\t{}\n-P\t{}\n\n'.format(
                         ' '.join(src_words), ' '.join(tgt_words), ' '.join(pred_words))            
                     f.write(content); print(content)
+                
+                # TODO: 优化beam search 停止时间
+                print(len(tgt_len), tgt_len)
+                input()
 
         print('Successful. Generate time:{:.1f} min, results were saved at{}'
                 .format((time.time() - start_time) / 60, test_path + '.result'))
