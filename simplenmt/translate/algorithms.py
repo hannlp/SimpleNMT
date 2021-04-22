@@ -43,7 +43,7 @@ def greedy_search(model, src_tokens, max_len=MAX_LENGTH, bos=BOS, eos=EOS, pad=P
         probs = F.log_softmax(f_dec(model, gen_seqs[:, :step], encoder_out, src_mask), dim=-1)
         _, next_words = probs.topk(1)
         
-        done = done | next_words.eq(eos).squeeze() #TODO : stop rules
+        done = done | next_words.eq(eos).squeeze()
         if all(done):
             break
 
@@ -56,11 +56,10 @@ Referenced from facebookresearch/XLM,
  at https://github.com/facebookresearch/XLM/blob/master/xlm/model/transformer.py
 """
 class BeamHypotheses(object):
-    def __init__(self, n_hyp, max_len, length_penalty):
+    def __init__(self, n_hyp, length_penalty):
         """
         Initialize n-best list of hypotheses.
         """
-        self.max_len = max_len - 1  # ignoring <BOS>
         self.length_penalty = length_penalty
         self.n_hyp = n_hyp
         self.hyp = []
@@ -99,8 +98,7 @@ class BeamHypotheses(object):
         if len(self) < self.n_hyp:
             return False
         else:
-            return self.worst_score >= best_sum_logprobs / cur_len ** self.length_penalty 
-            #return self.worst_score >= best_sum_logprobs / self.max_len ** self.length_penalty # BUG: 感觉不应该用max len，用cur_len就可以
+            return self.worst_score >= best_sum_logprobs / cur_len ** self.length_penalty
 
 def beam_search(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH, bos=BOS, eos=EOS, pad=PAD):
     # batch size
@@ -117,7 +115,7 @@ def beam_search(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH
     generated[:, 0].fill_(bos)
 
     # generated hypotheses
-    generated_hyps = [BeamHypotheses(beam_size, max_len, length_penalty) for _ in range(batch_size)]
+    generated_hyps = [BeamHypotheses(n_hyp=beam_size, length_penalty=length_penalty) for _ in range(batch_size)]
 
     # scores for each sentence in the beam
     beam_scores = src_enc.new(batch_size, beam_size).fill_(0)

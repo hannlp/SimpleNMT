@@ -62,16 +62,11 @@ class Translator(object):
         print('Writing result to {} ...'.format(test_path + '.result'))
         start_time = time.time()
         with open(test_path + '.result', 'w', encoding='utf8') as f, torch.no_grad():     
-            for i, batch in enumerate(test_iter, start=1):
-                #print("batch {}: preparing batch".format(i))
+            for _, batch in enumerate(test_iter, start=1):
                 src_tokens, _, tgt_tokens = prepare_batch(
                     batch, use_cuda=torch.cuda.is_available())
-
-                src_sentences = de_numericalize(self.dl.SRC.vocab, src_tokens)
-                tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
-                
                 if self.beam_size > 0:
-                    pred_tokens, tgt_len = beam_search(model=self.model, 
+                    pred_tokens, tgt_len = beam_search(model=self.model,
                                             src_tokens=src_tokens,
                                             beam_size=self.beam_size,
                                             length_penalty=self.length_penalty,
@@ -88,6 +83,8 @@ class Translator(object):
                                                 pad=self.tgt_pdx)
                 
                 #pred_tokens = self.batch_greedy_search(src_tokens)
+                src_sentences = de_numericalize(self.dl.SRC.vocab, src_tokens)
+                tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
                 pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens)
 
                 for src_words, tgt_words, pred_words in zip(src_sentences, tgt_sentences, pred_sentences):
@@ -99,7 +96,7 @@ class Translator(object):
                 # print(len(tgt_len), tgt_len)
                 # input()
 
-        print('Successful. Generate time:{:.1f} min, results were saved at{}'
+        print('Successful. Generate time:{:.1f} min, result was saved at {}'
                 .format((time.time() - start_time) / 60, test_path + '.result'))
 
     def batch_greedy_search(self, src_tokens):
