@@ -85,10 +85,8 @@ class BeamHypotheses(object):
             self.hyp.append((score, hyp))
             if len(self) > self.n_hyp:
                 sorted_scores = sorted([(s, idx) for idx, (s, _) in enumerate(self.hyp)])
-
-                self.worst_score = sorted_scores[1][0] # BUG: 我觉得应该是先更新再删除啊
                 del self.hyp[sorted_scores[0][1]] # delete the worst hyp in beam
-                #self.worst_score = sorted_scores[1][0] # update worst score with the sencond worst hyp
+                self.worst_score = sorted_scores[1][0] # update worst score with the sencond worst hyp
             else:
                 self.worst_score = min(score, self.worst_score)
 
