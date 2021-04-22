@@ -183,7 +183,7 @@ def beam_search(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH
                 next_sent_beam = [(0, pad, 0)] * beam_size  # pad the batch
             next_batch_beam.extend(next_sent_beam)
 
-        # sanity check / prepare next batch
+        # prepare next batch
         beam_scores = beam_scores.new([x[0] for x in next_batch_beam])
         beam_words = generated.new([x[1] for x in next_batch_beam])
         beam_idx = src_tokens.new([x[2] for x in next_batch_beam])
