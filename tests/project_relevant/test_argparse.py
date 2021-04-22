@@ -26,7 +26,7 @@ parser.add_argument("-share_vocab", help="share src tgt embeddings and share dec
 
 # The parser for Translator
 
-
+parser.add_argument("-negi", type=int, default=-1)
 args = parser.parse_args()
 
 # define arguments after parse
