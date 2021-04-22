@@ -74,15 +74,16 @@ class Translator(object):
                                             bos=self.tgt_sos_idx,
                                             eos=self.tgt_eos_idx,
                                             pad=self.tgt_pdx)
-                else:
+                elif self.beam_size == 0:
                     pred_tokens = greedy_search(model=self.model,
                                                 src_tokens=src_tokens,
                                                 max_len=self.max_seq_length,
                                                 bos=self.tgt_sos_idx,
                                                 eos=self.tgt_eos_idx,
                                                 pad=self.tgt_pdx)
-                
-                #pred_tokens = self.batch_greedy_search(src_tokens)
+                else:
+                    pred_tokens = self.batch_greedy_search(src_tokens)
+
                 src_sentences = de_numericalize(self.dl.SRC.vocab, src_tokens)
                 tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
                 pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens)
