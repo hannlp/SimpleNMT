@@ -6,8 +6,8 @@ from .constants import Constants
 
 global max_src_in_batch, max_tgt_in_batch
 
-
-def batch_size_fn(new, count, sofar):
+# code from http://nlp.seas.harvard.edu/2018/04/03/attention.html
+def batch_size_fn(new, count, sofar):    
     "Keep augmenting batch and calculate total number of tokens + padding."
     global max_src_in_batch, max_tgt_in_batch
     if count == 1:
@@ -19,9 +19,8 @@ def batch_size_fn(new, count, sofar):
     tgt_elements = count * max_tgt_in_batch
     return max(src_elements, tgt_elements)
 
-
+# code from http://nlp.seas.harvard.edu/2018/04/03/attention.html
 class MyIterator(data.Iterator):
-    # code from http://nlp.seas.harvard.edu/2018/04/03/attention.html
     def create_batches(self):
         if self.train:
             def pool(d, random_shuffler):
@@ -52,10 +51,11 @@ class DataLoader(object):
                               pad_token=Constants.PAD, 
                               batch_first=True)
 
-    def load_translation(self, exts, data_path=None, train_path=None, valid_path=None, 
+    def load_translation(self, src, tgt, data_path=None, train_path=None, valid_path=None, 
                          split_ratio=0.95, batch_size=64, dl_save_path=None,
                          share_vocab=False):
 
+        exts = ('.' + src, '.' + tgt) # default: ('.zh', '.en')
         if data_path:
             print("Loading parallel corpus from \'{}\', \'{}\' ...".format(data_path + exts[0], data_path + exts[1]), end=" ")
             DATA = datasets.TranslationDataset(
@@ -81,8 +81,9 @@ class DataLoader(object):
         print("Successful. ", end=" ")
         self._add_index()
 
-        torch.save(self, dl_save_path, pickle_module=dill)
-        print("The dataloader has saved at \'{}\'".format(dl_save_path))
+        dl_path = '{}/{}-{}.dl'.format(dl_save_path, src, tgt)
+        torch.save(self, dl_path, pickle_module=dill)
+        print("The dataloader has saved at \'{}\'".format(dl_path))
 
         train_iter = MyIterator(train, batch_size=batch_size, device=None,
                                 repeat=False, sort_key=lambda x:

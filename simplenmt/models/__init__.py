@@ -23,7 +23,7 @@ transformer:
 
 str2model = {"Transformer": Transformer, "RNNSearch": RNNSearch, "Seq2Seq": Seq2Seq, "Luong": Luong}
 
-def build_model(args, use_cuda):
+def build_model(args):
 
     model_args = {
         "Transformer": {
@@ -77,9 +77,9 @@ def build_model(args, use_cuda):
     MODEL = str2model[args.model]
     model = MODEL(**model_args[args.model])
 
-    if use_cuda:
+    if args.use_cuda:
         model.cuda()
-    if torch.cuda.device_count() > 1:
-        model = nn.DataParallel(model)
+        if torch.cuda.device_count() > 1:
+            model = nn.DataParallel(model)
     
     return model

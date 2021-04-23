@@ -4,8 +4,8 @@ import math
 from data.utils import prepare_batch
 
 class Trainer(object):
-    def __init__(self, args, model, optimizer, criterion, lr_scal=1, use_cuda=False) -> None:
-        self.use_cuda = use_cuda
+    def __init__(self, args, model, optimizer, criterion, lr_scal=1) -> None:
+        self.use_cuda = args.use_cuda
         self.settings = args
         self.model = model
         self.optimizer = optimizer
@@ -15,7 +15,7 @@ class Trainer(object):
         self.d_model = args.d_model
         self._num_step = 0
 
-    def train(self, train_iter, valid_iter, n_epochs, save_path=None):
+    def train(self, train_iter, valid_iter, n_epochs, ckpt_save_path=None):
         # TODO: 在训练前打印各种有用信息
         print(self.model)
         self._num_step = 0
@@ -34,7 +34,7 @@ class Trainer(object):
                     best_valid_loss = valid_loss
                     is_best_epoch = True
 
-            self._save_model(epoch, save_path, is_best_epoch)
+            self._save_model(epoch, ckpt_save_path, is_best_epoch)
 
     def _print_log(self, epoch, valid_loss, start_time):
         print("Valid | Epoch: {}, loss: {:.5}, ppl: {:.5}, elapsed: {:.1f} min".format(
@@ -73,7 +73,7 @@ class Trainer(object):
                 loss_list.append(loss)
         return sum(loss_list) / n_batches
 
-    def _save_model(self, epoch, path, is_best_epoch):
+    def _save_model(self, epoch, ckpt_save_path, is_best_epoch):
         '''
         checkpoint(dict):
             - epoch(int)
@@ -93,10 +93,10 @@ class Trainer(object):
                       'settings': self.settings
                       }
         # save the last checkpoint
-        torch.save(checkpoint, '{}/checkpoint_last.pt'.format(path))
+        torch.save(checkpoint, '{}/checkpoint_last.pt'.format(ckpt_save_path))
         # save the best checkpoint
         if is_best_epoch:           
-            torch.save(checkpoint, '{}/checkpoint_best.pt'.format(path))
+            torch.save(checkpoint, '{}/checkpoint_best.pt'.format(ckpt_save_path))
 
     def _lr_step_update(self):
         self._num_step += 1

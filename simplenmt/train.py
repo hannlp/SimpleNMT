@@ -13,8 +13,12 @@ def parse():
     parser.add_argument("-data_path", help="the path prefix of whole data which will to be split", type=str, default="")
     parser.add_argument("-train_path", help="the train corpus path prefix", type=str, default="")
     parser.add_argument("-valid_path", help="the valid corpus path prefix", type=str, default="")
-    parser.add_argument("-dl_path", help="the dataloader save path", type=str, default="./temp.dl")
-    parser.add_argument("-ckpt_path", help="the checkpoint save path", type=str, default=".")
+
+    parser.add_argument("-save_path", help="the path to save checkpoint, dataloader and log", type=str, default=".")
+
+    # parser.add_argument("-dl_path", help="the dataloader save path", type=str, default="./temp.dl")
+    # parser.add_argument("-ckpt_path", help="the checkpoint save path", type=str, default=".")
+    
     parser.add_argument("-batch_size", type=int, default=3200)
     parser.add_argument("-warmup_steps", help="warmup steps of learning rate update", type=int, default=4000)
     parser.add_argument("-n_epochs", type=int, default=30)
@@ -41,33 +45,32 @@ def parse():
     return args
 
 def main():
-    use_cuda = torch.cuda.is_available()
+    
     args = parse()
     dl = DataLoader()
     train_iter, valid_iter = dl.load_translation(
-            exts=('.' + args.src, '.' + args.tgt), # default: ('.zh', '.en')
+            src=args.src, tgt=args.tgt,
             data_path=args.data_path,
             train_path=args.train_path,
             valid_path=args.valid_path,
             batch_size=args.batch_size,
-            dl_save_path=args.dl_path,
+            dl_save_path=args.save_path,
             share_vocab=args.share_vocab
             )
     
     args.n_src_words, args.n_tgt_words = len(dl.SRC.vocab), len(dl.TGT.vocab)
     args.src_pdx, args.tgt_pdx = dl.src_padding_index, dl.tgt_padding_index
+    args.use_cuda = torch.cuda.is_available()
     print(args)
   
-    model = build_model(args, use_cuda=use_cuda)
+    model = build_model(args)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, betas=args.betas, eps=1e-9)
     criterion = build_criterion(args)
     trainer = Trainer(args, model=model,
                       optimizer=optimizer,
-                      criterion=criterion,
-                      use_cuda=use_cuda
-                      )
+                      criterion=criterion)
     trainer.train(train_iter, valid_iter, n_epochs=args.n_epochs,
-                  save_path=args.ckpt_path)
+                  ckpt_save_path=args.save_path)
 
 if __name__ == '__main__':
     main()
