@@ -56,16 +56,17 @@ class DataLoader(object):
                         batch_size=64, dl_save_path=None, share_vocab=False):
 
         exts = ('.' + src, '.' + tgt) # default: ('.zh', '.en')
-        if os.path.is_dir(data_path):
+        if os.path.isdir(data_path):
             train_path, valid_path = data_path + '/train', data_path + '/valid'
-            print("Loading train data and valid data from \'{}\', \'{}\' ...".format(train_path, valid_path), end=" ")
+            print("Loading train and valid data from \'{}\', \'{}\', suffix:{}' ...".format(
+                train_path, valid_path, exts), end=" ")
             train = datasets.TranslationDataset(
                 path=train_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
             valid = datasets.TranslationDataset(
                 path=valid_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
             print("Successful.")
         else:
-            print("Loading parallel corpus from \'{}\' ...".format(data_path), end=" ")
+            print("Loading parallel corpus from \'{}\', suffix:{} ...".format(data_path, exts), end=" ")
             DATA = datasets.TranslationDataset(
                 path=data_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
             train, valid = DATA.split(split_ratio=split_ratio)
