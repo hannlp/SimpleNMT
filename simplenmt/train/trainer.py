@@ -4,7 +4,7 @@ import math
 from data.utils import prepare_batch
 
 class Trainer(object):
-    def __init__(self, args, model, optimizer, criterion, lr_scal=1) -> None:
+    def __init__(self, args, model, optimizer, criterion, lr_scal=1, logger=None) -> None:
         self.use_cuda = args.use_cuda
         self.settings = args
         self.model = model
@@ -14,10 +14,11 @@ class Trainer(object):
         self.lr_scal = lr_scal
         self.d_model = args.d_model
         self._num_step = 0
+        self.logger = logger
 
     def train(self, train_iter, valid_iter, n_epochs, ckpt_save_path=None):
         # TODO: 在训练前打印各种有用信息
-        print(self.model)
+        self.logger.info(self.model)
         self._num_step = 0
         best_valid_loss = 1e9
 
@@ -37,7 +38,7 @@ class Trainer(object):
             self._save_model(epoch, ckpt_save_path, is_best_epoch)
 
     def _print_log(self, epoch, valid_loss, start_time):
-        print("Valid | Epoch: {}, loss: {:.5}, ppl: {:.5}, elapsed: {:.1f} min".format(
+        self.logger.info("Valid | Epoch: {}, loss: {:.5}, ppl: {:.5}, elapsed: {:.1f} min".format(
             epoch, valid_loss, math.exp(valid_loss), (time.time() - start_time) / 60))
 
     def _train_epoch(self, train_iter, epoch):
@@ -55,9 +56,8 @@ class Trainer(object):
 
             self.optimizer.step()
             if i % 100 == 0:
-                print('{} | Epoch: {}, batch: [{}/{}], lr: {:.5}, loss: {:.5}, ppl: {:.5}'
-                      .format(time.strftime("%y-%m-%d %H:%M:%S", time.localtime()),
-                              epoch, i, n_batches, self._get_lr(), loss.item(), math.exp(loss.item())))
+                self.logger.info('Epoch: {}, batch: [{}/{}], lr: {:.5}, loss: {:.5}, ppl: {:.5}'
+                      .format(epoch, i, n_batches, self._get_lr(), loss.item(), math.exp(loss.item())))
 
     def _valid_epoch(self, valid_iter):
         self.model.eval()

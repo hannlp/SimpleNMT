@@ -58,7 +58,6 @@ def main():
     args.n_src_words, args.n_tgt_words = len(dl.SRC.vocab), len(dl.TGT.vocab)
     args.src_pdx, args.tgt_pdx = dl.src_padding_index, dl.tgt_padding_index
     args.use_cuda = torch.cuda.is_available()
-    #print(args)
     logger.info(args)
 
     model = build_model(args)
@@ -66,7 +65,8 @@ def main():
     criterion = build_criterion(args)
     trainer = Trainer(args, model=model,
                       optimizer=optimizer,
-                      criterion=criterion)
+                      criterion=criterion,
+                      logger=logger)
     trainer.train(train_iter, valid_iter, n_epochs=args.n_epochs,
                   ckpt_save_path=args.save_path)
 
