@@ -10,8 +10,11 @@ def parse():
     parser.add_argument("-generate", help="repalce the translate to generate", action="store_true")
 
     parser.add_argument("-test_path", help="the test corpus path prefix", type=str, default="./")
-    parser.add_argument("-dl_path", help="the dataloader save path", type=str, default="./")
-    parser.add_argument("-ckpt_path", help="the checkpoint save path", type=str, default="./")
+    parser.add_argument("-save_path", help="the path to save checkpoint, dataloader and log", type=str, default=".")
+    parser.add_argument("-ckpt_suffix", help="the checkpoint's suffix, such as best and last", type=str, default="best")
+
+    # parser.add_argument("-dl_path", help="the dataloader save path", type=str, default="./")
+    # parser.add_argument("-ckpt_path", help="the checkpoint save path", type=str, default="./")
 
     parser.add_argument("-max_seq_length", help="the max length of sequence", type=int, default=256)
     parser.add_argument("-beam_size", help="the width of beam search", type=int, default=-1)
@@ -28,7 +31,8 @@ def main():
         #python translate.py -generate -src zh -tgt en -dl_path E:\yuchen\zh_en.dl -ckpt_path E:\yuchen -test_path E:\yuchen\ldc_valid
         translator.generate(
             exts=('.' + args.src, '.' + args.tgt),
-            test_path=args.test_path, batch_size=args.batch_size)
+            test_path=args.test_path, 
+            batch_size=args.batch_size)
     else:
         #python translate.py -src zh -tgt en -dl_path E:\yuchen\zh_en.dl -ckpt_path E:\yuchen
         while True:

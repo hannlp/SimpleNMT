@@ -17,7 +17,11 @@ class Translator(object):
     def __init__(self, args):
         self.device = torch.device(
             "cuda:0" if torch.cuda.is_available() else "cpu")
-        self.dl = torch.load(args.dl_path, pickle_module=dill)
+        self.model = self._load_model(ckpt_save_path=args.save_path, suffix=args.ckpt_suffix)
+        self.model.eval()
+        
+        self.dl = torch.load('{}/{}-{}.dl'.format(
+            args.save_path, args.src, args.tgt), pickle_module=dill)
         self.src_pdx = self.dl.src_padding_index
         self.tgt_pdx = self.dl.tgt_padding_index
         self.tgt_sos_idx = self.dl.TGT.vocab.stoi[self.dl.START]
@@ -28,10 +32,9 @@ class Translator(object):
         self.length_penalty = args.length_penalty
         self.max_seq_length = args.max_seq_length
 
-        self.model = self._load_model(args.ckpt_path)
-        self.model.eval()
+        
 
-    def _load_model(self, ckpt_path):
+    def _load_model(self, ckpt_save_path, suffix):
         '''
         checkpoint(dict):
             - epoch(int)
@@ -39,6 +42,7 @@ class Translator(object):
             - settings(NameSpace): train_args
         '''
 
+        ckpt_path = '{}/checkpoint_{}.pt'.format(ckpt_save_path, suffix)
         checkpoint = torch.load(ckpt_path, map_location=self.device)
 
         model = build_model(checkpoint['settings'], use_cuda=torch.cuda.is_available())
