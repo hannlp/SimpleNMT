@@ -1,10 +1,9 @@
+import os
 import time
 import dill
 import jieba
 import logging
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from torchtext.legacy import datasets
 from models import build_model
 from data.dataloader import MyIterator, batch_size_fn
@@ -54,7 +53,10 @@ class Translator(object):
         model.to(self.device)
         return model
 
-    def generate(self, test_path, exts, result_save_path, batch_size=3200):
+    def generate(self, src, tgt, data_path, result_save_path, batch_size=3200):
+        
+        exts=('.' + src, '.' + tgt)
+        test_path = data_path + '/test' if os.path.isdir(data_path) else data_path
         test = datasets.TranslationDataset(
             path=test_path, exts=exts, 
             fields=(('src', self.dl.SRC), ('trg', self.dl.TGT)))

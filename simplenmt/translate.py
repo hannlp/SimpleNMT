@@ -9,7 +9,7 @@ def parse():
     parser.add_argument("-batch_size", type=int, default=3200)
     parser.add_argument("-generate", help="repalce the translate to generate", action="store_true")
 
-    parser.add_argument("-test_path", help="the test corpus path prefix", type=str, default="./")
+    parser.add_argument("-data_path", help="the test corpus path, witch can be a path or a prefix", type=str, default=".")
     parser.add_argument("-save_path", help="the path to save checkpoint, dataloader and log", type=str, default=".")
     parser.add_argument("-ckpt_suffix", help="the checkpoint's suffix, such as best and last", type=str, default="best")
 
@@ -27,8 +27,8 @@ def main():
         #python -u translate.py -generate -src zh -tgt en -dl_path E:\yuchen\models\ldc\zh_en.dl -ckpt_path E:\yuchen\models\ldc -test_path E:\yuchen\ldc_test
         #python translate.py -generate -src zh -tgt en -dl_path E:\yuchen\zh_en.dl -ckpt_path E:\yuchen -test_path E:\yuchen\ldc_valid
         translator.generate(
-            exts=('.' + args.src, '.' + args.tgt),
-            test_path=args.test_path, 
+            src=args.src, tgt=args.tgt,
+            data_path=args.data_path, 
             result_save_path=args.save_path,
             batch_size=args.batch_size)
     else:
