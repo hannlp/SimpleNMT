@@ -25,14 +25,14 @@ src_tokens = torch.randint(n_src_words, (batch_size, src_len))
 beam_test = True
 if beam_test:
     start_time = time.time()
-    a = beam_search(model=model, src_tokens=src_tokens, beam_size=4, length_penalty=1.0, max_len=32, bos=1, eos=2, pad=0)
+    a = beam_search(model=model, src_tokens=src_tokens, beam_size=4, length_penalty=1.0, max_seq_len=32, bos=1, eos=2, pad=0)
     elapsed = (time.time() - start_time)
     print(a, elapsed, 's')
 
 greedy_test = False
 if greedy_test:
     start_time = time.time()
-    a = greedy_search(model=model, src_tokens=src_tokens, max_len=10, bos=1, eos=2, pad=0)
+    a = greedy_search(model=model, src_tokens=src_tokens, max_seq_len=10, bos=1, eos=2, pad=0)
     elapsed = (time.time() - start_time)
     print(a, elapsed, 's')
 
@@ -43,6 +43,6 @@ if time_test:
     avg_elapsed = []
     for i in range(10):
         start_time = time.time()
-        beam_search(model=model, src_tokens=src_tokens, beam_size=4, length_penalty=3.0, max_len=10, bos=1, eos=2, pad=0)
+        beam_search(model=model, src_tokens=src_tokens, beam_size=4, length_penalty=3.0, max_seq_len=10, bos=1, eos=2, pad=0)
         avg_elapsed.append((time.time() - start_time))
     print(sum(avg_elapsed) / len(avg_elapsed), 's')

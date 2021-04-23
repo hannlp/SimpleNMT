@@ -61,7 +61,7 @@ class Translator(object):
         self.src_stoi = self.dl.SRC.vocab.stoi
         self.tgt_itos = self.dl.TGT.vocab.itos
 
-        self.max_seq_length = args.max_seq_length
+        self.max_seq_len = args.max_seq_len
 
         self.model = self._load_model(args)
         self.model.eval()
@@ -101,7 +101,7 @@ class Translator(object):
 
         _, max_idx = out[:, -1, :].topk(1)
 
-        for step in range(2, self.max_seq_length):
+        for step in range(2, self.max_seq_len):
             new_word = max_idx[:, 0].unsqueeze(0).to(self.device)
             if new_word == self.tgt_eos_idx:
                 break
@@ -185,7 +185,7 @@ class args:
   tgt = "en"
   dl_path = "/content/drive/MyDrive/zh_en.dl"
   ckpt_path = "/content/drive/MyDrive"
-  max_seq_length = 512
+  max_seq_len = 512
   beam_size = 1
 
 translator = Translator(args)

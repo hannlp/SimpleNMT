@@ -1,3 +1,4 @@
+from tests.project_relevant.test_beamsearch import MAX_SEQ_LEN
 import torch
 import torch.nn.functional as F
 
@@ -7,7 +8,7 @@ Translate algorithms, whitch supprot a batch input - src_tokens: (batch_size, sr
     - beam search
 '''
 
-MAX_LENGTH = 256
+MAX_SEQ_LEN = 256
 BOS = -1
 EOS = -2
 PAD = -3
@@ -29,17 +30,17 @@ def f_dec(model, prev_tgt_tokens, src_enc, src_mask):
     model_out = model.out_vocab_proj(decoder_out)
     return model_out
 
-def greedy_search(model, src_tokens, max_len=MAX_LENGTH, bos=BOS, eos=EOS, pad=PAD):
+def greedy_search(model, src_tokens, max_seq_len=MAX_SEQ_LEN, bos=BOS, eos=EOS, pad=PAD):
     batch_size = len(src_tokens)
     done = src_tokens.new([False] * batch_size)
 
     encoder_out, src_mask = f_enc(model, src_tokens, pad)
 
-    gen_seqs = src_tokens.new(batch_size, max_len).fill_(pad)
+    gen_seqs = src_tokens.new(batch_size, max_seq_len).fill_(pad)
     gen_seqs[:, 0] = bos
-    # - gen_seqs: (batch_size, max_len)
+    # - gen_seqs: (batch_size, max_seq_len)
     
-    for step in range(1, max_len):
+    for step in range(1, max_seq_len):
         probs = F.log_softmax(f_dec(model, gen_seqs[:, :step], encoder_out, src_mask), dim=-1)
         _, next_words = probs.topk(1)
         
@@ -100,7 +101,7 @@ class BeamHypotheses(object):
         else:
             return self.worst_score >= best_sum_logprobs / cur_len ** self.length_penalty
 
-def beam_search(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH, bos=BOS, eos=EOS, pad=PAD):
+def beam_search(model, src_tokens, beam_size, length_penalty, max_seq_len=MAX_SEQ_LEN, bos=BOS, eos=EOS, pad=PAD):
     # batch size
     batch_size = len(src_tokens)
 
@@ -111,7 +112,7 @@ def beam_search(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH
     src_mask = src_mask.repeat_interleave(beam_size, dim=0)
 
     # generated sentences (batch with beam current hypotheses)
-    generated = src_tokens.new(batch_size * beam_size, max_len).fill_(pad)  # upcoming output
+    generated = src_tokens.new(batch_size * beam_size, max_seq_len).fill_(pad)  # upcoming output
     generated[:, 0].fill_(bos)
 
     # generated hypotheses
@@ -127,7 +128,7 @@ def beam_search(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH
     # done sentences
     done = [False] * batch_size
 
-    while cur_len < max_len:
+    while cur_len < max_seq_len:
 
         # compute word scores
         model_out = f_dec(model, generated[:, :cur_len], src_enc, src_mask) # log softmax
@@ -166,7 +167,7 @@ def beam_search(model, src_tokens, beam_size, length_penalty, max_len=MAX_LENGTH
                 word_id = idx % n_tgt_words
 
                 # end of sentence, or next word
-                if word_id == eos or cur_len + 1 == max_len:
+                if word_id == eos or cur_len + 1 == max_seq_len:
                     generated_hyps[sent_id].add(generated[sent_id * beam_size + beam_id, :cur_len].clone(), value.item())
                 else:
                     next_sent_beam.append((value, word_id, sent_id * beam_size + beam_id))
@@ -254,7 +255,7 @@ def beam_search_(self, src_tokens, beam_size=4):
     encoder_outs = encoder_out.repeat(beam_size, 1, 1)
     # - encoder_outs: (batch_size * beam_size, src_len, d_model)
 
-    for step in range(2, MAX_LENGTH):
+    for step in range(2, max_seq_len):
         
         #decoder_in = gen_seqs[:, -1].view(-1, 1, 1)
         decoder_in = gen_seqs

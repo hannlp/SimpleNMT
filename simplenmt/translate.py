@@ -16,7 +16,7 @@ def parse():
     # parser.add_argument("-dl_path", help="the dataloader save path", type=str, default="./")
     # parser.add_argument("-ckpt_path", help="the checkpoint save path", type=str, default="./")
 
-    parser.add_argument("-max_seq_length", help="the max length of sequence", type=int, default=256)
+    parser.add_argument("-max_seq_len", help="the max length of sequence", type=int, default=128)
     parser.add_argument("-beam_size", help="the width of beam search", type=int, default=-1)
     parser.add_argument("-length_penalty", type=float, default=1.0)
 
@@ -32,12 +32,13 @@ def main():
         translator.generate(
             exts=('.' + args.src, '.' + args.tgt),
             test_path=args.test_path, 
+            result_save_path=args.save_path,
             batch_size=args.batch_size)
     else:
         #python translate.py -src zh -tgt en -dl_path E:\yuchen\zh_en.dl -ckpt_path E:\yuchen
         while True:
             sentence = input('Please input a sentence({}): '.format(args.src))
-            translator.translate(sentence, beam_size=args.beam_size)#, src_lang=args.src, tgt_lang=args.tgt)
+            translator.translate(sentence)#, src_lang=args.src, tgt_lang=args.tgt)
 
 if __name__ == '__main__':
     main()

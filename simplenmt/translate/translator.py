@@ -31,7 +31,7 @@ class Translator(object):
         self.tgt_itos = self.dl.TGT.vocab.itos
         self.beam_size = args.beam_size
         self.length_penalty = args.length_penalty
-        self.max_seq_length = args.max_seq_length
+        self.max_seq_len = args.max_seq_len
 
         
 
@@ -54,7 +54,7 @@ class Translator(object):
         model.to(self.device)
         return model
 
-    def generate(self, test_path, exts, batch_size=3200):
+    def generate(self, test_path, exts, result_save_path, batch_size=3200):
         test = datasets.TranslationDataset(
             path=test_path, exts=exts, 
             fields=(('src', self.dl.SRC), ('trg', self.dl.TGT)))
@@ -65,10 +65,11 @@ class Translator(object):
                                batch_size_fn=batch_size_fn, train=False,
                                shuffle=True)
         
-        print('Writing result to {} ...'.format(test_path + '.result'))
+        result_path = result_save_path + '/result.txt'
+        print('Writing result to {} ...'.format(result_path))
         print('beam_size=', self.beam_size)
         start_time = time.time()
-        with open(test_path + '.result', 'w', encoding='utf8') as f, torch.no_grad():     
+        with open(result_path, 'w', encoding='utf8') as f, torch.no_grad():     
             for _, batch in enumerate(test_iter, start=1):
                 src_tokens, _, tgt_tokens = prepare_batch(
                     batch, use_cuda=self.use_cuda)
@@ -77,14 +78,14 @@ class Translator(object):
                                             src_tokens=src_tokens,
                                             beam_size=self.beam_size,
                                             length_penalty=self.length_penalty,
-                                            max_len=self.max_seq_length,
+                                            max_seq_len=self.max_seq_len,
                                             bos=self.tgt_sos_idx,
                                             eos=self.tgt_eos_idx,
                                             pad=self.tgt_pdx)
                 elif self.beam_size == 0:
                     pred_tokens = greedy_search(model=self.model,
                                                 src_tokens=src_tokens,
-                                                max_len=self.max_seq_length,
+                                                max_seq_len=self.max_seq_len,
                                                 bos=self.tgt_sos_idx,
                                                 eos=self.tgt_eos_idx,
                                                 pad=self.tgt_pdx)
@@ -119,7 +120,7 @@ class Translator(object):
         probs = F.softmax(self._decode(gen_seqs, encoder_out, src_mask), dim=-1) # TODO: use log_softmax
         _, max_idxs = probs.topk(1) # new words
         
-        for step in range(2, self.max_seq_length):           
+        for step in range(2, self.max_seq_len):           
             done = done | max_idxs.eq(self.tgt_eos_idx).squeeze() #TODO : stop rules
             if all(done):
                 break
@@ -144,13 +145,20 @@ class Translator(object):
         model_out = self.model.out_vocab_proj(decoder_out)
         return model_out
 
-    def translate(self, sentence: str, beam_size=8):
+    def translate(self, sentence: str):
         jieba.setLogLevel(logging.INFO)
         # TODO: here need a tokenize function: STR -> word list
         word_list = [w for w in list(jieba.cut(sentence)) if w.strip()]
 
         with torch.no_grad():
             src_tokens = self.dl.SRC.numericalize([word_list], self.device) # (1, src_len)
-            gen_seqs = self.batch_greedy_search(src_tokens)
-            translated = de_numericalize(self.dl.TGT.vocab, gen_seqs)[0]
+            pred_tokens, _ = beam_search(model=self.model,
+                                src_tokens=src_tokens,
+                                beam_size=self.beam_size,
+                                length_penalty=self.length_penalty,
+                                max_seq_len=self.max_seq_len,
+                                bos=self.tgt_sos_idx,
+                                eos=self.tgt_eos_idx,
+                                pad=self.tgt_pdx)
+            translated = de_numericalize(self.dl.TGT.vocab, pred_tokens)[0]
             print(' '.join(translated), end="\n")
