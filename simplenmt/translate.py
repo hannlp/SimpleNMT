@@ -13,9 +13,6 @@ def parse():
     parser.add_argument("-save_path", help="the path to save checkpoint, dataloader and log", type=str, default=".")
     parser.add_argument("-ckpt_suffix", help="the checkpoint's suffix, such as best and last", type=str, default="best")
 
-    # parser.add_argument("-dl_path", help="the dataloader save path", type=str, default="./")
-    # parser.add_argument("-ckpt_path", help="the checkpoint save path", type=str, default="./")
-
     parser.add_argument("-max_seq_len", help="the max length of sequence", type=int, default=128)
     parser.add_argument("-beam_size", help="the width of beam search", type=int, default=-1)
     parser.add_argument("-length_penalty", type=float, default=1.0)

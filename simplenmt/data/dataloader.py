@@ -1,3 +1,4 @@
+import os
 import dill
 import torch
 from torchtext.legacy import data, datasets
@@ -51,24 +52,23 @@ class DataLoader(object):
                               pad_token=Constants.PAD, 
                               batch_first=True)
 
-    def load_translation(self, src, tgt, data_path=None, train_path=None, valid_path=None, 
-                         split_ratio=0.95, batch_size=64, dl_save_path=None,
-                         share_vocab=False):
+    def load_translation(self, src, tgt, data_path=None, split_ratio=0.95, 
+                        batch_size=64, dl_save_path=None, share_vocab=False):
 
         exts = ('.' + src, '.' + tgt) # default: ('.zh', '.en')
-        if data_path:
-            print("Loading parallel corpus from \'{}\', \'{}\' ...".format(data_path + exts[0], data_path + exts[1]), end=" ")
-            DATA = datasets.TranslationDataset(
-                path=data_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
-            print("Successful.")
-
-            train, valid = DATA.split(split_ratio=split_ratio)
-        else:
+        if os.path.is_dir(data_path):
+            train_path, valid_path = data_path + '/train', data_path + '/valid'
             print("Loading train data and valid data from \'{}\', \'{}\' ...".format(train_path, valid_path), end=" ")
             train = datasets.TranslationDataset(
                 path=train_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
             valid = datasets.TranslationDataset(
                 path=valid_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
+            print("Successful.")
+        else:
+            print("Loading parallel corpus from \'{}\' ...".format(data_path), end=" ")
+            DATA = datasets.TranslationDataset(
+                path=data_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
+            train, valid = DATA.split(split_ratio=split_ratio)
             print("Successful.")
 
         print("Building src and tgt vocabs ...", end=" ")
@@ -79,7 +79,7 @@ class DataLoader(object):
             self.SRC.build_vocab(train.src, train.trg)
             self.TGT.vocab = self.SRC.vocab
         print("Successful. ", end=" ")
-        
+
         self.src_padding_index = self.SRC.vocab.stoi[Constants.PAD]
         self.tgt_padding_index = self.TGT.vocab.stoi[Constants.PAD]
 
