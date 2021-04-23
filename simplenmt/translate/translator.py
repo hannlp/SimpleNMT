@@ -104,7 +104,7 @@ class Translator(object):
                 # print(len(tgt_len), tgt_len)
                 # input()
 
-        print('Successful. Generate time:{:.1f} min, result was saved at {}'
+        print('Successful. Generate time:{:.1f} min, the result has saved at {}'
                 .format((time.time() - start_time) / 60, test_path + '.result'))
 
     def batch_greedy_search(self, src_tokens):
