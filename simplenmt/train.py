@@ -1,3 +1,4 @@
+import os
 import torch
 import argparse
 from data.dataloader import DataLoader
@@ -42,6 +43,8 @@ def parse():
 def main():
     
     args = parse()
+    if not os.path.exists(args.save_path):
+        os.makedirs(args.save_path)
     dl = DataLoader()
     train_iter, valid_iter = dl.load_translation(
             src=args.src, tgt=args.tgt,
