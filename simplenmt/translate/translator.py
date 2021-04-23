@@ -169,4 +169,27 @@ def _decode(self, prev_tgt_tokens, encoder_out, src_mask):
     decoder_out = decoder_out[:,-1,:] # get last token
     model_out = self.model.out_vocab_proj(decoder_out)
     return model_out
+
+def generate_valid(self, data_iter, use_cuda):
+    abatch = next(iter(data_iter))
+    src_tokens, prev_tgt_tokens, tgt_tokens = prepare_batch(
+        abatch, use_cuda)
+    with torch.no_grad():
+        out_tokens = torch.argmax(
+            nn.functional.softmax(self.model(src_tokens, prev_tgt_tokens), dim=-1), dim=-1)
+
+    def show_src_tgt_out(src, tgt, out):
+        batch_size = out.size(0)
+        for b in range(batch_size):
+            print('\n|src: ', end=" ")
+            for i in range(src.size(1)):
+                print(self.SRC_VOCAB.itos[src[b, i]], end=' ')
+            print('\n|gold: ', end=" ")
+            for i in range(tgt.size(1)):
+                print(self.TGT_VOCAB.itos[tgt[b, i]], end='')
+            print('\n|out: ', end=" ")
+            for i in range(out.size(1)):
+                print(self.TGT_VOCAB.itos[out[b, i]], end='')
+            print()
+    show_src_tgt_out(src_tokens, tgt_tokens, out_tokens)
 """

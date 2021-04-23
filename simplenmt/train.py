@@ -54,7 +54,7 @@ def main():
     args.src_pdx, args.tgt_pdx = dl.src_padding_index, dl.tgt_padding_index
     args.use_cuda = torch.cuda.is_available()
     print(args)
-  
+
     model = build_model(args)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, betas=args.betas, eps=1e-9)
     criterion = build_criterion(args)
