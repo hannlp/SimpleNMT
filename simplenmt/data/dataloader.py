@@ -41,6 +41,10 @@ class MyIterator(data.Iterator):
 
 class DataLoader(object):
     def __init__(self) -> None:
+        self.PAD = Constants.PAD
+        self.START = Constants.START
+        self.END = Constants.END
+        self.UNK = Constants.UNK
         self.SRC = data.Field(pad_token=Constants.PAD, 
                               batch_first=True)
         self.TGT = data.Field(init_token=Constants.START,
