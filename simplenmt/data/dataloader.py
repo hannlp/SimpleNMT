@@ -41,10 +41,6 @@ class MyIterator(data.Iterator):
 
 class DataLoader(object):
     def __init__(self) -> None:
-        self.PAD = Constants.PAD
-        self.START = Constants.START
-        self.END = Constants.END
-        self.UNK = Constants.UNK
         self.SRC = data.Field(pad_token=Constants.PAD, 
                               batch_first=True)
         self.TGT = data.Field(init_token=Constants.START,
@@ -58,7 +54,7 @@ class DataLoader(object):
         exts = ('.' + src, '.' + tgt) # default: ('.zh', '.en')
         if os.path.isdir(data_path):
             train_path, valid_path = data_path + '/train', data_path + '/valid'
-            print("Loading train and valid data from \'{}\', \'{}\', suffix:{}' ...".format(
+            print("Loading train and valid data from \'{}\', \'{}\', suffix:{} ...".format(
                 train_path, valid_path, exts), end=" ")
             train = datasets.TranslationDataset(
                 path=train_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
