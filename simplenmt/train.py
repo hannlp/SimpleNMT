@@ -42,11 +42,10 @@ def parse():
     return args
 
 def main():
-    
-    logger = get_logger()
     args = parse()
     if not os.path.exists(args.save_path):
         os.makedirs(args.save_path)
+    logger = get_logger(args)
     dl = DataLoader()
     train_iter, valid_iter = dl.load_translation(
             src=args.src, tgt=args.tgt,

@@ -1,14 +1,12 @@
 import logging
 
-def get_logger():
-    logger = logging.getLogger()  # 不加名称设置root logger
+def get_logger(args):
+    logger = logging.getLogger()
     logger.setLevel(logging.INFO)
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s: - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S')
+    formatter = logging.Formatter('%(asctime)s - %(message)s', datefmt='%y-%m-%d %H:%M:%S')
 
     # 使用FileHandler输出到文件
-    fh = logging.FileHandler('log.txt')
+    fh = logging.FileHandler(args.save_path + '/log.txt')
     fh.setLevel(logging.INFO)
     fh.setFormatter(formatter)
 
@@ -20,3 +18,4 @@ def get_logger():
     # 添加两个Handler
     logger.addHandler(ch)
     logger.addHandler(fh)
+    return logger

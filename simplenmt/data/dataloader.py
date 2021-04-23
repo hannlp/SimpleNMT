@@ -58,37 +58,32 @@ class DataLoader(object):
         exts = ('.' + src, '.' + tgt) # default: ('.zh', '.en')
         if os.path.isdir(data_path):
             train_path, valid_path = data_path + '/train', data_path + '/valid'
-            print("Loading train and valid data from \'{}\', \'{}\', suffix:{} ...".format(
-                train_path, valid_path, exts), end=" ")
+            logger.info("Loading train and valid data from \'{}\', \'{}\', suffix:{} ...".format(
+                train_path, valid_path, exts))
             train = datasets.TranslationDataset(
                 path=train_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
             valid = datasets.TranslationDataset(
                 path=valid_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
-            print("Successful.")
         else:
-            #print("Loading parallel corpus from \'{}\', suffix:{} ...".format(data_path, exts), end=" ")
-            logger.info("Loading parallel corpus from \'{}\', suffix:{} ...".format(data_path, exts), end=" ")
+            logger.info("Loading parallel corpus from \'{}\', suffix:{} ...".format(data_path, exts))
             DATA = datasets.TranslationDataset(
                 path=data_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
             train, valid = DATA.split(split_ratio=split_ratio)
-            #print("Successful.")
-            logger.info("Successful.")
 
-        print("Building src and tgt vocabs ...", end=" ")
+        logger.info("Building src and tgt vocabs ...")
         if not share_vocab:
             self.SRC.build_vocab(train.src)
             self.TGT.build_vocab(train.trg)
         else:
             self.SRC.build_vocab(train.src, train.trg)
             self.TGT.vocab = self.SRC.vocab
-        print("Successful. ", end=" ")
 
         self.src_padding_index = self.SRC.vocab.stoi[Constants.PAD]
         self.tgt_padding_index = self.TGT.vocab.stoi[Constants.PAD]
 
         dl_path = '{}/{}-{}.dl'.format(dl_save_path, src, tgt)
         torch.save(self, dl_path, pickle_module=dill)
-        print("The dataloader has saved at \'{}\'".format(dl_path))
+        logger.info("The dataloader has saved at \'{}\'".format(dl_path))
 
         train_iter = MyIterator(train, batch_size=batch_size, device=None,
                                 repeat=False, sort_key=lambda x:
