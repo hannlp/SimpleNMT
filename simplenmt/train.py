@@ -1,5 +1,4 @@
 import torch
-import torch.nn as nn
 import argparse
 from data.dataloader import DataLoader
 from train.trainer import Trainer
@@ -46,14 +45,14 @@ def main():
     args = parse()
     dl = DataLoader()
     train_iter, valid_iter = dl.load_translation(
-        exts=('.' + args.src, '.' + args.tgt), # default: ('.zh', '.en')
-        data_path=args.data_path,
-        train_path=args.train_path,
-        valid_path=args.valid_path,      
-        batch_size=args.batch_size, 
-        dl_save_path=args.dl_path,
-        share_vocab=args.share_vocab
-        )
+            exts=('.' + args.src, '.' + args.tgt), # default: ('.zh', '.en')
+            data_path=args.data_path,
+            train_path=args.train_path,
+            valid_path=args.valid_path,
+            batch_size=args.batch_size,
+            dl_save_path=args.dl_path,
+            share_vocab=args.share_vocab
+            )
     
     args.n_src_words, args.n_tgt_words = len(dl.SRC.vocab), len(dl.TGT.vocab)
     args.src_pdx, args.tgt_pdx = dl.src_padding_index, dl.tgt_padding_index
@@ -71,5 +70,4 @@ def main():
                   save_path=args.ckpt_path)
 
 if __name__ == '__main__':
-    #os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
     main()
