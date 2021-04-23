@@ -32,8 +32,6 @@ class Translator(object):
         self.length_penalty = args.length_penalty
         self.max_seq_len = args.max_seq_len
 
-        
-
     def _load_model(self, ckpt_save_path, suffix):
         '''
         checkpoint(dict):
@@ -54,7 +52,7 @@ class Translator(object):
         return model
 
     def generate(self, src, tgt, data_path, result_save_path, batch_size=3200):
-        
+
         exts=('.' + src, '.' + tgt)
         test_path = data_path + '/test' if os.path.isdir(data_path) else data_path
         test = datasets.TranslationDataset(
