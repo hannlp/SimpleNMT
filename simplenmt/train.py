@@ -4,7 +4,7 @@ import argparse
 from data.dataloader import DataLoader
 from train.trainer import Trainer
 from models import build_model
-from train.loss import LabelSmoothingLoss
+from train import build_criterion
 
 def parse():
     # The arguments for DataLoader and Trainer
@@ -37,7 +37,7 @@ def parse():
     parser.add_argument("-attn_type", help="type of attention from luong's paper", type=str, default='general')
     parser.add_argument("-rnn_type", help="type of RNNs", type=str, default='gru')
     
-    parser.add_argument("-label_smoothing", type=float, default=0.1)
+    parser.add_argument("-label_smoothing", type=float, default=0)
     args = parser.parse_args()
     return args
 
@@ -61,10 +61,7 @@ def main():
   
     model = build_model(args, use_cuda=use_cuda)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, betas=args.betas, eps=1e-9)
-    if args.label_smoothing:
-        criterion = LabelSmoothingLoss(args.label_smoothing, ignore_index=args.tgt_pdx, reduction='mean')
-    else:
-        criterion = nn.CrossEntropyLoss(ignore_index=args.tgt_pdx, reduction='mean')
+    criterion = build_criterion(args)
     trainer = Trainer(args, model=model,
                       optimizer=optimizer,
                       criterion=criterion,
