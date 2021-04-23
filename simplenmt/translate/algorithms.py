@@ -1,4 +1,3 @@
-from tests.project_relevant.test_beamsearch import MAX_SEQ_LEN
 import torch
 import torch.nn.functional as F
 

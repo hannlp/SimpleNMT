@@ -79,7 +79,9 @@ class DataLoader(object):
             self.SRC.build_vocab(train.src, train.trg)
             self.TGT.vocab = self.SRC.vocab
         print("Successful. ", end=" ")
-        self._add_index()
+        
+        self.src_padding_index = self.SRC.vocab.stoi[Constants.PAD]
+        self.tgt_padding_index = self.TGT.vocab.stoi[Constants.PAD]
 
         dl_path = '{}/{}-{}.dl'.format(dl_save_path, src, tgt)
         torch.save(self, dl_path, pickle_module=dill)
@@ -98,9 +100,6 @@ class DataLoader(object):
 
         return train_iter, valid_iter
         
-    def _add_index(self):
-        self.src_padding_index = self.SRC.vocab.stoi[Constants.PAD]
-        self.tgt_padding_index = self.TGT.vocab.stoi[Constants.PAD]
 
     def load_tabular(self, path, format):
         pass
