@@ -17,9 +17,10 @@ class Translator(object):
     def __init__(self, args):
         self.device = torch.device(
             "cuda:0" if torch.cuda.is_available() else "cpu")
+        self.use_cuda = torch.cuda.is_available()
         self.model = self._load_model(ckpt_save_path=args.save_path, suffix=args.ckpt_suffix)
         self.model.eval()
-        
+
         self.dl = torch.load('{}/{}-{}.dl'.format(
             args.save_path, args.src, args.tgt), pickle_module=dill)
         self.src_pdx = self.dl.src_padding_index
@@ -44,8 +45,9 @@ class Translator(object):
 
         ckpt_path = '{}/checkpoint_{}.pt'.format(ckpt_save_path, suffix)
         checkpoint = torch.load(ckpt_path, map_location=self.device)
+        checkpoint['settings'].use_cuda = self.use_cuda
 
-        model = build_model(checkpoint['settings'], use_cuda=torch.cuda.is_available())
+        model = build_model(checkpoint['settings'])
         model.load_state_dict(checkpoint['model'])
         if hasattr(model, 'module'):
             model = model.module
@@ -69,7 +71,7 @@ class Translator(object):
         with open(test_path + '.result', 'w', encoding='utf8') as f, torch.no_grad():     
             for _, batch in enumerate(test_iter, start=1):
                 src_tokens, _, tgt_tokens = prepare_batch(
-                    batch, use_cuda=torch.cuda.is_available())
+                    batch, use_cuda=self.use_cuda)
                 if self.beam_size > 0:
                     pred_tokens, tgt_len = beam_search(model=self.model,
                                             src_tokens=src_tokens,
