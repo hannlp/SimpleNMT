@@ -2,6 +2,7 @@ import os
 import torch
 import argparse
 from data.dataloader import DataLoader
+from train.utils import get_logger
 from train.trainer import Trainer
 from models import build_model
 from train import build_criterion
@@ -42,6 +43,7 @@ def parse():
 
 def main():
     
+    logger = get_logger()
     args = parse()
     if not os.path.exists(args.save_path):
         os.makedirs(args.save_path)
@@ -51,12 +53,14 @@ def main():
             data_path=args.data_path,
             batch_size=args.batch_size,
             dl_save_path=args.save_path,
-            share_vocab=args.share_vocab)
+            share_vocab=args.share_vocab,
+            logger=logger)
     
     args.n_src_words, args.n_tgt_words = len(dl.SRC.vocab), len(dl.TGT.vocab)
     args.src_pdx, args.tgt_pdx = dl.src_padding_index, dl.tgt_padding_index
     args.use_cuda = torch.cuda.is_available()
-    print(args)
+    #print(args)
+    logger.info(args)
 
     model = build_model(args)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, betas=args.betas, eps=1e-9)

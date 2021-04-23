@@ -52,8 +52,8 @@ class DataLoader(object):
                               pad_token=Constants.PAD, 
                               batch_first=True)
 
-    def load_translation(self, src, tgt, data_path=None, split_ratio=0.95, 
-                        batch_size=64, dl_save_path=None, share_vocab=False):
+    def load_translation(self, src, tgt, data_path=None, split_ratio=0.95, batch_size=64, 
+                        dl_save_path=None, share_vocab=False, logger=None):
 
         exts = ('.' + src, '.' + tgt) # default: ('.zh', '.en')
         if os.path.isdir(data_path):
@@ -66,11 +66,13 @@ class DataLoader(object):
                 path=valid_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
             print("Successful.")
         else:
-            print("Loading parallel corpus from \'{}\', suffix:{} ...".format(data_path, exts), end=" ")
+            #print("Loading parallel corpus from \'{}\', suffix:{} ...".format(data_path, exts), end=" ")
+            logger.info("Loading parallel corpus from \'{}\', suffix:{} ...".format(data_path, exts), end=" ")
             DATA = datasets.TranslationDataset(
                 path=data_path, exts=exts, fields=(('src', self.SRC), ('trg', self.TGT)))
             train, valid = DATA.split(split_ratio=split_ratio)
-            print("Successful.")
+            #print("Successful.")
+            logger.info("Successful.")
 
         print("Building src and tgt vocabs ...", end=" ")
         if not share_vocab:
