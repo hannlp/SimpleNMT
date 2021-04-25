@@ -16,5 +16,5 @@ def cut2(fpath, new_data_dir, nsrc='zh', ntgt='en'):
     src_fp.close()
     tgt_fp.close()
 
-if __name__ == '__main__':      
+if __name__ == '__main__':
     cut2(fpath=sys.argv[1], new_data_dir=sys.argv[2], nsrc='zh', ntgt='en')
