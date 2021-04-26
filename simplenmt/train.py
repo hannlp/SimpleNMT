@@ -13,11 +13,11 @@ def parse():
     # The arguments for DataLoader and Trainer
     parser.add_argument("-src", help="the source language", type=str, default="zh")
     parser.add_argument("-tgt", help="the target language", type=str, default="en")
-    parser.add_argument("-data_path", help="the path prefix of whole data which will to be split, or path of train and valid", type=str, default="")
+    parser.add_argument("-data_path", help="the path prefix of whole data which will to be split, or path of train and valid", type=str, default=".")
     parser.add_argument("-save_path", help="the path to save checkpoint, dataloader and log", type=str, default=".")
-    parser.add_argument("-batch_size", type=int, default=3200)
+    parser.add_argument("-batch_size", type=int, default=4096)
     parser.add_argument("-max_seq_len", type=int, default=2048)
-    parser.add_argument("-n_epochs", type=int, default=30)
+    parser.add_argument("-n_epochs", type=int, default=40)
     
     # The arguments for all models
     parser.add_argument("-model", help="model name", type=str, default='Transformer')
@@ -31,7 +31,7 @@ def parse():
     
     # The arguments for Transformer
     parser.add_argument("-n_head", help="number of heads in multihead-attention", type=int, default=8)
-    parser.add_argument("-label_smoothing", type=float, default=0)
+    parser.add_argument("-label_smoothing", type=float, default=0.1)
     parser.add_argument("-warmup_steps", help="warmup steps of learning rate update", type=int, default=4000)
 
     # The arguments for RNNs

@@ -6,7 +6,7 @@ def parse():
     parser.add_argument("-src", type=str, default="zh")
     parser.add_argument("-tgt", type=str, default="en")
 
-    parser.add_argument("-batch_size", type=int, default=3200)
+    parser.add_argument("-batch_size", type=int, default=4096)
     parser.add_argument("-generate", help="repalce the translate to generate", action="store_true")
 
     parser.add_argument("-data_path", help="the test corpus path, witch can be a path or a prefix", type=str, default=".")
@@ -15,7 +15,7 @@ def parse():
 
     parser.add_argument("-max_seq_len", help="the max length of sequence", type=int, default=128)
     parser.add_argument("-beam_size", help="the width of beam search", type=int, default=-1)
-    parser.add_argument("-length_penalty", type=float, default=1.0)
+    parser.add_argument("-length_penalty", type=float, default=0.7)
 
     args = parser.parse_args()
     return args
