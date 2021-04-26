@@ -11,9 +11,6 @@ MAX_SEQ_LEN = 256
 BOS = -1
 EOS = -2
 PAD = -3
-f_enc = None
-f_dec = None
-# TODO:!!! 把算法和translator分离出来
 
 def f_enc(model, src_tokens, src_pdx):
     # for Transformer's encode
@@ -231,6 +228,8 @@ def beam_search(model, src_tokens, beam_size, length_penalty, max_seq_len=MAX_SE
 """
 Referenced from OpenNMT(unfinished)
 """
+
+"""
 def beam_search_(self, src_tokens, beam_size=4):
     # init
     batch_size = src_tokens.size(0)
@@ -302,12 +301,15 @@ def beam_search_(self, src_tokens, beam_size=4):
              topk_ids.view(_B * beam_size, 1)], -1)
         
     return gen_seqs
+"""
 
 """
 Referenced from attention-is-all-you-need-pytorch(unfinished)
  at https://github.com/jadore801120/attention-is-all-you-need-pytorch/blob/master/transformer/Translator.py
 
 Only can translate one sentence, and have a lot of bugs
+"""
+
 """
 def beam_search__(self, word_list, beam_size=8):
     len_map = torch.arange(1, self.max_seq_len + 1, dtype=torch.long).unsqueeze(0).to(self.device)
@@ -359,3 +361,4 @@ def beam_search__(self, word_list, beam_size=8):
                 break
     
     return ''.join([self.tgt_itos[s] for s in gen_seqs[ans_idx, :seq_lens[ans_idx]]])
+"""
