@@ -24,18 +24,15 @@ def main():
     args = parse()
     translator = Translator(args)
     if args.generate:
-        #python -u translate.py -generate -src zh -tgt en -dl_path E:\yuchen\models\ldc\zh_en.dl -ckpt_path E:\yuchen\models\ldc -test_path E:\yuchen\ldc_test
-        #python translate.py -generate -src zh -tgt en -dl_path E:\yuchen\zh_en.dl -ckpt_path E:\yuchen -test_path E:\yuchen\ldc_valid
         translator.generate(
             src=args.src, tgt=args.tgt,
             data_path=args.data_path, 
             result_save_path=args.save_path,
             batch_size=args.batch_size)
     else:
-        #python translate.py -src zh -tgt en -dl_path E:\yuchen\zh_en.dl -ckpt_path E:\yuchen
         while True:
             sentence = input('Please input a sentence({}): '.format(args.src))
-            translator.translate(sentence)#, src_lang=args.src, tgt_lang=args.tgt)
+            translator.translate(sentence)
 
 if __name__ == '__main__':
     main()

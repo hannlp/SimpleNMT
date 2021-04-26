@@ -56,52 +56,47 @@ class Translator(object):
 
         exts=('.' + src, '.' + tgt)
         test_path = data_path + '/test' if os.path.isdir(data_path) else data_path
-        test = datasets.TranslationDataset(
-            path=test_path, exts=exts, 
-            fields=(('src', self.dl.SRC), ('trg', self.dl.TGT)))
+        test = datasets.TranslationDataset(path=test_path, exts=exts, 
+                    fields=(('src', self.dl.SRC), ('trg', self.dl.TGT)))
         
-        test_iter = MyIterator(test, batch_size=batch_size, device=None,
-                               repeat=False, sort_key=lambda x:
-                               (len(x.src), len(x.trg)),
-                               batch_size_fn=batch_size_fn, train=False,
-                               shuffle=True)
+        test_iter = MyIterator(test, batch_size=batch_size, device=None, repeat=False, 
+                               sort_key=lambda x: (len(x.src), len(x.trg)),
+                               batch_size_fn=batch_size_fn, train=False, shuffle=True)
         
         result_path = result_save_path + '/result.txt'
         print('Writing result to {} ...'.format(result_path))
-        print('beam_size=', self.beam_size)
         start_time = time.time()
-        with open(result_path, 'w', encoding='utf8') as f:
-            with torch.no_grad():     
-                for _, batch in enumerate(test_iter, start=1):
-                    src_tokens, _, tgt_tokens = prepare_batch(
-                        batch, use_cuda=self.use_cuda)
-                    if self.beam_size > 0:
-                        pred_tokens, tgt_len = beam_search(model=self.model,
+        with open(result_path, 'w', encoding='utf8') as f, torch.no_grad(): 
+            for _, batch in enumerate(test_iter, start=1):
+                src_tokens, _, tgt_tokens = prepare_batch(
+                    batch, use_cuda=self.use_cuda)
+                if self.beam_size > 0:
+                    pred_tokens, tgt_len = beam_search(model=self.model,
+                                            src_tokens=src_tokens,
+                                            beam_size=self.beam_size,
+                                            length_penalty=self.length_penalty,
+                                            max_seq_len=self.max_seq_len,
+                                            bos=self.tgt_sos_idx,
+                                            eos=self.tgt_eos_idx,
+                                            src_pdx=self.src_pdx,
+                                            tgt_pdx=self.tgt_pdx)
+                else:
+                    pred_tokens = greedy_search(model=self.model,
                                                 src_tokens=src_tokens,
-                                                beam_size=self.beam_size,
-                                                length_penalty=self.length_penalty,
                                                 max_seq_len=self.max_seq_len,
                                                 bos=self.tgt_sos_idx,
                                                 eos=self.tgt_eos_idx,
                                                 src_pdx=self.src_pdx,
                                                 tgt_pdx=self.tgt_pdx)
-                    else:
-                        pred_tokens = greedy_search(model=self.model,
-                                                    src_tokens=src_tokens,
-                                                    max_seq_len=self.max_seq_len,
-                                                    bos=self.tgt_sos_idx,
-                                                    eos=self.tgt_eos_idx,
-                                                    src_pdx=self.src_pdx,
-                                                    tgt_pdx=self.tgt_pdx)
 
-                    src_sentences = de_numericalize(self.dl.SRC.vocab, src_tokens)
-                    tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
-                    pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens)
+                src_sentences = de_numericalize(self.dl.SRC.vocab, src_tokens)
+                tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
+                pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens)
 
-                    for src_words, tgt_words, pred_words in zip(src_sentences, tgt_sentences, pred_sentences):
-                        content = '-S\t{}\n-T\t{}\n-P\t{}\n\n'.format(
-                            ' '.join(src_words), ' '.join(tgt_words), ' '.join(pred_words))            
-                        f.write(content); print(content)
+                for src_words, tgt_words, pred_words in zip(src_sentences, tgt_sentences, pred_sentences):
+                    content = '-S\t{}\n-T\t{}\n-P\t{}\n\n'.format(
+                        ' '.join(src_words), ' '.join(tgt_words), ' '.join(pred_words))            
+                    f.write(content); print(content)
                 
                 # TODO: 优化beam search 停止时间
                 # print(len(tgt_len), tgt_len)
