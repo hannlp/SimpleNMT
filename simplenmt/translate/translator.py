@@ -70,37 +70,38 @@ class Translator(object):
         print('Writing result to {} ...'.format(result_path))
         print('beam_size=', self.beam_size)
         start_time = time.time()
-        with open(result_path, 'w', encoding='utf8') as f, torch.no_grad():     
-            for _, batch in enumerate(test_iter, start=1):
-                src_tokens, _, tgt_tokens = prepare_batch(
-                    batch, use_cuda=self.use_cuda)
-                if self.beam_size > 0:
-                    pred_tokens, tgt_len = beam_search(model=self.model,
-                                            src_tokens=src_tokens,
-                                            beam_size=self.beam_size,
-                                            length_penalty=self.length_penalty,
-                                            max_seq_len=self.max_seq_len,
-                                            bos=self.tgt_sos_idx,
-                                            eos=self.tgt_eos_idx,
-                                            pad=self.tgt_pdx)
-                elif self.beam_size == 0:
-                    pred_tokens = greedy_search(model=self.model,
+        with open(result_path, 'w', encoding='utf8') as f:
+            with torch.no_grad():     
+                for _, batch in enumerate(test_iter, start=1):
+                    src_tokens, _, tgt_tokens = prepare_batch(
+                        batch, use_cuda=self.use_cuda)
+                    if self.beam_size > 0:
+                        pred_tokens, tgt_len = beam_search(model=self.model,
                                                 src_tokens=src_tokens,
+                                                beam_size=self.beam_size,
+                                                length_penalty=self.length_penalty,
                                                 max_seq_len=self.max_seq_len,
                                                 bos=self.tgt_sos_idx,
                                                 eos=self.tgt_eos_idx,
                                                 pad=self.tgt_pdx)
-                else:
-                    pred_tokens = self.batch_greedy_search(src_tokens)
+                    elif self.beam_size == 0:
+                        pred_tokens = greedy_search(model=self.model,
+                                                    src_tokens=src_tokens,
+                                                    max_seq_len=self.max_seq_len,
+                                                    bos=self.tgt_sos_idx,
+                                                    eos=self.tgt_eos_idx,
+                                                    pad=self.tgt_pdx)
+                    else:
+                        pred_tokens = self.batch_greedy_search(src_tokens)
 
-                src_sentences = de_numericalize(self.dl.SRC.vocab, src_tokens)
-                tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
-                pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens)
+                    src_sentences = de_numericalize(self.dl.SRC.vocab, src_tokens)
+                    tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
+                    pred_sentences = de_numericalize(self.dl.TGT.vocab, pred_tokens)
 
-                for src_words, tgt_words, pred_words in zip(src_sentences, tgt_sentences, pred_sentences):
-                    content = '-S\t{}\n-T\t{}\n-P\t{}\n\n'.format(
-                        ' '.join(src_words), ' '.join(tgt_words), ' '.join(pred_words))            
-                    f.write(content); print(content)
+                    for src_words, tgt_words, pred_words in zip(src_sentences, tgt_sentences, pred_sentences):
+                        content = '-S\t{}\n-T\t{}\n-P\t{}\n\n'.format(
+                            ' '.join(src_words), ' '.join(tgt_words), ' '.join(pred_words))            
+                        f.write(content); print(content)
                 
                 # TODO: 优化beam search 停止时间
                 # print(len(tgt_len), tgt_len)
