@@ -70,7 +70,7 @@ class Translator(object):
         print('Writing result to {} ...'.format(result_path))
         print('beam_size=', self.beam_size)
         print('training:', self.model.training)
-        self.model.eval()
+        self.model.train()
         print('training:', self.model.training)
         start_time = time.time()
         with open(result_path, 'w', encoding='utf8') as f:
