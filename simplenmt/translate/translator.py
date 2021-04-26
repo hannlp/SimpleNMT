@@ -69,6 +69,9 @@ class Translator(object):
         result_path = result_save_path + '/result.txt'
         print('Writing result to {} ...'.format(result_path))
         print('beam_size=', self.beam_size)
+        print('training:', self.model.training)
+        self.model.eval()
+        print('training:', self.model.training)
         start_time = time.time()
         with open(result_path, 'w', encoding='utf8') as f:
             with torch.no_grad():     
