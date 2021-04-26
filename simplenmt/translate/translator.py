@@ -70,8 +70,6 @@ class Translator(object):
         print('Writing result to {} ...'.format(result_path))
         print('beam_size=', self.beam_size)
         print('training:', self.model.training)
-        self.model.train()
-        print('training:', self.model.training)
         start_time = time.time()
         with open(result_path, 'w', encoding='utf8') as f:
             with torch.no_grad():     
@@ -139,13 +137,14 @@ class Translator(object):
         return gen_seqs
 
     def _encode(self, src_tokens):
-        src_mask = src_tokens.eq(self.src_pdx)
+        src_mask = src_tokens.eq(self.src_pdx).to(self.device)
         encoder_out = self.model.encoder(src_tokens, src_mask)
         return encoder_out, src_mask
 
     def _decode(self, prev_tgt_tokens, encoder_out, src_mask):
+        tgt_mask = prev_tgt_tokens.eq(self.tgt_pdx).to(self.device)
         decoder_out = self.model.decoder(
-            prev_tgt_tokens, encoder_out, src_mask, None)
+            prev_tgt_tokens, encoder_out, src_mask, tgt_mask)
         decoder_out = decoder_out[:,-1,:] # get last token
         model_out = self.model.out_vocab_proj(decoder_out)
         return model_out
