@@ -104,7 +104,7 @@ class Translator(object):
                 # input()
 
         print('Successful. Generate time:{:.1f} min, the result has saved at {}'
-                .format((time.time() - start_time) / 60, test_path + '.result'))
+                .format((time.time() - start_time) / 60, result_path))
 
     def translate(self, sentence: str):
         jieba.setLogLevel(logging.INFO)
