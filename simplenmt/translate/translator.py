@@ -4,6 +4,7 @@ import dill
 import jieba
 import logging
 import torch
+import torch.nn.functional as F
 from torchtext.legacy import datasets
 from models import build_model
 from data.dataloader import MyIterator, batch_size_fn
