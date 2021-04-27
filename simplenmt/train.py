@@ -4,7 +4,7 @@ import argparse
 from data.dataloader import DataLoader
 from train.utils import get_logger
 from train.trainer import Trainer
-from models import build_model
+from models import build_model, count_parameters
 from train import build_criterion
 
 def parse():
@@ -61,6 +61,7 @@ def main():
     logger.info(args)
 
     model = build_model(args)
+    count_parameters(model, logger)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, betas=args.betas, eps=1e-9)
     criterion = build_criterion(args)
     trainer = Trainer(args, model=model,

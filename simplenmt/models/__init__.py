@@ -83,3 +83,18 @@ def build_model(args):
             model = nn.DataParallel(model)
     
     return model
+
+def count_parameters(model, logger):
+    # Count number of parameters in model
+
+    enc, dec, others = 0, 0, 0
+    for name, param in model.named_parameters():
+        if 'encoder' in name:
+            enc += param.nelement()
+        elif 'decoder' in name:
+            dec += param.nelement()
+        else:
+            others += param.nelement()
+
+    logger.info('[Params count] encoder: {}, decoder: {}, total:{}'.format(
+                    enc, dec, enc + dec + others))
