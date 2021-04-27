@@ -86,7 +86,7 @@ class Trainer(object):
         self.ckpt_queue.append(epoch)
         if len(self.ckpt_queue) > self.queue_size:
             ckpt_suffix = self.ckpt_queue.pop(0)
-            to_del_ckpt = 'checkpoint_{}.pt'.format(ckpt_suffix)
+            to_del_ckpt = '{}/checkpoint_{}.pt'.format(ckpt_save_path, ckpt_suffix)
             if os.path.exists(to_del_ckpt):
                 os.remove(to_del_ckpt)
 
