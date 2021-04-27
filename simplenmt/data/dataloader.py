@@ -1,4 +1,5 @@
 import os
+import csv
 import dill
 import torch
 from torchtext.legacy import data, datasets
@@ -49,8 +50,10 @@ class DataLoader(object):
         self.TGT = data.Field(init_token=Constants.START, eos_token=Constants.END,
                               pad_token=Constants.PAD, batch_first=True)
 
-    def load_translation(self, src, tgt, data_path=None, split_ratio=0.95, batch_size=64, 
-                        dl_save_path=None, share_vocab=False, logger=None):
+    def load_translation(
+        self, src, tgt, data_path=None, split_ratio=0.95, batch_size=64, 
+        dl_save_path=None, share_vocab=False, logger=None
+        ):
 
         exts = ('.' + src, '.' + tgt) # default: ('.zh', '.en')
         if os.path.isdir(data_path):
@@ -97,6 +100,16 @@ class DataLoader(object):
 
         return train_iter, valid_iter
         
+    def write_vocab(self, save_path):
+        with open(save_path + 'src.vocab.tsv', 'w', encoding='utf8') as f:
+            tsv_w = csv.writer(f, delimiter='\t')
+            for i in range(len(self.SRC.vocab)):
+                tsv_w.writerow([i, self.SRC.vocab.itos[i]])
+        
+        with open(save_path + 'tgt.vocab.tsv', 'w', encoding='utf8') as f:
+            tsv_w = csv.writer(f, delimiter='\t')
+            for i in range(len(self.TGT.vocab)):
+                tsv_w.writerow([i, self.TGT.vocab.itos[i]])
 
     def load_tabular(self, path, format):
         pass

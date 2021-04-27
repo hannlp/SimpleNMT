@@ -54,7 +54,8 @@ def main():
             src=args.src, tgt=args.tgt, batch_size=args.batch_size,
             data_path=args.data_path, dl_save_path=args.save_path,
             share_vocab=args.share_vocab, logger=logger)
-
+    dl.write_vocab(args.save_path)
+    
     args.n_src_words, args.n_tgt_words = len(dl.SRC.vocab), len(dl.TGT.vocab)
     args.src_pdx, args.tgt_pdx = dl.src_padding_index, dl.tgt_padding_index
     args.use_cuda = torch.cuda.is_available()
