@@ -68,7 +68,7 @@ class Encoder(nn.Module):
             [EncoderLayer(d_model, n_head, p_drop) for _ in range(n_layers)])
         self.layer_norm = nn.LayerNorm(d_model) # for memory
 
-    def forward(self, src_tokens, src_mask):
+    def forward(self, src_tokens, src_mask, **kwargs):
         # - src_embed: (batch_size, src_len, d_model)
         src_embed = self.input_embedding(src_tokens) * (self.d_model ** 0.5)
         x = self.dropout(self.positional_encode(src_embed))
@@ -109,7 +109,7 @@ class Decoder(nn.Module):
         self.layers = nn.ModuleList(
             [DecoderLayer(d_model, n_head, p_drop) for _ in range(n_layers)])
 
-    def forward(self, prev_tgt_tokens, encoder_out, src_mask, tgt_mask):
+    def forward(self, prev_tgt_tokens, encoder_out, src_mask, tgt_mask, **kwargs):
         # - tgt_embed: (batch_size, src_len, d_model)
         tgt_embed = self.input_embedding(prev_tgt_tokens) * (self.d_model ** 0.5)
         x = self.dropout(self.positional_encode(tgt_embed))

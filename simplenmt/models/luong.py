@@ -42,7 +42,7 @@ class Encoder(nn.Module):
                             batch_first=True, bidirectional=bidirectional)
         self.dropout = nn.Dropout(p=p_drop)
     
-    def forward(self, src_tokens):
+    def forward(self, src_tokens, **kwargs):
         # - src_embed: (batch_size, src_len, d_model)
         src_embed = self.dropout(self.input_embedding(src_tokens))
         src_lens = src_tokens.ne(self.src_pdx).long().sum(dim=-1)
@@ -108,7 +108,7 @@ class Decoder(nn.Module):
         self.W_context = nn.Linear(2 * d_model, d_model, bias=False) # for concat [c; h]
         self.dropout = nn.Dropout(p=p_drop)
 
-    def forward(self, prev_tgt_tokens, encoder_out, src_mask):
+    def forward(self, prev_tgt_tokens, encoder_out, src_mask, **kwargs):
         # - tgt_embed: (batch_size, tgt_len, d_model)
         tgt_embed = self.dropout(self.input_embedding(prev_tgt_tokens))
 

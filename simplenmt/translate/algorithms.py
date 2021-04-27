@@ -2,44 +2,67 @@ import torch
 import torch.nn.functional as F
 
 '''
-Translate algorithms, whitch supprot a batch input - src_tokens: (batch_size, src_len):
-    - greedy search
-    - beam search
+Translate algorithms, whitch supprot a batch input.
+    algorithms:
+     - greedy search (when args.beam_size <= 0)
+     - beam search (when args.beam_size > 0. Support to adjust 
+                    these parameters: beam_size and length_penalty)
+    
+    inputs:
+     - src_tokens: (batch_size, src_len)
+
+    outputs:
+     - gen_seqs: (batch_size, max_seq_len/tgt_len.max()) (related to the stop rules)
+    
 '''
 
-MAX_SEQ_LEN = 256
-BOS = -1
-EOS = -2
-PAD = -3
+MAX_SEQ_LEN, BOS, EOS, PAD = 256, -1, -2, -3
 
-def f_enc(model, src_tokens, src_pdx):
-    # for Transformer's encode
+# for all model's encode
+def f_encode(model, src_tokens, src_pdx):   
     src_mask = src_tokens.eq(src_pdx)
-    encoder_out = model.encoder(src_tokens, src_mask)
+    enc_kwargs = {'src_tokens': src_tokens, 'src_mask': src_mask}
+    encoder_out = model.encoder(**enc_kwargs)
     return encoder_out, src_mask
 
-def f_dec(model, prev_tgt_tokens, src_enc, src_mask, tgt_pdx):
-    # for Transformer's decode
+# for all model's decode
+def f_decode(model, prev_tgt_tokens, encoder_out, src_mask, tgt_pdx):
     tgt_mask = prev_tgt_tokens.eq(tgt_pdx)
-    decoder_out = model.decoder(
-        prev_tgt_tokens, src_enc, src_mask, tgt_mask)
+    dec_kwargs = {'prev_tgt_tokens':prev_tgt_tokens, 'encoder_out': encoder_out, 
+                'src_mask': src_mask, 'tgt_mask': tgt_mask}
+    decoder_out = model.decoder(**dec_kwargs)
     decoder_out = decoder_out[:, -1, :] # get last token
     model_out = model.out_vocab_proj(decoder_out)
     return model_out
+
+# def f_enc(model, src_tokens, src_pdx):
+#     # for Transformer's encode
+#     src_mask = src_tokens.eq(src_pdx)
+#     encoder_out = model.encoder(src_tokens, src_mask)
+#     return encoder_out, src_mask
+
+# def f_dec(model, prev_tgt_tokens, src_enc, src_mask, tgt_pdx):
+#     # for Transformer's decode
+#     tgt_mask = prev_tgt_tokens.eq(tgt_pdx)
+#     decoder_out = model.decoder(
+#         prev_tgt_tokens, src_enc, src_mask, tgt_mask)
+#     decoder_out = decoder_out[:, -1, :] # get last token
+#     model_out = model.out_vocab_proj(decoder_out)
+#     return model_out
 
 def greedy_search(model, src_tokens, max_seq_len=MAX_SEQ_LEN, bos=BOS, eos=EOS, src_pdx=PAD, tgt_pdx=PAD):
     batch_size = len(src_tokens)
     done = src_tokens.new([False] * batch_size)
 
-    encoder_out, src_mask = f_enc(model, src_tokens, src_pdx)
+    encoder_out, src_mask = f_encode(model, src_tokens, src_pdx)
 
     gen_seqs = src_tokens.new(batch_size, max_seq_len).fill_(tgt_pdx)
     gen_seqs[:, 0] = bos
     # - gen_seqs: (batch_size, max_seq_len)
     
     for step in range(1, max_seq_len):
-        probs = F.log_softmax(f_dec(model, gen_seqs[:, :step], encoder_out, src_mask, tgt_pdx), dim=-1)
-        _, next_words = probs.topk(1)
+        log_probs = F.log_softmax(f_decode(model, gen_seqs[:, :step], encoder_out, src_mask, tgt_pdx), dim=-1)
+        _, next_words = log_probs.topk(1)
         
         done = done | next_words.eq(eos).squeeze()
         if all(done):
@@ -102,10 +125,10 @@ def beam_search(model, src_tokens, beam_size, length_penalty, max_seq_len=MAX_SE
     # batch size
     batch_size = len(src_tokens)
 
-    src_enc, src_mask = f_enc(model, src_tokens, src_pdx)
+    encoder_out, src_mask = f_encode(model, src_tokens, src_pdx)
 
     # expand to beam size the source latent representations
-    src_enc = src_enc.repeat_interleave(beam_size, dim=0)
+    encoder_out = encoder_out.repeat_interleave(beam_size, dim=0)
     src_mask = src_mask.repeat_interleave(beam_size, dim=0)
 
     # generated sentences (batch with beam current hypotheses)
@@ -116,7 +139,7 @@ def beam_search(model, src_tokens, beam_size, length_penalty, max_seq_len=MAX_SE
     generated_hyps = [BeamHypotheses(n_hyp=beam_size, length_penalty=length_penalty) for _ in range(batch_size)]
 
     # scores for each sentence in the beam
-    beam_scores = src_enc.new(batch_size, beam_size).fill_(0)
+    beam_scores = encoder_out.new(batch_size, beam_size).fill_(0)
     beam_scores[:, 1:] = -1e9
 
     # current position
@@ -128,7 +151,7 @@ def beam_search(model, src_tokens, beam_size, length_penalty, max_seq_len=MAX_SE
     while cur_len < max_seq_len:
 
         # compute word scores
-        model_out = f_dec(model, generated[:, :cur_len], src_enc, src_mask, tgt_pdx) # log softmax
+        model_out = f_decode(model, generated[:, :cur_len], encoder_out, src_mask, tgt_pdx) # log softmax
         # - model_out: (batch_size * beam_size, vocab_size)
         scores = F.log_softmax(model_out, dim=-1) # (batch_size * beam_size, n_tgt_words)      
         n_tgt_words = scores.size(-1)
@@ -217,12 +240,12 @@ def beam_search(model, src_tokens, beam_size, length_penalty, max_seq_len=MAX_SE
         best.append(best_hyp)
 
     # generate target batch
-    decoded = src_tokens.new(batch_size, tgt_len.max().item()).fill_(tgt_pdx)
+    gen_seqs = src_tokens.new(batch_size, tgt_len.max().item()).fill_(tgt_pdx)
     for i, hypo in enumerate(best):
-        decoded[i, :tgt_len[i] - 1] = hypo
-        decoded[i, tgt_len[i] - 1] = eos
+        gen_seqs[i, :tgt_len[i] - 1] = hypo
+        gen_seqs[i, tgt_len[i] - 1] = eos
 
-    return decoded, tgt_len
+    return gen_seqs, tgt_len
 
 
 """
