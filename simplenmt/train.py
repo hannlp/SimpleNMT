@@ -2,10 +2,9 @@ import os
 import torch
 import argparse
 from data.dataloader import DataLoader
-from train.utils import get_logger
+from train import build_criterion, get_logger
 from train.trainer import Trainer
 from models import build_model, count_parameters
-from train import build_criterion
 
 def parse():
     parser = argparse.ArgumentParser()
