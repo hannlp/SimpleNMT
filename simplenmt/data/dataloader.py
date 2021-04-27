@@ -101,15 +101,23 @@ class DataLoader(object):
         return train_iter, valid_iter
         
     def write_vocab(self, save_path):
-        with open(save_path + '\src.vocab.tsv', 'w', encoding='utf8') as f:
+        with open(save_path + '/src.vocab.tsv', 'w', encoding='utf8') as f:
+            src_sorted = self.SRC.vocab.freqs.most_common() # doesn't contain constants
             tsv_w = csv.writer(f, delimiter='\t')
-            for i in range(len(self.SRC.vocab)):
-                tsv_w.writerow([i, self.SRC.vocab.itos[i]])
+            for idx in range(len(self.SRC.vocab)):
+                content = [idx, self.SRC.vocab.itos[idx]]
+                if idx < len(src_sorted):
+                    content.extend(src_sorted[idx])
+                tsv_w.writerow(content)
         
-        with open(save_path + '\\tgt.vocab.tsv', 'w', encoding='utf8') as f:
+        with open(save_path + '/tgt.vocab.tsv', 'w', encoding='utf8') as f:
+            tgt_sorted = self.TGT.vocab.freqs.most_common() # doesn't contain constants
             tsv_w = csv.writer(f, delimiter='\t')
-            for i in range(len(self.TGT.vocab)):
-                tsv_w.writerow([i, self.TGT.vocab.itos[i]])
+            for idx in range(len(self.TGT.vocab)):
+                content = [idx, self.TGT.vocab.itos[idx]]
+                if idx < len(tgt_sorted):
+                    content.extend(tgt_sorted[idx])
+                tsv_w.writerow(content)
 
     def load_tabular(self, path, format):
         pass
