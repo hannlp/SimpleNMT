@@ -19,6 +19,7 @@ def parse():
     parser.add_argument("-max_seq_len", type=int, default=2048)
     parser.add_argument("-n_epochs", type=int, default=40)
     parser.add_argument("-log_interval", help="the steps interval of train log", type=int, default=100)
+    parser.add_argument("-keep_last_ckpts", help="the num of saving last checkpoints", type=int, default=5)
     
     # The arguments for all models
     parser.add_argument("-model", help="model name", type=str, default='Transformer')

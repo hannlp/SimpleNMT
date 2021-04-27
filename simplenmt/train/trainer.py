@@ -1,3 +1,4 @@
+import os
 import torch
 import time
 import math
@@ -15,6 +16,8 @@ class Trainer(object):
         self.d_model = args.d_model
         self._num_steps = 0
         self.logger = logger
+        self.ckpt_queue = list()
+        self.queue_size = args.keep_last_ckpts
 
     def train(self, train_iter, valid_iter, n_epochs, log_interval=100, ckpt_save_path=None):
         # TODO: 在训练前打印各种有用信息
@@ -78,18 +81,15 @@ class Trainer(object):
             - model(dict): model.state_dict()
             - settings(NameSpace): train_args
         '''
-        '''
-        checkpoint = {
-            'epoch': epoch, 
-            'model': self.model.state_dict(), 
-            'settings': self.settings
-            }
-        torch.save(checkpoint, '{}/checkpoint_{}.pt'.format(path, epoch))
-        '''
-        checkpoint = {'epoch': epoch,
-                      'model': self.model.state_dict(),
-                      'settings': self.settings
-                      }
+        checkpoint = {'epoch': epoch, 'model': self.model.state_dict(), 'settings': self.settings}
+        torch.save(checkpoint, '{}/checkpoint_{}.pt'.format(ckpt_save_path, epoch))
+        self.ckpt_queue.append(epoch)
+        if len(self.ckpt_queue) > self.queue_size:
+            ckpt_suffix = self.ckpt_queue.pop(0)
+            to_del_ckpt = 'checkpoint_{}.pt'.format(ckpt_suffix)
+            if os.path.exists(to_del_ckpt):
+                os.remove(to_del_ckpt)
+
         # save the last checkpoint
         torch.save(checkpoint, '{}/checkpoint_last.pt'.format(ckpt_save_path))
         # save the best checkpoint
