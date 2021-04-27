@@ -13,35 +13,33 @@ class Trainer(object):
         self.warmup_steps = args.warmup_steps
         self.lr_scal = lr_scal
         self.d_model = args.d_model
-        self._num_step = 0
+        self._num_steps = 0
         self.logger = logger
 
-    def train(self, train_iter, valid_iter, n_epochs, ckpt_save_path=None):
+    def train(self, train_iter, valid_iter, n_epochs, log_interval=100, ckpt_save_path=None):
         # TODO: 在训练前打印各种有用信息
         self.logger.info(self.model)
-        self._num_step = 0
+        self._num_steps = 0
         best_valid_loss = 1e9
 
         # - trianing ...
         for epoch in range(1, n_epochs + 1):
             is_best_epoch = False
             start_time = time.time()
-            self._train_epoch(train_iter, epoch)
+            self._train_epoch(train_iter, epoch, log_interval)
 
-            if valid_iter != None:
-                valid_loss = self._valid_epoch(valid_iter)
-                self._print_log(epoch, valid_loss, start_time)
-                if valid_loss < best_valid_loss:
-                    best_valid_loss = valid_loss
-                    is_best_epoch = True
+            valid_loss = self._valid_epoch(valid_iter)
+            self.logger.info("Valid | Epoch: {}, loss: {:.5}, ppl: {:.5}, elapsed: {:.1f} min, num_steps: {}".format(
+                epoch, valid_loss, math.exp(valid_loss), (time.time() - start_time) / 60, self._num_steps))
+            
+            if valid_loss < best_valid_loss:
+                best_valid_loss = valid_loss
+                is_best_epoch = True
 
-            self._save_model(epoch, ckpt_save_path, is_best_epoch)
+            if ckpt_save_path is not None:
+                self._save_model(epoch, ckpt_save_path, is_best_epoch)
 
-    def _print_log(self, epoch, valid_loss, start_time):
-        self.logger.info("Valid | Epoch: {}, loss: {:.5}, ppl: {:.5}, elapsed: {:.1f} min".format(
-            epoch, valid_loss, math.exp(valid_loss), (time.time() - start_time) / 60))
-
-    def _train_epoch(self, train_iter, epoch):
+    def _train_epoch(self, train_iter, epoch, log_interval):
         self.model.train()
         n_batches = len(list(iter(train_iter)))
         for i, batch in enumerate(train_iter, start=1):
@@ -55,7 +53,7 @@ class Trainer(object):
             loss.backward()
 
             self.optimizer.step()
-            if i % 100 == 0:
+            if i % log_interval == 0:
                 self.logger.info('Epoch: {}, batch: [{}/{}], lr: {:.5}, loss: {:.5}, ppl: {:.5}'
                       .format(epoch, i, n_batches, self._get_lr(), loss.item(), math.exp(loss.item())))
 
@@ -70,7 +68,7 @@ class Trainer(object):
                 out = self.model(src_tokens, prev_tgt_tokens)
                 loss = self.criterion(
                     out.reshape(-1, out.size(-1)), tgt_tokens.contiguous().view(-1))
-                loss_list.append(loss)
+                loss_list.append(loss.item())
         return sum(loss_list) / n_batches
 
     def _save_model(self, epoch, ckpt_save_path, is_best_epoch):
@@ -99,9 +97,9 @@ class Trainer(object):
             torch.save(checkpoint, '{}/checkpoint_best.pt'.format(ckpt_save_path))
 
     def _lr_step_update(self):
-        self._num_step += 1
+        self._num_steps += 1
         lrate = self.d_model ** -0.5 * \
-            min(self._num_step ** -0.5, self._num_step * self.warmup_steps ** -1.5)
+            min(self._num_steps ** -0.5, self._num_steps * self.warmup_steps ** -1.5)
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = self.lr_scal * lrate
 

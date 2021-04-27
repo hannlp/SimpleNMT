@@ -18,6 +18,7 @@ def parse():
     parser.add_argument("-batch_size", type=int, default=4096)
     parser.add_argument("-max_seq_len", type=int, default=2048)
     parser.add_argument("-n_epochs", type=int, default=40)
+    parser.add_argument("-log_interval", help="the steps interval of train log", type=int, default=100)
     
     # The arguments for all models
     parser.add_argument("-model", help="model name", type=str, default='Transformer')
@@ -69,7 +70,7 @@ def main():
                       criterion=criterion,
                       logger=logger)
     trainer.train(train_iter, valid_iter, n_epochs=args.n_epochs,
-                  ckpt_save_path=args.save_path)
+                  log_interval=args.log_interval, ckpt_save_path=args.save_path)
 
 if __name__ == '__main__':
     main()
