@@ -101,12 +101,12 @@ class DataLoader(object):
         return train_iter, valid_iter
         
     def write_vocab(self, save_path):
-        with open(save_path + 'src.vocab.tsv', 'w', encoding='utf8') as f:
+        with open(save_path + '\src.vocab.tsv', 'w', encoding='utf8') as f:
             tsv_w = csv.writer(f, delimiter='\t')
             for i in range(len(self.SRC.vocab)):
                 tsv_w.writerow([i, self.SRC.vocab.itos[i]])
         
-        with open(save_path + 'tgt.vocab.tsv', 'w', encoding='utf8') as f:
+        with open(save_path + '\\tgt.vocab.tsv', 'w', encoding='utf8') as f:
             tsv_w = csv.writer(f, delimiter='\t')
             for i in range(len(self.TGT.vocab)):
                 tsv_w.writerow([i, self.TGT.vocab.itos[i]])
