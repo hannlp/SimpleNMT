@@ -47,28 +47,27 @@ def main():
     if not os.path.exists(args.save_path):
         os.makedirs(args.save_path)
     logger = get_logger(args)
+
+    # Build dataloader and load translation dataset
     dl = DataLoader()
     train_iter, valid_iter = dl.load_translation(
-            src=args.src, tgt=args.tgt,
-            data_path=args.data_path,
-            batch_size=args.batch_size,
-            dl_save_path=args.save_path,
-            share_vocab=args.share_vocab,
-            logger=logger)
-    
+            src=args.src, tgt=args.tgt, batch_size=args.batch_size,
+            data_path=args.data_path, dl_save_path=args.save_path,
+            share_vocab=args.share_vocab, logger=logger)
+
     args.n_src_words, args.n_tgt_words = len(dl.SRC.vocab), len(dl.TGT.vocab)
     args.src_pdx, args.tgt_pdx = dl.src_padding_index, dl.tgt_padding_index
     args.use_cuda = torch.cuda.is_available()
     logger.info(args)
 
+    # Build trainer and start training
     model = build_model(args)
     count_parameters(model, logger)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, betas=args.betas, eps=1e-9)
     criterion = build_criterion(args)
-    trainer = Trainer(args, model=model,
-                      optimizer=optimizer,
-                      criterion=criterion,
-                      logger=logger)
+    trainer = Trainer(args=args, model=model, optimizer=optimizer,
+                      criterion=criterion, logger=logger)
+
     trainer.train(train_iter, valid_iter, n_epochs=args.n_epochs,
                   log_interval=args.log_interval, ckpt_save_path=args.save_path)
 
