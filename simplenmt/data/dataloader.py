@@ -45,12 +45,9 @@ class DataLoader(object):
         self.START = Constants.START
         self.END = Constants.END
         self.UNK = Constants.UNK
-        self.SRC = data.Field(pad_token=Constants.PAD, 
-                              batch_first=True)
-        self.TGT = data.Field(init_token=Constants.START,
-                              eos_token=Constants.END,
-                              pad_token=Constants.PAD, 
-                              batch_first=True)
+        self.SRC = data.Field(pad_token=Constants.PAD, batch_first=True)
+        self.TGT = data.Field(init_token=Constants.START, eos_token=Constants.END,
+                              pad_token=Constants.PAD, batch_first=True)
 
     def load_translation(self, src, tgt, data_path=None, split_ratio=0.95, batch_size=64, 
                         dl_save_path=None, share_vocab=False, logger=None):
@@ -77,6 +74,8 @@ class DataLoader(object):
         else:
             self.SRC.build_vocab(train.src, train.trg)
             self.TGT.vocab = self.SRC.vocab
+        logger.info("Vocab size | [{}] : {}, [{}] : {}".format(
+            src, format(len(self.SRC.vocab), ','), tgt, format(len(self.TGT.vocab), ',')))
 
         self.src_padding_index = self.SRC.vocab.stoi[Constants.PAD]
         self.tgt_padding_index = self.TGT.vocab.stoi[Constants.PAD]
