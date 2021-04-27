@@ -77,7 +77,7 @@ class DataLoader(object):
         else:
             self.SRC.build_vocab(train.src, train.trg)
             self.TGT.vocab = self.SRC.vocab
-        logger.info("Vocab size | [{} (src)] : {} types, [{} (tgt)] : {} types".format(
+        logger.info("Vocab size | SRC: [{}] {} types, TGT: [{}] {} types".format(
             src, format(len(self.SRC.vocab), ','), tgt, format(len(self.TGT.vocab), ',')))
 
         self.src_padding_index = self.SRC.vocab.stoi[Constants.PAD]
