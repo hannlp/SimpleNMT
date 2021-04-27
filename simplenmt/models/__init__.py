@@ -96,5 +96,5 @@ def count_parameters(model, logger):
         else:
             others += param.nelement()
 
-    logger.info('[Params count] encoder: {}, decoder: {}, total:{}'.format(
-                    enc, dec, enc + dec + others))
+    logger.info('Params count | encoder: {}, decoder: {}, others: {}, total:{}'.format(
+                    enc, dec, others, enc + dec + others))
