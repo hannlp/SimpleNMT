@@ -52,8 +52,7 @@ class Translator(object):
         model.to(self.device)
         return model
 
-    def generate(self, src, tgt, data_path, result_save_path, batch_size=3200):
-
+    def generate(self, src, tgt, data_path, result_save_path, batch_size=4096):
         exts=('.' + src, '.' + tgt)
         test_path = data_path + '/test' if os.path.isdir(data_path) else data_path
         test = datasets.TranslationDataset(path=test_path, exts=exts, 
@@ -97,10 +96,6 @@ class Translator(object):
                     content = '-S\t{}\n-T\t{}\n-P\t{}\n\n'.format(
                         ' '.join(src_words), ' '.join(tgt_words), ' '.join(pred_words))            
                     f.write(content); print(content)
-                
-                # TODO: 优化beam search 停止时间
-                # print(len(tgt_len), tgt_len)
-                # input()
 
         print('Successful. Generate time:{:.1f} min, the result has saved at {}'
                 .format((time.time() - start_time) / 60, result_path))
@@ -132,31 +127,6 @@ class Translator(object):
             print(' '.join(translated), end="\n")
 
 """
-def batch_greedy_search(self, src_tokens):
-    batch_size = src_tokens.size(0)
-    done = torch.tensor([False] * batch_size).to(self.device)
-    
-    encoder_out, src_mask = self._encode(src_tokens)
-
-    gen_seqs = torch.full((batch_size, 1), self.tgt_sos_idx).to(self.device)
-    # - gen_seqs: (batch_size, 1) -> <sos>
-
-    probs = F.softmax(self._decode(gen_seqs, encoder_out, src_mask), dim=-1) # TODO: use log_softmax
-    _, max_idxs = probs.topk(1) # new words
-    
-    for step in range(2, self.max_seq_len):           
-        done = done | max_idxs.eq(self.tgt_eos_idx).squeeze() #TODO : stop rules
-        if all(done):
-            break
-        
-        gen_seqs = torch.cat((gen_seqs, max_idxs.to(self.device)), dim=1)
-        # - gen_seqs: (batch_size, step) -> batch seqs
-
-        probs = F.softmax(self._decode(gen_seqs, encoder_out, src_mask), dim=-1)
-        _, max_idxs = probs.topk(1)
-    
-    return gen_seqs
-
 def generate_valid(self, data_iter, use_cuda):
     abatch = next(iter(data_iter))
     src_tokens, prev_tgt_tokens, tgt_tokens = prepare_batch(

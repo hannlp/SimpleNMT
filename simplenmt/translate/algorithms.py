@@ -35,21 +35,6 @@ def f_decode(model, prev_tgt_tokens, encoder_out, src_mask, tgt_pdx):
     model_out = model.out_vocab_proj(decoder_out)
     return model_out
 
-# def f_enc(model, src_tokens, src_pdx):
-#     # for Transformer's encode
-#     src_mask = src_tokens.eq(src_pdx)
-#     encoder_out = model.encoder(src_tokens, src_mask)
-#     return encoder_out, src_mask
-
-# def f_dec(model, prev_tgt_tokens, src_enc, src_mask, tgt_pdx):
-#     # for Transformer's decode
-#     tgt_mask = prev_tgt_tokens.eq(tgt_pdx)
-#     decoder_out = model.decoder(
-#         prev_tgt_tokens, src_enc, src_mask, tgt_mask)
-#     decoder_out = decoder_out[:, -1, :] # get last token
-#     model_out = model.out_vocab_proj(decoder_out)
-#     return model_out
-
 def greedy_search(model, src_tokens, max_seq_len=MAX_SEQ_LEN, bos=BOS, eos=EOS, src_pdx=PAD, tgt_pdx=PAD):
     batch_size = len(src_tokens)
     done = src_tokens.new([False] * batch_size)
@@ -212,21 +197,7 @@ def beam_search(model, src_tokens, beam_size, length_penalty, max_seq_len=MAX_SE
 
         # update current length
         cur_len = cur_len + 1
-
-        # TODO: 优化beam search停止时间
-        # if cur_len % 5 == 0:
-        #     print(cur_len, done)
-        #     try:
-        #         for i in range(5):
-        #             print()
-        #         print(len(generated_hyps[0].hyp[0][1]), generated_hyps[0].hyp[0])
-        #         print(len(generated_hyps[1].hyp[0][1]), generated_hyps[1].hyp[0])
-        #         print(len(generated_hyps[2].hyp[0][1]), generated_hyps[2].hyp[0])
-        #         print(len(generated_hyps[3].hyp[0][1]), generated_hyps[3].hyp[0])
-        #     except:
-        #         print("haven't generate any sentence!")
-
-        # stop when we are done with each sentence
+        
         if all(done):
             break
 

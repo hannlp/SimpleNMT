@@ -4,6 +4,7 @@ from .transformer import Transformer
 from .rnnsearch import RNNSearch
 from .seq2seq import Seq2Seq
 from .luong import Luong
+from .convs2s import ConvS2S
 
 '''
 transformer:
@@ -21,7 +22,7 @@ transformer:
 
 '''
 
-str2model = {"Transformer": Transformer, "RNNSearch": RNNSearch, "Seq2Seq": Seq2Seq, "Luong": Luong}
+str2model = {"Transformer": Transformer, "RNNSearch": RNNSearch, "Seq2Seq": Seq2Seq, "Luong": Luong, "ConvS2S": ConvS2S}
 
 def build_model(args):
 
@@ -69,7 +70,7 @@ def build_model(args):
             'src_pdx': args.src_pdx, 
             'tgt_pdx': args.tgt_pdx
             },
-        "CNN": {
+        "ConvS2S": {
 
             }
         }
@@ -96,5 +97,5 @@ def count_parameters(model, logger):
         else:
             others += param.nelement()
 
-    logger.info('Params count | encoder: {}, decoder: {}, others: {}, total:{}'.format(
+    logger.info('Params count | encoder: {}, decoder: {}, others: {}, total: {}'.format(
                     enc, dec, others, enc + dec + others))
