@@ -23,7 +23,7 @@ class Transformer(nn.Module):
         self.decoder = Decoder(n_tgt_words, tgt_pdx=tgt_pdx, n_head=n_head,
                                d_model=d_model, n_layers=n_layers, p_drop=p_drop, 
                                max_seq_len=max_seq_len)
-        self.out_vocab_proj = nn.Linear(d_model, n_tgt_words)
+        self.out_vocab_proj = nn.Linear(d_model, n_tgt_words, bias=False)
         
         self._model_init()
 

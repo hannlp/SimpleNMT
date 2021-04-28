@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
- # debugging: use bias=True in multi head attention 
+ # debugging: use bias=False in out_vocab_proj
 from .transformer_dev import Transformer
 #from .transformer import Transformer
 from .rnnsearch import RNNSearch
