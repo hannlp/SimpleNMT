@@ -83,13 +83,13 @@ class EncoderLayer(nn.Module):
         super().__init__()
         self.dropout = nn.Dropout(p=p_drop)
         self.sublayer1_prenorm = nn.LayerNorm(d_model)
-        self.multi_head_attention = MultiHeadAttention(d_model, n_head)
+        self.self_attn = MultiHeadAttention(d_model, n_head)
         self.sublayer2_prenorm = nn.LayerNorm(d_model)
         self.pos_wise_ffn = FeedForwardNetwork(d_model)
 
     def forward(self, x, src_mask):
         res, x_ln = x, self.sublayer1_prenorm(x)
-        x = res + self.dropout(self.multi_head_attention(
+        x = res + self.dropout(self.self_attn(
             q=x_ln, k=x_ln, v=x_ln,
             mask=src_mask.unsqueeze(1).unsqueeze(1)))
         res, x_ln = x, self.sublayer2_prenorm(x)
@@ -125,18 +125,18 @@ class DecoderLayer(nn.Module):
         super().__init__()
         self.dropout = nn.Dropout(p=p_drop)
         self.sublayer1_prenorm = nn.LayerNorm(d_model)
-        self.masked_multi_head_attention = MultiHeadAttention(d_model, n_head)
+        self.masked_self_attn = MultiHeadAttention(d_model, n_head)
         self.sublayer2_prenorm = nn.LayerNorm(d_model)
-        self.multi_head_attention = MultiHeadAttention(d_model, n_head)
+        self.encoder_attn = MultiHeadAttention(d_model, n_head)
         self.sublayer3_prenorm = nn.LayerNorm(d_model)
         self.pos_wise_ffn = FeedForwardNetwork(d_model)
 
     def forward(self, x, memory, src_mask, tgt_mask):
         res, x_ln = x, self.sublayer1_prenorm(x)
-        x = res + self.dropout(self.masked_multi_head_attention(
+        x = res + self.dropout(self.masked_self_attn(
             q=x_ln, k=x_ln, v=x_ln, mask=self._add_subsequent_mask(tgt_mask)))
         res, x_ln = x, self.sublayer2_prenorm(x)
-        x = res + self.dropout(self.multi_head_attention(
+        x = res + self.dropout(self.encoder_attn(
             q=x_ln, k=memory, v=memory, mask=src_mask.unsqueeze(1).unsqueeze(1)))
         res, x_ln = x, self.sublayer3_prenorm(x)
         x = res + self.dropout(self.pos_wise_ffn(x_ln))
