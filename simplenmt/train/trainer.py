@@ -20,12 +20,12 @@ class Trainer(object):
         self.queue_size = args.keep_last_ckpts
 
     def train(self, train_iter, valid_iter, n_epochs, log_interval=100, ckpt_save_path=None):
-        # TODO: 在训练前打印各种有用信息
+        """ Begin trianing ..."""
+
         self.logger.info(self.model)
         self._num_steps = 0
         best_valid_loss = 1e9
 
-        # - trianing ...
         for epoch in range(1, n_epochs + 1):
             is_best_epoch = False
             start_time = time.time()
