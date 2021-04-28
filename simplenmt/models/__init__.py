@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
-from .transformer import Transformer
+ # debugging: use bias=True in multi head attention 
+from .transformer_dev import Transformer
+#from .transformer import Transformer
 from .rnnsearch import RNNSearch
 from .seq2seq import Seq2Seq
 from .luong import Luong
