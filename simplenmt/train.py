@@ -28,6 +28,7 @@ def parse():
     #parser.add_argument("-share_decoder_embeddings", action="store_true")
     parser.add_argument("-p_drop", help="probability of dropout", type=float, default=0.1)
     parser.add_argument("-lr", type=float, default=1e-3)
+    parser.add_argument("-lr_scal", type=float, default=2.0)
     parser.add_argument("-betas", type=float, nargs="+", default=(0.9, 0.98))
     
     # The arguments for Transformer
@@ -64,10 +65,10 @@ def main():
     # Build trainer and start training
     model = build_model(args)
     count_parameters(model, logger)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, betas=args.betas, eps=1e-9)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, betas=args.betas, eps=1e-9)
     criterion = build_criterion(args)
     trainer = Trainer(args=args, model=model, optimizer=optimizer,
-                      criterion=criterion, logger=logger)
+                      criterion=criterion, lr_scal=args.lr_scal, logger=logger)
 
     trainer.train(train_iter, valid_iter, n_epochs=args.n_epochs,
                   log_interval=args.log_interval, ckpt_save_path=args.save_path)

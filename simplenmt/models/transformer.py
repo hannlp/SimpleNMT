@@ -127,7 +127,7 @@ class DecoderLayer(nn.Module):
         self.sublayer1_prenorm = nn.LayerNorm(d_model)
         self.masked_self_attn = MultiHeadAttention(d_model, n_head)
         self.sublayer2_prenorm = nn.LayerNorm(d_model)
-        self.encoder_attn = MultiHeadAttention(d_model, n_head)
+        self.context_attn = MultiHeadAttention(d_model, n_head)
         self.sublayer3_prenorm = nn.LayerNorm(d_model)
         self.pos_wise_ffn = FeedForwardNetwork(d_model)
 
@@ -136,7 +136,7 @@ class DecoderLayer(nn.Module):
         x = res + self.dropout(self.masked_self_attn(
             q=x_ln, k=x_ln, v=x_ln, mask=self._add_subsequent_mask(tgt_mask)))
         res, x_ln = x, self.sublayer2_prenorm(x)
-        x = res + self.dropout(self.encoder_attn(
+        x = res + self.dropout(self.context_attn(
             q=x_ln, k=memory, v=memory, mask=src_mask.unsqueeze(1).unsqueeze(1)))
         res, x_ln = x, self.sublayer3_prenorm(x)
         x = res + self.dropout(self.pos_wise_ffn(x_ln))
@@ -158,10 +158,10 @@ class MultiHeadAttention(nn.Module):
     def __init__(self, d_model, n_head) -> None:
         super().__init__()
         self.n_head, self.one_head_dim = n_head, d_model // n_head
-        self.w_q = nn.Linear(d_model, self.one_head_dim * self.n_head, bias=False)
-        self.w_k = nn.Linear(d_model, self.one_head_dim * self.n_head, bias=False)
-        self.w_v = nn.Linear(d_model, self.one_head_dim * self.n_head, bias=False)
-        self.w_out = nn.Linear(self.one_head_dim * self.n_head, d_model, bias=False)
+        self.w_q = nn.Linear(d_model, self.one_head_dim * self.n_head, bias=True)
+        self.w_k = nn.Linear(d_model, self.one_head_dim * self.n_head, bias=True)
+        self.w_v = nn.Linear(d_model, self.one_head_dim * self.n_head, bias=True)
+        self.w_out = nn.Linear(self.one_head_dim * self.n_head, d_model, bias=True)
 
     def forward(self, q, k, v, mask=None):
         # - x: (batch_size, seq_len, d_model)
@@ -190,8 +190,8 @@ class MultiHeadAttention(nn.Module):
 class FeedForwardNetwork(nn.Module):
     def __init__(self, d_model) -> None:
         super().__init__()
-        self.linear1 = nn.Linear(d_model, 4 * d_model)
-        self.linear2 = nn.Linear(4 * d_model, d_model)
+        self.linear1 = nn.Linear(d_model, 4 * d_model, bias=True)
+        self.linear2 = nn.Linear(4 * d_model, d_model, bias=True)
 
     def forward(self, x):
         return self.linear2(F.relu(self.linear1(x)))

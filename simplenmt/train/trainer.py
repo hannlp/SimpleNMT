@@ -5,14 +5,14 @@ import math
 from data.utils import prepare_batch
 
 class Trainer(object):
-    def __init__(self, args, model, optimizer, criterion, lr_scal=1, logger=None) -> None:
+    def __init__(self, args, model, optimizer, criterion, lr_scale=1, logger=None) -> None:
         self.use_cuda = args.use_cuda
         self.settings = args
         self.model = model
         self.optimizer = optimizer
         self.criterion = criterion
         self.warmup_steps = args.warmup_steps
-        self.lr_scal = lr_scal
+        self.lr_scale = lr_scale
         self.d_model = args.d_model
         self._num_steps = 0
         self.logger = logger
@@ -101,7 +101,7 @@ class Trainer(object):
         lrate = self.d_model ** -0.5 * \
             min(self._num_steps ** -0.5, self._num_steps * self.warmup_steps ** -1.5)
         for param_group in self.optimizer.param_groups:
-            param_group['lr'] = self.lr_scal * lrate
+            param_group['lr'] = self.lr_scale * lrate
 
     def _get_lr(self):
         return self.optimizer.param_groups[0]["lr"]
