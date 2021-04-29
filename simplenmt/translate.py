@@ -1,4 +1,6 @@
 import argparse
+
+from torch import QUInt8Storage
 from translate.translator import Translator
 
 def parse():
@@ -8,6 +10,8 @@ def parse():
 
     parser.add_argument("-batch_size", type=int, default=4096)
     parser.add_argument("-generate", help="repalce the translate to generate", action="store_true")
+    parser.add_argument("-quiet", help="don't print the generate result", action="store_true")
+
 
     parser.add_argument("-data_path", help="the test corpus path, witch can be a path or a prefix", type=str, default=".")
     parser.add_argument("-save_path", help="the path to save checkpoint, dataloader and log", type=str, default=".")
@@ -25,8 +29,8 @@ def main():
     translator = Translator(args)
     if args.generate:
         translator.generate(
-            src=args.src, tgt=args.tgt, batch_size=args.batch_size, 
-            data_path=args.data_path, result_save_path=args.save_path)
+            src=args.src, tgt=args.tgt, result_save_path=args.save_path, 
+            batch_size=args.batch_size, data_path=args.data_path, quiet=args.quiet)
     else:
         while True:
             sentence = input('Please input a sentence({}): '.format(args.src))

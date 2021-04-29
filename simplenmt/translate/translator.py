@@ -51,7 +51,7 @@ class Translator(object):
         model.to(self.device)
         return model
 
-    def generate(self, src, tgt, data_path, result_save_path, batch_size=4096):
+    def generate(self, src, tgt, data_path, result_save_path, batch_size=4096, quiet=False):
         exts=('.' + src, '.' + tgt)
         test_path = data_path + '/test' if os.path.isdir(data_path) else data_path
         test = datasets.TranslationDataset(path=test_path, exts=exts, 
@@ -85,7 +85,9 @@ class Translator(object):
                 for src_words, tgt_words, pred_words in zip(src_sentences, tgt_sentences, pred_sentences):
                     content = '-S\t{}\n-T\t{}\n-P\t{}\n\n'.format(
                         ' '.join(src_words), ' '.join(tgt_words), ' '.join(pred_words))            
-                    f.write(content); print(content)
+                    f.write(content)
+                    if not quiet:
+                        print(content)
 
         print('Successful. Generate time:{:.1f} min, the result has saved at {}'
                 .format((time.time() - start_time) / 60, result_path))
