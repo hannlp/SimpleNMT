@@ -28,7 +28,7 @@ def parse():
     #parser.add_argument("-share_decoder_embeddings", action="store_true")
     parser.add_argument("-p_drop", help="probability of dropout", type=float, default=0.1)
     parser.add_argument("-lr", type=float, default=1e-3)
-    parser.add_argument("-lr_scale", help="a scale for learning rate", type=float, default=2.0)
+    parser.add_argument("-lr_scale", help="a scale for learning rate", type=float, default=1.0)
     parser.add_argument("-betas", type=float, nargs="+", default=(0.9, 0.98))
     
     # The arguments for Transformer
