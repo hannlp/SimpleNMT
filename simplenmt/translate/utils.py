@@ -7,7 +7,7 @@ def de_numericalize(vocab, tokens):
 
    # Some constants don't wish to print, like <sos>, <pad> and <eos> 
     remove_constants={
-        Constants.PAD, Constants.START, Constants.END}
+        Constants.PAD, Constants.START, Constants.END, Constants.UNK}
 
     sentences = list()
     for row in tokens:
