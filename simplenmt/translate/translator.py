@@ -89,7 +89,7 @@ class Translator(object):
                     if not quiet:
                         print(content)
 
-        print('Successful. Generate time:{:.1f} min, the result has saved at {}'
+        print('Successful. Generate time: {:.1f} min, the result has saved at {}'
                 .format((time.time() - start_time) / 60, result_path))
     
     def translate(self, sentence: str):
