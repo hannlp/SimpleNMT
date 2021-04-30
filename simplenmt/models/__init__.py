@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
  # debugging: use bias=False in out_vocab_proj
-from .transformer_dev import Transformer
-#from .transformer import Transformer
+#from .transformer_dev import Transformer
+from .transformer import Transformer
 from .rnnsearch import RNNSearch
 from .seq2seq import Seq2Seq
 from .luong import Luong
@@ -40,8 +40,6 @@ def build_model(args):
             'p_drop': args.p_drop,
             'max_seq_len': args.max_seq_len
             }, 
-        """'share_embeddings': args.share_vocab, 
-            'share_decoder_embeddings': args.share_vocab,"""
         "Luong": {
             'n_src_words': args.n_src_words,
             'n_tgt_words': args.n_tgt_words,

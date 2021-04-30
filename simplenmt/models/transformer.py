@@ -5,9 +5,7 @@ import torch.nn.functional as F
 
 class Transformer(nn.Module):
     def __init__(self, n_src_words, n_tgt_words, src_pdx=-1, tgt_pdx=-1, 
-                 d_model=512, n_head=8, n_layers=6, p_drop=0.1, 
-                 share_embeddings=False, share_decoder_embeddings=False,
-                 max_seq_len=512) -> None:
+                 d_model=512, n_head=8, n_layers=6, p_drop=0.1, max_seq_len=512) -> None:
 
         super().__init__()
         self.d_model = d_model
@@ -23,12 +21,6 @@ class Transformer(nn.Module):
         self.out_vocab_proj = nn.Linear(d_model, n_tgt_words)
         
         self._model_init()
-
-        if share_decoder_embeddings:
-            self.out_vocab_proj.weight = self.decoder.input_embedding.weight
-        
-        if share_embeddings:
-            self.encoder.input_embedding.weight = self.decoder.input_embedding.weight
 
     def forward(self, src_tokens, prev_tgt_tokens):
         '''
