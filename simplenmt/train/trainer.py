@@ -58,7 +58,7 @@ class Trainer(object):
             self.optimizer.step()
 
             loss_per_word = loss.item() / n_word
-            acc = n_word / n_correct
+            acc = n_correct / n_word
             if i % log_interval == 0:
                 self.logger.info('Epoch: {}, batch: [{}/{}], lr: {:.5}, loss: {:.5}, ppl: {:.5}, acc: %{:.2}'
                         .format(epoch, i, n_batches, self._get_lr(), loss_per_word, math.exp(loss_per_word), acc * 100))
