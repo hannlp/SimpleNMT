@@ -14,7 +14,7 @@ class Trainer(object):
         self.warmup_steps = args.warmup_steps
         self.lr_scale = lr_scale
         self.d_model = args.d_model
-        self._num_steps = 0
+        self._n_steps = 0
         self.logger = logger
         self.ckpt_queue = list()
         self.queue_size = args.keep_last_ckpts
@@ -24,7 +24,7 @@ class Trainer(object):
 
         # TODO: 这里可以实现一下加载last模型实现继续训练
         self.logger.info(self.model)
-        self._num_steps = 0
+        self._n_steps = 0
         best_valid_loss = 1e9
 
         for epoch in range(1, n_epochs + 1):
@@ -48,7 +48,7 @@ class Trainer(object):
         n_batches = len(list(iter(train_iter)))
 
         for i, batch in enumerate(train_iter, start=1):
-            self._num_steps += 1
+            self._n_steps += 1
             self.optimizer.zero_grad()
             src_tokens, prev_tgt_tokens, tgt_tokens = prepare_batch(
                 batch, use_cuda=self.use_cuda)
@@ -60,8 +60,8 @@ class Trainer(object):
             loss_per_word = loss.item() / n_word
             acc = n_correct / n_word
             if i % log_interval == 0:
-                self.logger.info('Epoch: {}, batch: [{}/{}], lr: {:.5f}, loss: {:.5f}, ppl: {:.2f}, acc: {:.2%}, num_steps: {}'
-                    .format(epoch, i, n_batches, self._get_lr(), loss_per_word, math.exp(loss_per_word), acc, self._num_steps))
+                self.logger.info('Epoch: {}, batch: [{}/{}], lr: {:.5}, loss: {:.5f}, ppl: {:.2f}, acc: {:.2%}, n_steps: {}'
+                    .format(epoch, i, n_batches, self._get_lr(), loss_per_word, math.exp(loss_per_word), acc, self._n_steps))
 
     def _valid_epoch(self, valid_iter):
         self.model.eval()
