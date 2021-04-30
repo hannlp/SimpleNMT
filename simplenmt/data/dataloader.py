@@ -25,16 +25,13 @@ def batch_size_fn(new, count, sofar):
     tgt_elements = count * max_tgt_in_batch
     return max(src_elements, tgt_elements)
 
-def get_generator_len(generator):
-    return len(tuple(iter(generator)))
-
 """
 Referenced from harvardnlp/annotated-transformer,
  at http://nlp.seas.harvard.edu/2018/04/03/attention.html
 """
 class SortedIterator(data.Iterator):
     def __len__(self):
-        return get_generator_len(self)
+        return len(tuple(iter(self)))
     
     def create_batches(self):
         if self.train:
