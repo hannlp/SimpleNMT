@@ -31,7 +31,7 @@ Referenced from harvardnlp/annotated-transformer,
 """
 class SortedIterator(data.Iterator):
     def __len__(self):
-        return self._get_len(self)
+        return self._get_len(self.batches)
     
     def _get_len(self, temp):
         return len(tuple(iter(temp)))
