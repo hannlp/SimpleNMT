@@ -2,7 +2,7 @@ import os
 import torch
 import argparse
 from data.dataloader import DataLoader
-from train import build_criterion, get_logger
+from train import build_criterion, build_optimizer, get_logger
 from train.trainer import Trainer
 from models import build_model, count_parameters
 
@@ -19,6 +19,7 @@ def parse():
     parser.add_argument("-n_epochs", type=int, default=40)
     parser.add_argument("-log_interval", help="the steps interval of train log", type=int, default=100)
     parser.add_argument("-keep_last_ckpts", help="the num of saving last checkpoints", type=int, default=5)
+    parser.add_argument("-optim", help="the optimizer for training", type=str, default="noam")
     
     # The arguments for all models
     parser.add_argument("-model", help="model name", type=str, default='Transformer')
@@ -65,7 +66,7 @@ def main():
     # Build trainer and start training
     model = build_model(args)
     count_parameters(model, logger)
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, betas=args.betas, eps=1e-9)
+    optimizer = build_optimizer(args, model)
     criterion = build_criterion(args)
     trainer = Trainer(args=args, model=model, optimizer=optimizer,
                       criterion=criterion, lr_scale=args.lr_scale, logger=logger)
