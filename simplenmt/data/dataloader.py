@@ -2,6 +2,7 @@ import os
 import csv
 import dill
 import torch
+from copy import deepcopy
 from torchtext.legacy import data, datasets
 from .constants import Constants
 
@@ -31,7 +32,7 @@ Referenced from harvardnlp/annotated-transformer,
 """
 class SortedIterator(data.Iterator):
     def __len__(self):
-        return len(tuple(iter(self)))
+        return len(tuple(iter(deepcopy(self))))
 
     def create_batches(self):
         if self.train:
