@@ -91,10 +91,7 @@ class Trainer(object):
         
         tgt_pdx = self.criterion.ignore_index
         non_pad_mask = gold.ne(tgt_pdx)
-        print(non_pad_mask)
-        print(pred.max(dim=-1).values)
-        print(gold)
-        n_correct = pred.max(dim=-1).values.eq(gold).masked_select(non_pad_mask).sum().item()
+        n_correct = pred.max(dim=-1).indices.eq(gold).masked_select(non_pad_mask).sum().item()
         n_word = non_pad_mask.sum().item()
 
         return loss, n_correct, n_word
