@@ -6,7 +6,7 @@ import logging
 import torch
 from models import build_model
 from torchtext.legacy import datasets
-from data.dataloader import MyIterator, batch_size_fn
+from data.dataloader import SortedIterator, batch_size_fn
 from data.utils import prepare_batch
 from .utils import de_numericalize
 from .algorithms import beam_search, greedy_search
@@ -57,7 +57,7 @@ class Translator(object):
         test = datasets.TranslationDataset(path=test_path, exts=exts, 
                     fields=(('src', self.dl.SRC), ('trg', self.dl.TGT)))
         
-        test_iter = MyIterator(test, batch_size=batch_size, device=None, repeat=False, 
+        test_iter = SortedIterator(test, batch_size=batch_size, device=None, repeat=False, 
                                sort_key=lambda x: (len(x.src), len(x.trg)),
                                batch_size_fn=batch_size_fn, train=False, shuffle=True)
         

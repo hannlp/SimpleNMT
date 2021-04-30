@@ -22,7 +22,7 @@ def batch_size_fn(new, count, sofar):
     return max(src_elements, tgt_elements)
 
 # code from http://nlp.seas.harvard.edu/2018/04/03/attention.html
-class MyIterator(data.Iterator):
+class SortedIterator(data.Iterator):
     def create_batches(self):
         if self.train:
             def pool(d, random_shuffler):
@@ -87,16 +87,12 @@ class DataLoader(object):
         torch.save(self, dl_path, pickle_module=dill)
         logger.info("The dataloader has saved at \'{}\'".format(dl_path))
 
-        train_iter = MyIterator(train, batch_size=batch_size, device=None,
-                                repeat=False, sort_key=lambda x:
-                                (len(x.src), len(x.trg)),
-                                batch_size_fn=batch_size_fn, train=True,
-                                shuffle=True)
-        valid_iter = MyIterator(valid, batch_size=batch_size, device=None,
-                                repeat=False, sort_key=lambda x:
-                                (len(x.src), len(x.trg)),
-                                batch_size_fn=batch_size_fn, train=True,
-                                shuffle=True)
+        train_iter = SortedIterator(train, batch_size=batch_size, device=None,
+                                    repeat=False, sort_key=lambda x: (len(x.src), len(x.trg)),
+                                    batch_size_fn=batch_size_fn, train=True, shuffle=True)
+        valid_iter = SortedIterator(valid, batch_size=batch_size, device=None,
+                                    repeat=False, sort_key=lambda x: (len(x.src), len(x.trg)),
+                                    batch_size_fn=batch_size_fn, train=True, shuffle=True)
 
         return train_iter, valid_iter
         
