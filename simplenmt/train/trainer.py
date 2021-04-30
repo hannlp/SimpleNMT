@@ -66,7 +66,7 @@ class Trainer(object):
     def _valid_epoch(self, valid_iter):
         self.model.eval()
         total_loss, total_words, correct_words = 0, 0, 0
-        
+
         with torch.no_grad():
             for batch in valid_iter:
                 src_tokens, prev_tgt_tokens, tgt_tokens = prepare_batch(
@@ -91,6 +91,9 @@ class Trainer(object):
         
         tgt_pdx = self.criterion.ignore_index
         non_pad_mask = gold.ne(tgt_pdx)
+        print(non_pad_mask)
+        print(pred.max(dim=-1).values)
+        print(gold)
         n_correct = pred.max(dim=-1).values.eq(gold).masked_select(non_pad_mask).sum().item()
         n_word = non_pad_mask.sum().item()
 
