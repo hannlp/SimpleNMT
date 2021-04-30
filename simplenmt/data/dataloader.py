@@ -8,7 +8,11 @@ from .constants import Constants
 
 global max_src_in_batch, max_tgt_in_batch
 
-# code from http://nlp.seas.harvard.edu/2018/04/03/attention.html
+
+"""
+Referenced from harvardnlp/annotated-transformer,
+ at http://nlp.seas.harvard.edu/2018/04/03/attention.html
+"""
 def batch_size_fn(new, count, sofar):    
     "Keep augmenting batch and calculate total number of tokens + padding."
     global max_src_in_batch, max_tgt_in_batch
@@ -21,8 +25,14 @@ def batch_size_fn(new, count, sofar):
     tgt_elements = count * max_tgt_in_batch
     return max(src_elements, tgt_elements)
 
-# code from http://nlp.seas.harvard.edu/2018/04/03/attention.html
+"""
+Referenced from harvardnlp/annotated-transformer,
+ at http://nlp.seas.harvard.edu/2018/04/03/attention.html
+"""
 class SortedIterator(data.Iterator):
+    def __len__(self):
+        return len(tuple(iter(self)))
+
     def create_batches(self):
         if self.train:
             def pool(d, random_shuffler):
@@ -77,7 +87,7 @@ class DataLoader(object):
         else:
             self.SRC.build_vocab(train.src, train.trg)
             self.TGT.vocab = self.SRC.vocab
-        logger.info("Vocab size | SRC[{}]: {} types, TGT[{}]: {} types".format(
+        logger.info("Vocab size | SRC({}): {} types, TGT({}): {} types".format(
             src, format(len(self.SRC.vocab), ','), tgt, format(len(self.TGT.vocab), ',')))
 
         self.src_padding_index = self.SRC.vocab.stoi[Constants.PAD]

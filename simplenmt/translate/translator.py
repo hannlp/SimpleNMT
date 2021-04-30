@@ -4,6 +4,7 @@ import dill
 import jieba
 import logging
 import torch
+from tqdm import tqdm
 from models import build_model
 from torchtext.legacy import datasets
 from data.dataloader import SortedIterator, batch_size_fn
@@ -65,7 +66,8 @@ class Translator(object):
         print('Writing result to {} ...'.format(result_path))
         start_time = time.time()
         with open(result_path, 'w', encoding='utf8') as f, torch.no_grad(): 
-            for _, batch in enumerate(test_iter, start=1):
+            test_iter = tqdm(test_iter) if quiet else test_iter
+            for batch in test_iter:
                 src_tokens, _, tgt_tokens = prepare_batch(
                     batch, use_cuda=self.use_cuda)
                 if self.beam_size > 0:

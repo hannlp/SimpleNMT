@@ -45,7 +45,6 @@ class Trainer(object):
 
     def _train_epoch(self, train_iter, epoch, log_interval):
         self.model.train()
-        n_batches = len(list(iter(train_iter)))
 
         for i, batch in enumerate(train_iter, start=1):
             self._n_steps += 1
@@ -61,7 +60,7 @@ class Trainer(object):
             acc = n_correct / n_word
             if i % log_interval == 0:
                 self.logger.info('Epoch: {}, batch: [{}/{}], lr: {:.6f}, loss: {:.5f}, ppl: {:.2f}, acc: {:.2%}, n_steps: {}'
-                    .format(epoch, i, n_batches, self._get_lr(), loss_per_word, math.exp(loss_per_word), acc, self._n_steps))
+                    .format(epoch, i, len(train_iter), self._get_lr(), loss_per_word, math.exp(loss_per_word), acc, self._n_steps))
 
     def _valid_epoch(self, valid_iter):
         self.model.eval()
