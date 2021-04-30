@@ -33,8 +33,8 @@ class Trainer(object):
             self._train_epoch(train_iter, epoch, log_interval)
 
             loss_per_word, accuracy = self._valid_epoch(valid_iter)
-            self.logger.info("Valid | Epoch: {}, loss: {:.5}, ppl: {:.5}, acc: %{:.2}, elapsed: {:.1f} min, num_steps: {}".format(
-                epoch, loss_per_word, math.exp(loss_per_word), accuracy, (time.time() - start_time) / 60, self._num_steps))
+            self.logger.info("Valid | Epoch: {}, loss: {:.5f}, ppl: {:.2f}, acc: {:.2%}, elapsed: {:.1f} min".format(
+                        epoch, loss_per_word, math.exp(loss_per_word), accuracy, (time.time() - start_time) / 60))
             
             if loss_per_word < best_valid_loss:
                 best_valid_loss = loss_per_word
@@ -60,8 +60,8 @@ class Trainer(object):
             loss_per_word = loss.item() / n_word
             acc = n_correct / n_word
             if i % log_interval == 0:
-                self.logger.info('Epoch: {}, batch: [{}/{}], lr: {:.5}, loss: {:.5}, ppl: {:.5}, acc: %{:.2}'
-                        .format(epoch, i, n_batches, self._get_lr(), loss_per_word, math.exp(loss_per_word), acc * 100))
+                self.logger.info('Epoch: {}, batch: [{}/{}], lr: {:.5f}, loss: {:.5f}, ppl: {:.2f}, acc: {:.2%}, num_steps: {}'
+                    .format(epoch, i, n_batches, self._get_lr(), loss_per_word, math.exp(loss_per_word), acc, self._num_steps))
 
     def _valid_epoch(self, valid_iter):
         self.model.eval()
