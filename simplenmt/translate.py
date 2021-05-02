@@ -1,6 +1,4 @@
 import argparse
-
-from torch import QUInt8Storage
 from translate.translator import Translator
 
 def parse():

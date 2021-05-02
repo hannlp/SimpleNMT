@@ -7,6 +7,7 @@ import torch
 from tqdm import tqdm
 from models import build_model
 from torchtext.legacy import datasets
+from data.constants import Constants
 from data.dataloader import SortedIterator, batch_size_fn
 from data.utils import prepare_batch
 from .utils import de_numericalize
@@ -23,12 +24,10 @@ class Translator(object):
 
         self.dl = torch.load('{}/{}-{}.dl'.format(
             args.save_path, args.src, args.tgt), pickle_module=dill)
-        self.src_pdx = self.dl.src_padding_index
-        self.tgt_pdx = self.dl.tgt_padding_index
-        self.tgt_sos_idx = self.dl.TGT.vocab.stoi[self.dl.START]
-        self.tgt_eos_idx = self.dl.TGT.vocab.stoi[self.dl.END]
-        self.src_stoi = self.dl.SRC.vocab.stoi
-        self.tgt_itos = self.dl.TGT.vocab.itos
+        self.src_pdx = self.dl.src_pdx
+        self.tgt_pdx = self.dl.tgt_pdx
+        self.bos = self.dl.TGT.vocab.stoi[Constants.START]
+        self.eos = self.dl.TGT.vocab.stoi[Constants.END]
         self.beam_size = args.beam_size
         self.length_penalty = args.length_penalty
         self.max_seq_len = args.max_seq_len
@@ -73,12 +72,12 @@ class Translator(object):
                 if self.beam_size > 0:
                     pred_tokens, _ = beam_search(model=self.model, src_tokens=src_tokens,
                             beam_size=self.beam_size, length_penalty=self.length_penalty,
-                            max_seq_len=self.max_seq_len, bos=self.tgt_sos_idx,
-                            eos=self.tgt_eos_idx, src_pdx=self.src_pdx, tgt_pdx=self.tgt_pdx)
+                            max_seq_len=self.max_seq_len, bos=self.bos,
+                            eos=self.eos, src_pdx=self.src_pdx, tgt_pdx=self.tgt_pdx)
                 else:
                     pred_tokens = greedy_search(model=self.model, src_tokens=src_tokens,
-                            max_seq_len=self.max_seq_len, bos=self.tgt_sos_idx,
-                            eos=self.tgt_eos_idx, src_pdx=self.src_pdx, tgt_pdx=self.tgt_pdx)
+                            max_seq_len=self.max_seq_len, bos=self.bos,
+                            eos=self.eos, src_pdx=self.src_pdx, tgt_pdx=self.tgt_pdx)
 
                 src_sentences = de_numericalize(self.dl.SRC.vocab, src_tokens)
                 tgt_sentences = de_numericalize(self.dl.TGT.vocab, tgt_tokens)
@@ -104,12 +103,12 @@ class Translator(object):
             if self.beam_size > 0:
                 pred_tokens, _ = beam_search(model=self.model, src_tokens=src_tokens,
                         beam_size=self.beam_size, length_penalty=self.length_penalty,
-                        max_seq_len=self.max_seq_len, bos=self.tgt_sos_idx,
-                        eos=self.tgt_eos_idx, src_pdx=self.src_pdx, tgt_pdx=self.tgt_pdx)
+                        max_seq_len=self.max_seq_len, bos=self.bos,
+                        eos=self.eos, src_pdx=self.src_pdx, tgt_pdx=self.tgt_pdx)
             else:
                 pred_tokens = greedy_search(model=self.model, src_tokens=src_tokens,
-                        max_seq_len=self.max_seq_len, bos=self.tgt_sos_idx,
-                        eos=self.tgt_eos_idx, src_pdx=self.src_pdx, tgt_pdx=self.tgt_pdx)
+                        max_seq_len=self.max_seq_len, bos=self.bos,
+                        eos=self.eos, src_pdx=self.src_pdx, tgt_pdx=self.tgt_pdx)
             translated = de_numericalize(self.dl.TGT.vocab, pred_tokens)[0]
             print(' '.join(translated), end="\n")
 

@@ -59,7 +59,7 @@ def main():
     dl.write_vocab(args.save_path)
     
     args.n_src_words, args.n_tgt_words = len(dl.SRC.vocab), len(dl.TGT.vocab)
-    args.src_pdx, args.tgt_pdx = dl.src_padding_index, dl.tgt_padding_index
+    args.src_pdx, args.tgt_pdx = dl.src_pdx, dl.tgt_pdx
     args.use_cuda = torch.cuda.is_available()
     logger.info(args)
 

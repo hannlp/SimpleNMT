@@ -52,10 +52,6 @@ class SortedIterator(data.Iterator):
 
 class DataLoader(object):
     def __init__(self) -> None:
-        self.PAD = Constants.PAD
-        self.START = Constants.START
-        self.END = Constants.END
-        self.UNK = Constants.UNK
         self.SRC = data.Field(pad_token=Constants.PAD, batch_first=True)
         self.TGT = data.Field(init_token=Constants.START, eos_token=Constants.END,
                               pad_token=Constants.PAD, batch_first=True)
@@ -87,11 +83,13 @@ class DataLoader(object):
         else:
             self.SRC.build_vocab(train.src, train.trg)
             self.TGT.vocab = self.SRC.vocab
+            # BUG: there have no bos and eos token in tgt vocab
+
         logger.info("Vocab size | SRC({}): {} types, TGT({}): {} types".format(
             src, format(len(self.SRC.vocab), ','), tgt, format(len(self.TGT.vocab), ',')))
 
-        self.src_padding_index = self.SRC.vocab.stoi[Constants.PAD]
-        self.tgt_padding_index = self.TGT.vocab.stoi[Constants.PAD]
+        self.src_pdx = self.SRC.vocab.stoi[Constants.PAD]
+        self.tgt_pdx = self.TGT.vocab.stoi[Constants.PAD]
 
         dl_path = '{}/{}-{}.dl'.format(dl_save_path, src, tgt)
         torch.save(self, dl_path, pickle_module=dill)
