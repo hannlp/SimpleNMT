@@ -36,8 +36,8 @@ class Trainer(object):
             self.logger.info("Valid | Epoch: {}, loss: {:.5f}, ppl: {:.2f}, acc: {:.2%}, elapsed: {:.1f} min".format(
                         epoch, loss_per_word, math.exp(-nll_loss_per_word), accuracy, (time.time() - start_time) / 60))
             
-            if loss_per_word < best_valid_loss:
-                best_valid_loss = loss_per_word
+            if (-nll_loss_per_word) < best_valid_loss:
+                best_valid_loss = (-nll_loss_per_word)
                 is_best_epoch = True
 
             if ckpt_save_path is not None:
