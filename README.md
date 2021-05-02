@@ -6,25 +6,43 @@ A simple and readable **Neural Machine Translation** system
 * **Neural Machine Translation (NMT)** directly uses the Encoder-Decoder framework to perform end-to-end mapping of Distributed Representation language, which has the advantages of unified model structure and high translation quality, and has become the mainstream of the times.
 * The development of machine translation is mainly attributed to the promotion of **open source systems** and **evaluation competitions**. There are many excellent neural machine translation systems ([fairseq](https://github.com/pytorch/fairseq), [OpenNMT](https://opennmt.net/), [Tensor2Tensor](https://github.com/tensorflow/tensor2tensor), etc.), but these open source systems have the disadvantages of complex implementation, too much redundant code, and difficult for beginners to read.
 
-## 2 To do
-I am committed to building a Neural Machine Translation system that is easy to read, use, and friendly to beginners.
+So, I am committed to building a Neural Machine Translation system that is easy to read, use, and friendly to beginners. (This is my graduation project ^ ^)
 
-## 3 Quick Start
-### 3.1 Download
+## 2 Quick Start
+### 2.1 Download
 ```bash
 git clone https://github.com/hannlp/SimpleNMT
 cd SimpleNMT/simplenmt
 pip install -r ../requirements.txt
 ```
 
-### 3.2 Train your model
+### 2.2 Train your model
 ```bash
 python train.py -data_path .. -save_path ..
+
+usage: train.py [-h] [-src SRC] [-tgt TGT] [-data_path DATA_PATH]
+                [-save_path SAVE_PATH] [-batch_size BATCH_SIZE]
+                [-max_seq_len MAX_SEQ_LEN] [-n_epochs N_EPOCHS]
+                [-log_interval LOG_INTERVAL]
+                [-keep_last_ckpts KEEP_LAST_CKPTS] [-optim OPTIM]
+                [-model MODEL] [-d_model D_MODEL] [-n_layers N_LAYERS]
+                [-share_vocab] [-p_drop P_DROP] [-lr LR] [-lr_scale LR_SCALE]
+                [-betas BETAS [BETAS ...]] [-n_head N_HEAD]
+                [-label_smoothing LABEL_SMOOTHING]
+                [-warmup_steps WARMUP_STEPS] [-bidirectional]
+                [-attn_type ATTN_TYPE] [-rnn_type RNN_TYPE]
 ```
 
-### 3.3 Use your model to translate
+
+### 2.3 Use your model to translate
 ```bash
 python translate.py -data_path .. -save_path ..
+
+usage: translate.py [-h] [-src SRC] [-tgt TGT] [-batch_size BATCH_SIZE]
+                    [-data_path DATA_PATH] [-save_path SAVE_PATH]
+                    [-ckpt_suffix CKPT_SUFFIX] [-max_seq_len MAX_SEQ_LEN]
+                    [-generate] [-quiet] [-beam_size BEAM_SIZE]
+                    [-length_penalty LENGTH_PENALTY]
 ```
 
 ## 4 Example
