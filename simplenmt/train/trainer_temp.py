@@ -2,6 +2,8 @@ import os
 import torch
 import time
 import math
+
+from torch.nn.functional import nll_loss
 from data.utils import prepare_batch
 
 class Trainer(object):
@@ -51,14 +53,14 @@ class Trainer(object):
             src_tokens, prev_tgt_tokens, tgt_tokens = prepare_batch(
                 batch, use_cuda=self.use_cuda)
             out = self.model(src_tokens, prev_tgt_tokens)
-            loss = self.criterion(
+            loss, nll_loss = self.criterion(
                 out.reshape(-1, out.size(-1)), tgt_tokens.contiguous().view(-1))
             loss.backward()
 
             self.optimizer.step()
             if i % log_interval == 0:
                 self.logger.info('Epoch: {}, batch: [{}/{}], lr: {:.5}, loss: {:.5}, ppl: {:.5}'
-                      .format(epoch, i, n_batches, self._get_lr(), loss.item(), math.exp(loss.item())))
+                      .format(epoch, i, n_batches, self._get_lr(), loss.item(), math.exp(-nll_loss.item())))
 
     def _valid_epoch(self, valid_iter):
         self.model.eval()

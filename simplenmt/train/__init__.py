@@ -19,10 +19,8 @@ def build_optimizer(args, model):
     return optimizer
 
 def build_criterion(args):
-    if args.label_smoothing > 0:
-        criterion = LabelSmoothingLoss(args.label_smoothing, ignore_index=args.tgt_pdx, reduction='sum')
-    else:
-        criterion = nn.CrossEntropyLoss(ignore_index=args.tgt_pdx, reduction='sum')
+    assert 0 <= args.label_smoothing < 1 
+    criterion = LabelSmoothingLoss(args.label_smoothing, ignore_index=args.tgt_pdx, reduction='sum')
     return criterion
 
 def get_logger(args):

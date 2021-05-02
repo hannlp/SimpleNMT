@@ -32,9 +32,9 @@ class Trainer(object):
             start_time = time.time()
             self._train_epoch(train_iter, epoch, log_interval)
 
-            loss_per_word, accuracy = self._valid_epoch(valid_iter)
+            loss_per_word, nll_loss_per_word, accuracy = self._valid_epoch(valid_iter)
             self.logger.info("Valid | Epoch: {}, loss: {:.5f}, ppl: {:.2f}, acc: {:.2%}, elapsed: {:.1f} min".format(
-                        epoch, loss_per_word, math.exp(loss_per_word), accuracy, (time.time() - start_time) / 60))
+                        epoch, loss_per_word, math.exp(-nll_loss_per_word), accuracy, (time.time() - start_time) / 60))
             
             if loss_per_word < best_valid_loss:
                 best_valid_loss = loss_per_word
@@ -52,48 +52,47 @@ class Trainer(object):
             src_tokens, prev_tgt_tokens, tgt_tokens = prepare_batch(
                 batch, use_cuda=self.use_cuda)
             model_out = self.model(src_tokens, prev_tgt_tokens)
-            loss, n_correct, n_word = self._cal_performance(pred=model_out, gold=tgt_tokens)
+            loss, nll_loss, n_correct, n_word = self._cal_performance(pred=model_out, gold=tgt_tokens)
             loss.backward()
             self.optimizer.step()
 
-            loss_per_word = loss.item() / n_word
             acc = n_correct / n_word
             if i % log_interval == 0:
                 self.logger.info('Epoch: {}, batch: [{}/{}], lr: {:.6f}, loss: {:.5f}, ppl: {:.2f}, acc: {:.2%}, n_steps: {}'
-                    .format(epoch, i, n_batches, self._get_lr(), loss_per_word, math.exp(loss_per_word), acc, self._n_steps))
+                    .format(epoch, i, n_batches, self._get_lr(), loss.item() / n_word, math.exp(-nll_loss.item() / n_word), acc, self._n_steps))
 
     def _valid_epoch(self, valid_iter):
         self.model.eval()
-        total_loss, total_words, correct_words = 0, 0, 0
+        total_loss, total_nll_loss, total_words, correct_words = 0, 0, 0, 0
 
         with torch.no_grad():
             for batch in valid_iter:
                 src_tokens, prev_tgt_tokens, tgt_tokens = prepare_batch(
                     batch, use_cuda=self.use_cuda)
                 model_out = self.model(src_tokens, prev_tgt_tokens)
-                loss, n_correct, n_word = self._cal_performance(pred=model_out, gold=tgt_tokens)
+                loss, nll_loss, n_correct, n_word = self._cal_performance(pred=model_out, gold=tgt_tokens)
                 
                 total_loss += loss.item()
-                total_words += n_word
-                correct_words += n_correct
+                total_nll_loss += nll_loss.item()
+                total_words, correct_words =  total_words + n_word, correct_words + n_correct
 
-        loss_per_word = total_loss / total_words
+        loss_per_word, nll_loss_per_word = total_loss / total_words, total_nll_loss / total_words
         accuracy = correct_words / total_words
-        return loss_per_word, accuracy
+        return loss_per_word, nll_loss_per_word, accuracy
 
     def _cal_performance(self, pred, gold):
         # - pred: (batch_size, tgt_len, d_model), - gold: (batch_size, tgt_len)
 
         pred = pred.reshape(-1, pred.size(-1)) # (batch_size * tgt_len, d_model)
         gold = gold.contiguous().view(-1) # (batch_size * tgt_len)
-        loss = self.criterion(pred, gold)
+        loss, nll_loss = self.criterion(pred, gold)
         
         tgt_pdx = self.criterion.ignore_index
         non_pad_mask = gold.ne(tgt_pdx)
         n_correct = pred.max(dim=-1).indices.eq(gold).masked_select(non_pad_mask).sum().item()
         n_word = non_pad_mask.sum().item()
 
-        return loss, n_correct, n_word
+        return loss, nll_loss, n_correct, n_word
 
     def _save_model(self, epoch, ckpt_save_path, is_best_epoch):
         '''

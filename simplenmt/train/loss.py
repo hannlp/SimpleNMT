@@ -14,6 +14,7 @@ class LabelSmoothingLoss(nn.Module):
         params:
           - input (FloatTensor): (batch_size x n_classes)
           - target (LongTensor): (batch_size)
+
         return:
           - loss
         '''
@@ -22,10 +23,14 @@ class LabelSmoothingLoss(nn.Module):
 
         log_prob = F.log_softmax(input, dim=-1)     
         loss = -(weight * log_prob).sum(dim=-1)
+        nll_loss = (one_hot * log_prob).sum(dim=-1)
 
         non_pad_mask = target.ne(self.ignore_index)
         if self.reduction == "mean":
             loss = loss.masked_select(non_pad_mask).mean()
+            nll_loss = nll_loss.masked_select(non_pad_mask).mean()
         elif self.reduction == "sum":
             loss = loss.masked_select(non_pad_mask).sum()
-        return loss
+            nll_loss = nll_loss.masked_select(non_pad_mask).sum()
+
+        return loss, nll_loss
