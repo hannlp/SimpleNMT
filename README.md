@@ -19,7 +19,10 @@ pip install -r ../requirements.txt
 ### 2.2 Train your model
 ```bash
 python train.py -data_path .. -save_path ..
+```
 
+use ```python train.py -h``` for more helps:
+```bash
 usage: train.py [-h] [-src SRC] [-tgt TGT] [-data_path DATA_PATH]
                 [-save_path SAVE_PATH] [-batch_size BATCH_SIZE]
                 [-max_seq_len MAX_SEQ_LEN] [-n_epochs N_EPOCHS]
@@ -37,7 +40,10 @@ usage: train.py [-h] [-src SRC] [-tgt TGT] [-data_path DATA_PATH]
 ### 2.3 Use your model to translate
 ```bash
 python translate.py -data_path .. -save_path ..
+```
 
+use ```python translate.py -h``` for more helps:
+```bash
 usage: translate.py [-h] [-src SRC] [-tgt TGT] [-batch_size BATCH_SIZE]
                     [-data_path DATA_PATH] [-save_path SAVE_PATH]
                     [-ckpt_suffix CKPT_SUFFIX] [-max_seq_len MAX_SEQ_LEN]
@@ -45,8 +51,8 @@ usage: translate.py [-h] [-src SRC] [-tgt TGT] [-batch_size BATCH_SIZE]
                     [-length_penalty LENGTH_PENALTY]
 ```
 
-## 4 Example
-### 4.1 Train
+## 3 Example
+### 3.1 Train
 This is a real example of using SimpleNMT to train a Chinese-English translation model. My parallel corpus is placed in ```/content/drive/MyDrive/Datasets/v15news/```, called ```train.zh```, ```train.en```,  ```valid.zh``` and ```valid.en```respectively. About the preprocessing method of parallel corpus, see this [blog](https://hannlp.github.io/2021-01-16-Use-fairseq-to-train-a-Chinese-English-translation-model-from-scratch/).
 ```
 python train.py -src zh -tgt en -warmup_steps 8000 -data_path /content/drive/MyDrive/Datasets/v15news -save_path /content
@@ -261,7 +267,7 @@ This is the training process:
 21-05-02 10:57:58 | Valid | Epoch: 12, loss: 3.20003, ppl: 7.91, acc: 61.71%, elapsed: 11.4 min
 ```
 
-## 4.2 Translate
+## 3.2 Translate
 After training the model, use the following command to use your best model for **interactive translation**:  
 ```bash
 python translate.py -generate -src zh -tgt en -beam_size 5 -data_path /content/drive/MyDrive/Datasets/v15news -save_path /content
@@ -285,7 +291,7 @@ Please input a sentence(zh): 须知民粹主义并不是某个心怀恶意的外
 populism is not imposed on europe by a malicious foreign power ; it is an air of organic tolerance within europe that is real and widespread .
 ```
 
-It can also **generate translations** in batches for evaluation, which requires a test set in ```/content/drive/MyDrive/Datasets/v15news/```  
+It can also **generate translations** in batches for evaluation, which requires a test set in ```/content/drive/MyDrive/Datasets/v15news/```, called ```test.zh``` and ```test.en``` respectively
 ```bash
 python translate.py -generate -src zh -tgt en -data_path /content/drive/MyDrive/Datasets/v15news -save_path /content
 ```
@@ -306,7 +312,7 @@ The generate preocess:
 -P	indeed , if the us were serious about negotiating with china to reduce its trade surplus with the us , it would have to increase its deficit with some other countries to make up for the difference .
 ```
 
-## 4.3 Evaluation and comparison
+## 3.3 Evaluation and comparison
 And then, you can use the script to evaluate the translation results:
 ```bash
 grep ^-T /content/result.txt | cut -f2 > ref.txt
@@ -326,7 +332,8 @@ The following is the evaluation result on the model trained using [fairseq](http
 BLEU = 26.06, 59.3/32.5/20.3/13.2 (BP=0.972, ratio=0.972, hyp_len=190618, ref_len=196075)
 ```
 
-# 5 Acknowledgement
+# 4 Acknowledgement
+These are the projects I have referred to during the implementation process, thank them very much.
 1. [bentrevett/pytorch-seq2seq](https://github.com/bentrevett/pytorch-seq2seq)
 2. [harvardnlp/annotated-transformer](http://nlp.seas.harvard.edu/2018/04/03/attention.html)
 3. [jadore801120/attention-is-all-you-need](https://github.com/jadore801120/attention-is-all-you-need-pytorch)
