@@ -52,9 +52,9 @@ class SortedIterator(data.Iterator):
 
 class DataLoader(object):
     def __init__(self) -> None:
-        self.SRC = data.Field(pad_token=Constants.PAD, batch_first=True)
+        self.SRC = data.Field(pad_token=Constants.PAD, unk_token=Constants.UNK, batch_first=True)
         self.TGT = data.Field(init_token=Constants.START, eos_token=Constants.END,
-                              pad_token=Constants.PAD, batch_first=True)
+                              pad_token=Constants.PAD, unk_token=Constants.UNK, batch_first=True)
 
     def load_translation(
         self, src, tgt, data_path=None, split_ratio=0.95, batch_size=64, 
@@ -81,9 +81,8 @@ class DataLoader(object):
             self.SRC.build_vocab(train.src)
             self.TGT.build_vocab(train.trg)
         else:
-            self.SRC.build_vocab(train.src, train.trg)
-            self.TGT.vocab = self.SRC.vocab
-            # BUG: there have no bos and eos token in tgt vocab
+            self.TGT.build_vocab(train.src, train.trg)
+            self.SRC.vocab = self.TGT.vocab
 
         logger.info("Vocab size | SRC({}): {} types, TGT({}): {} types".format(
             src, format(len(self.SRC.vocab), ','), tgt, format(len(self.TGT.vocab), ',')))
