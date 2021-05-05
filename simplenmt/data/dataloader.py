@@ -57,7 +57,7 @@ class DataLoader(object):
                               pad_token=Constants.PAD, unk_token=Constants.UNK, batch_first=True)
 
     def load_translation(
-        self, src, tgt, data_path=None, split_ratio=0.95, batch_size=64, 
+        self, src, tgt, data_path=None, split_ratio=0.95, batch_size=4096, 
         dl_save_path=None, share_vocab=False, logger=None
         ):
 

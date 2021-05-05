@@ -20,7 +20,8 @@ def parse():
     parser.add_argument("-log_interval", help="the steps interval of train log", type=int, default=100)
     parser.add_argument("-keep_last_ckpts", help="the num of saving last checkpoints", type=int, default=5)
     parser.add_argument("-optim", help="the optimizer for training", type=str, default="noam")
-    
+    parser.add_argument("-split_ratio", help="the ratio of train set, and the reset is valid set", type=float, default=0.95)
+
     # The arguments for all models
     parser.add_argument("-model", help="model name", type=str, default='Transformer')
     parser.add_argument("-d_model", help="dimension of the model", type=int, default=512)
@@ -55,7 +56,8 @@ def main():
     train_iter, valid_iter = dl.load_translation(
             src=args.src, tgt=args.tgt, batch_size=args.batch_size,
             data_path=args.data_path, dl_save_path=args.save_path,
-            share_vocab=args.share_vocab, logger=logger)
+            share_vocab=args.share_vocab, split_ratio=args.split_ratio, 
+            logger=logger)
     dl.write_vocab(args.save_path)
     
     args.n_src_words, args.n_tgt_words = len(dl.SRC.vocab), len(dl.TGT.vocab)
