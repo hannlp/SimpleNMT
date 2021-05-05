@@ -1,30 +1,59 @@
 @startuml
 class Dataloader{
-    SRC : data.Field
-    TGT : data.Field
-    ~save_dataloader()
+    SRC : torchtext.legacy.data.Field
+    TGT : torchtext.legacy.data.Field
     +load_translation()
 }
 
 class Trainer{
-    model
-    optimizer
-    criterion
-    ~valid_epoch()
-    ~train_epoch()
-    ~save_model()
-    ~lr_step_update()
+    model : Model
+    optimizer : Optimizer
+    criterion : Criterion
+    #valid_epoch()
+    #train_epoch()
+    #save_model()
+    #cal_performance()
     +train()
 }
 
-class Translator{
-    dl : Dataloader
-    model
-    ~load_model()
-    ~greedy_search()
-    +translate()
+class Optimizer{
+    param_groups
+    state_dict
+    +step()
+    +zero_grad()
 }
 
- Translator *-- Dataloader
+class Criterion{
+    ignore_index
+    +forawrd()
+}
+
+Trainer *-- Model
+Trainer *-- Optimizer
+Trainer *-- Criterion
+
+class Encoder{
+    +forawrd()
+}
+class Decoder{
+    +forward()
+}
+class Model{
+    encoder: Encoder
+    decoder: Decoder
+    +forawrd()
+}
+Model *-- Encoder
+Model *-- Decoder
+
+class Translator{
+    model : Model
+    dl : Dataloader
+    #load_model()
+    +generate()
+    +translate()
+}
+Translator o-- Dataloader
+Translator *-- Model
 
 @enduml

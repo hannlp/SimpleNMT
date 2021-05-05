@@ -62,7 +62,6 @@ class Translator(object):
                                batch_size_fn=batch_size_fn, train=False, shuffle=True)
         
         result_path = result_save_path + '/result.txt'
-        print('Writing result to {} ...'.format(result_path))
         start_time = time.time()
         with open(result_path, 'w', encoding='utf8') as f, torch.no_grad(): 
             test_iter = tqdm(test_iter) if quiet else test_iter
