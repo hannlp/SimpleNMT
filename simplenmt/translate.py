@@ -1,5 +1,6 @@
 import argparse
 from translate.translator import Translator
+from . import set_seed
 
 def parse():
     parser = argparse.ArgumentParser()
@@ -11,6 +12,7 @@ def parse():
     parser.add_argument("-save_path", help="the path to save checkpoint, dataloader and log", type=str, default=".")
     parser.add_argument("-ckpt_suffix", help="the checkpoint's suffix, such as best, last and a id", type=str, default="best")
     parser.add_argument("-max_seq_len", help="the max length of sequence", type=int, default=128)
+    parser.add_argument("-seed", help="for reproducibility", type=int, default=None)
 
     parser.add_argument("-generate", help="repalce the translate to generate", action="store_true")
     parser.add_argument("-quiet", help="don't print the generate result", action="store_true")
@@ -22,6 +24,10 @@ def parse():
 
 def main():
     args = parse()
+
+    # For reproducibility
+    set_seed(args)
+
     translator = Translator(args)
     if args.generate:
         translator.generate(
