@@ -25,7 +25,7 @@ parser.add_argument("-max_seq_len", type=int, default=512)
 parser.add_argument("-share_vocab", help="share src tgt embeddings and share decoder embeddings", action="store_true")
 
 # The parser for Translator
-
+parser.add_argument("-seed", type=int, default=None)
 parser.add_argument("-negi", type=int, default=-1)
 args = parser.parse_args()
 

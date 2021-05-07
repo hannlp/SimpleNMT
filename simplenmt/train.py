@@ -2,7 +2,7 @@ import os
 import torch
 import argparse
 from data.dataloader import DataLoader
-from train import build_criterion, build_optimizer, get_logger
+from train import build_criterion, build_optimizer, get_logger, set_seed
 from train.trainer import Trainer
 from models import build_model, count_parameters
 
@@ -20,6 +20,7 @@ def parse():
     parser.add_argument("-log_interval", help="the steps interval of train log", type=int, default=100)
     parser.add_argument("-keep_last_ckpts", help="the num of saving last checkpoints", type=int, default=5)
     parser.add_argument("-optim", help="the optimizer for training", type=str, default="noam")
+    parser.add_argument("-seed", help="for reproducibility", type=int, default=None)
     parser.add_argument("-split_ratio", help="the ratio of train set, and the reset is valid set", type=float, default=0.95)
 
     # The arguments for all models
@@ -47,6 +48,10 @@ def parse():
 
 def main():
     args = parse()
+
+    # For reproducibility
+    set_seed(args)
+
     if not os.path.exists(args.save_path):
         os.makedirs(args.save_path)
     logger = get_logger(args)

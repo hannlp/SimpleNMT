@@ -1,7 +1,8 @@
 import os
 import logging
 import torch
-import torch.nn as nn
+import numpy as np
+from torch import random
 from .optim import Noam
 from .loss import LabelSmoothingLoss
 
@@ -41,3 +42,11 @@ def get_logger(args):
     logger.addHandler(consle_handler)
     logger.addHandler(file_handler)
     return logger
+
+def set_seed(args):
+    if args.seed is not None:
+        random.seed(args.seed)
+        np.random.seed(args.seed)
+        torch.manual_seed(args.seed)
+        # torch.backends.cudnn.benchmark = False
+        # torch.backends.cudnn.deterministic = True
