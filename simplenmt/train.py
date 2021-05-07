@@ -2,8 +2,7 @@ import os
 import torch
 import argparse
 from data.dataloader import DataLoader
-import set_seed
-from train import build_criterion, build_optimizer, get_logger
+from train import build_criterion, build_optimizer, get_logger, set_seed
 from train.trainer import Trainer
 from models import build_model, count_parameters
 

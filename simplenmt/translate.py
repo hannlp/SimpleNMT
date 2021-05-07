@@ -1,6 +1,6 @@
 import argparse
+from translate import set_seed
 from translate.translator import Translator
-import set_seed
 
 def parse():
     parser = argparse.ArgumentParser()
