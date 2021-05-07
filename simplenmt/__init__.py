@@ -10,10 +10,10 @@ import numpy as np
 
 __version__ = "0.1"
 
-def set_seed(args):
-    if args.seed is not None:
-        random.seed(args.seed)
-        np.random.seed(args.seed)
-        torch.manual_seed(args.seed)
+def set_seed(seed=None):
+    if seed is not None:
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
         # torch.backends.cudnn.benchmark = False
         # torch.backends.cudnn.deterministic = True

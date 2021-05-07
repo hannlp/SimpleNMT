@@ -2,7 +2,7 @@ import os
 import torch
 import argparse
 from data.dataloader import DataLoader
-from . import set_seed
+import set_seed
 from train import build_criterion, build_optimizer, get_logger
 from train.trainer import Trainer
 from models import build_model, count_parameters
@@ -51,7 +51,7 @@ def main():
     args = parse()
 
     # For reproducibility
-    set_seed(args)
+    set_seed(args.seed)
 
     if not os.path.exists(args.save_path):
         os.makedirs(args.save_path)

@@ -1,6 +1,6 @@
 import argparse
 from translate.translator import Translator
-from . import set_seed
+import set_seed
 
 def parse():
     parser = argparse.ArgumentParser()
@@ -26,7 +26,7 @@ def main():
     args = parse()
 
     # For reproducibility
-    set_seed(args)
+    set_seed(args.seed)
 
     translator = Translator(args)
     if args.generate:
