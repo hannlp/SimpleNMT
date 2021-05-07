@@ -2,7 +2,7 @@ import os
 import logging
 import torch
 import numpy as np
-from torch import random
+import random
 from .optim import Noam
 from .loss import LabelSmoothingLoss
 
