@@ -33,7 +33,8 @@ def main():
     else:
         while True:
             sentence = input('Please input a sentence({}): '.format(args.src))
-            translator.translate(sentence, src=args.src, tgt=args.tgt, bpecode=args.bpecode)
+            translator.translate(sentence, src=args.src, tgt=args.tgt, 
+                precise=args.precise, bpecode=args.bpecode)
 
 if __name__ == '__main__':
     main()
