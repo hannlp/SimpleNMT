@@ -1,7 +1,6 @@
 import os
 import time
 import dill
-import jieba
 import logging
 import torch
 from tqdm import tqdm
@@ -92,10 +91,14 @@ class Translator(object):
         print('Successful. Generate time: {:.1f} min, the result has saved at {}'
                 .format((time.time() - start_time) / 60, result_path))
     
-    def translate(self, sentence: str):
-        jieba.setLogLevel(logging.INFO)
-        # TODO: here need a tokenize function: STR -> word list
-        word_list = [w for w in list(jieba.cut(sentence)) if w.strip()]
+    def translate(self, sentence, src, tgt, precise=False, bpecode=None):
+        if not precise:
+            import jieba
+            jieba.setLogLevel(logging.INFO)
+            word_list = [w for w in list(jieba.cut(sentence)) if w.strip()]
+        else:
+            from .pipeline import input_pipeline
+            word_list = input_pipeline(sentence, lang=src, bpecode=bpecode)
 
         with torch.no_grad():
             src_tokens = self.dl.SRC.numericalize([word_list], self.device) # (1, src_len)
@@ -109,7 +112,12 @@ class Translator(object):
                         max_seq_len=self.max_seq_len, bos=self.bos,
                         eos=self.eos, src_pdx=self.src_pdx, tgt_pdx=self.tgt_pdx)
             translated = de_numericalize(self.dl.TGT.vocab, pred_tokens)[0]
+        
+        if not precise:
             print(' '.join(translated), end="\n")
+        else:
+            from .pipeline import output_pipeline
+            print(output_pipeline(translated, lang=tgt))
 
 """
 def generate_valid(self, data_iter, use_cuda):

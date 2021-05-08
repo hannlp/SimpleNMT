@@ -12,6 +12,9 @@ def parse():
     parser.add_argument("-ckpt_suffix", help="the checkpoint's suffix, such as best, last and a id", type=str, default="best")
     parser.add_argument("-max_seq_len", help="the max length of sequence", type=int, default=128)
 
+    parser.add_argument("-precise", help="use some input and output pipeline" ,action="store_true")
+    parser.add_argument("-bpecode", help="the bpecode's prefix", type=str, default=None)
+
     parser.add_argument("-generate", help="repalce the translate to generate", action="store_true")
     parser.add_argument("-quiet", help="don't print the generate result", action="store_true")
     parser.add_argument("-beam_size", help="the width of beam search", type=int, default=-1)
@@ -30,7 +33,7 @@ def main():
     else:
         while True:
             sentence = input('Please input a sentence({}): '.format(args.src))
-            translator.translate(sentence)
+            translator.translate(sentence, src=args.src, tgt=args.tgt, bpecode=args.bpecode)
 
 if __name__ == '__main__':
     main()
