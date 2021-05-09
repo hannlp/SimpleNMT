@@ -31,7 +31,7 @@ def main():
             src=args.src, tgt=args.tgt, result_save_path=args.save_path, 
             batch_size=args.batch_size, data_path=args.data_path, quiet=args.quiet)
     else:
-        if args.bpecode is not None:
+        if args.precise and args.bpecode is not None:
             import fastBPE
             bpe = fastBPE.fastBPE(args.bpecode + '.' + args.src)
         else:
