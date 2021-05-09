@@ -48,7 +48,9 @@ def output_pipeline(translated, lang):
 
     if lang == 'zh':
         md = MosesDetokenizer(lang='zh')
-        return md.detokenize(remove_bpe_str.split())
+        detok_str = md.detokenize(remove_bpe_str.split())
+        no_space_str = detok_str.replace(" ", "")
+        return no_space_str
     elif lang == 'en':
         md = MosesDetokenizer(lang='en')
         detok_str = md.detokenize(remove_bpe_str.split())
