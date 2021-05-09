@@ -101,7 +101,10 @@ class Trainer(object):
             - model(dict): model.state_dict()
             - settings(NameSpace): train_args
         '''
-        checkpoint = {'epoch': epoch, 'model': self.model.state_dict(), 'settings': self.settings}
+        
+        model = self.model.module if hasattr(self.model, 'module') else self.model
+
+        checkpoint = {'epoch': epoch, 'model': model.state_dict(), 'settings': self.settings}
         torch.save(checkpoint, '{}/checkpoint_{}.pt'.format(ckpt_save_path, epoch))
         self.ckpt_queue.append(epoch)
         if len(self.ckpt_queue) > self.queue_size:

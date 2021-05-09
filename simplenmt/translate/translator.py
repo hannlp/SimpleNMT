@@ -42,11 +42,12 @@ class Translator(object):
         ckpt_path = '{}/checkpoint_{}.pt'.format(ckpt_save_path, suffix)
         checkpoint = torch.load(ckpt_path, map_location=self.device)
         checkpoint['settings'].use_cuda = self.use_cuda
-        
+
+        model_params = checkpoint['model']
+        model_params = {key.replace("module.", ""): value for key, value in model_params.items()}
+
         model = build_model(checkpoint['settings'])
-        model.load_state_dict(checkpoint['model'])
-        if hasattr(model, 'module'):
-            model = model.module
+        model.load_state_dict(model_params)
         model.to(self.device)
         return model
 
