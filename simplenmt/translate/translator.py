@@ -91,14 +91,14 @@ class Translator(object):
         print('Successful. Generate time: {:.1f} min, the result has saved at {}'
                 .format((time.time() - start_time) / 60, result_path))
     
-    def translate(self, sentence, src, tgt, precise=False, bpecode=None):
+    def translate(self, sentence, src, tgt, precise=False, bpe=None):
         if not precise:
             import jieba
             jieba.setLogLevel(logging.INFO)
             word_list = [w for w in list(jieba.cut(sentence)) if w.strip()]
         else:
             from .pipeline import input_pipeline
-            word_list = input_pipeline(sentence, lang=src, bpecode=bpecode)
+            word_list = input_pipeline(sentence, lang=src, bpe=bpe)
 
         with torch.no_grad():
             src_tokens = self.dl.SRC.numericalize([word_list], self.device) # (1, src_len)

@@ -31,10 +31,16 @@ def main():
             src=args.src, tgt=args.tgt, result_save_path=args.save_path, 
             batch_size=args.batch_size, data_path=args.data_path, quiet=args.quiet)
     else:
+        if args.bpecode is not None:
+            import fastBPE
+            bpe = fastBPE.fastBPE(args.bpecode + '.' + args.src)
+        else:
+            bpe = None
+
         while True:
             sentence = input('Please input a sentence({}): '.format(args.src))
             translator.translate(sentence, src=args.src, tgt=args.tgt, 
-                precise=args.precise, bpecode=args.bpecode)
+                precise=args.precise, bpe=bpe)
 
 if __name__ == '__main__':
     main()

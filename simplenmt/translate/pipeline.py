@@ -1,8 +1,7 @@
-import fastBPE
 from sacremoses import MosesTokenizer, MosesDetokenizer
 from pyhanlp import HanLP
 
-def input_pipeline(sentence, lang, bpecode=None):
+def input_pipeline(sentence, lang, bpe=None):
     """
     1. 分词（zh）
     2. 转小写（en）
@@ -16,8 +15,7 @@ def input_pipeline(sentence, lang, bpecode=None):
         mt = MosesTokenizer(lang='zh')
         tokenized_str = mt.tokenize(seg_str, return_str=True)
         #print('tokenize后；',tokenized_str)
-        if bpecode is not None:
-            bpe = fastBPE.fastBPE(bpecode + '.zh')
+        if bpe is not None:
             bpe_str = bpe.apply([tokenized_str])[0]
             #print('bpe后：', bpe_str)
             return bpe_str.split()
@@ -28,8 +26,7 @@ def input_pipeline(sentence, lang, bpecode=None):
         mt = MosesTokenizer(lang='en')
         tokenized_str = mt.tokenize(lower, return_str=True)
         #print('tokenize后；',tokenized_str)
-        if bpecode is not None:
-            bpe = fastBPE.fastBPE(bpecode + '.en')
+        if bpe is not None:
             bpe_str = bpe.apply([tokenized_str])[0]
             #print('bpe后：', bpe_str)
             return bpe_str.split()
