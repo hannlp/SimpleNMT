@@ -51,6 +51,8 @@ def output_pipeline(translated, lang):
         return md.detokenize(remove_bpe_str.split())
     elif lang == 'en':
         md = MosesDetokenizer(lang='en')
-        return md.detokenize(remove_bpe_str.split())
+        detok_str = md.detokenize(remove_bpe_str.split())
+        true_upper_str = '. '.join([s.strip().capitalize() for s in detok_str.split('.')])
+        return true_upper_str
     else:
         raise Exception
