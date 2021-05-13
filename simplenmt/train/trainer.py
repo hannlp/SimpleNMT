@@ -114,7 +114,7 @@ class Trainer(object):
                 os.remove(to_del_ckpt)
 
         # save the last checkpoint
-        torch.save(checkpoint, '{}/checkpoint_last.pt'.format(ckpt_save_path))
+        #torch.save(checkpoint, '{}/checkpoint_last.pt'.format(ckpt_save_path))
         # save the best checkpoint
         if is_best_epoch:           
             torch.save(checkpoint, '{}/checkpoint_best.pt'.format(ckpt_save_path))
