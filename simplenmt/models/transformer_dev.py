@@ -83,8 +83,7 @@ class EncoderLayer(nn.Module):
 
     def forward(self, x, src_mask):
         x = x + self.self_attn(
-            q=x, k=x, v=x,
-            mask=src_mask.unsqueeze(1).unsqueeze(1))
+            q=x, k=x, v=x, mask=src_mask.unsqueeze(1).unsqueeze(1))
         x = x + self.pos_wise_ffn(x)
         return x
 
@@ -151,7 +150,7 @@ class MultiHeadAttention(nn.Module):
     def forward(self, q, k, v, mask=None):
         # - x: (batch_size, seq_len, d_model)
         q = self.layer_norm(q)
-        k = self.layer_norm(k)
+        k = self.layer_norm(k) # 这样可能不行
         v = self.layer_norm(v)
 
         batch_size, q_len, kv_len = q.size(0), q.size(1), k.size(1)
