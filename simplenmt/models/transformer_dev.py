@@ -4,6 +4,10 @@ import torch.nn.functional as F
 
 '''
 The development version of transformer
+5-14更新:
+    简化模型，将layer norm和dropout移动到attention和ffn里
+    需要注意的是：encoder没有了最后的layer norm，attention中的layer norm将共用。这有可能会导致模型失效，
+        更改方案，将attention中的q和(k.v)单独弄一个layernorm
 '''
 
 class Transformer(nn.Module):
@@ -61,7 +65,6 @@ class Encoder(nn.Module):
         self.positional_encode = PositionalEncode(d_model, max_seq_len)
         self.layers = nn.ModuleList(
             [EncoderLayer(d_model, n_head, p_drop) for _ in range(n_layers)])
-        self.layer_norm = nn.LayerNorm(d_model) # for memory
 
     def forward(self, src_tokens, src_mask, **kwargs):
         # - src_embed: (batch_size, src_len, d_model)
@@ -69,26 +72,20 @@ class Encoder(nn.Module):
         x = self.dropout(self.positional_encode(src_embed))
         for layer in self.layers:
             x = layer(x, src_mask)
-        encoder_out = self.layer_norm(x)
-        return encoder_out
+        return x
 
 
 class EncoderLayer(nn.Module):
     def __init__(self, d_model, n_head, p_drop) -> None:
         super().__init__()
-        self.dropout = nn.Dropout(p=p_drop)
-        self.sublayer1_prenorm = nn.LayerNorm(d_model)
-        self.self_attn = MultiHeadAttention(d_model, n_head)
-        self.sublayer2_prenorm = nn.LayerNorm(d_model)
-        self.pos_wise_ffn = FeedForwardNetwork(d_model)
+        self.self_attn = MultiHeadAttention(d_model, n_head, p_drop)
+        self.pos_wise_ffn = FeedForwardNetwork(d_model, p_drop)
 
     def forward(self, x, src_mask):
-        res, x_ln = x, self.sublayer1_prenorm(x)
-        x = res + self.dropout(self.self_attn(
-            q=x_ln, k=x_ln, v=x_ln,
-            mask=src_mask.unsqueeze(1).unsqueeze(1)))
-        res, x_ln = x, self.sublayer2_prenorm(x)
-        x = res + self.dropout(self.pos_wise_ffn(x_ln))
+        x = x + self.self_attn(
+            q=x, k=x, v=x,
+            mask=src_mask.unsqueeze(1).unsqueeze(1))
+        x = x + self.pos_wise_ffn(x)
         return x
 
 
@@ -110,31 +107,22 @@ class Decoder(nn.Module):
         x = self.dropout(self.positional_encode(tgt_embed))
         for layer in self.layers:
             x = layer(x, encoder_out, src_mask, tgt_mask)
-        # - decoder_out: (batch_size, tgt_len, n_tgt_words)
-        decoder_out = x
-        return decoder_out
+        return x
 
 
 class DecoderLayer(nn.Module):
     def __init__(self, d_model, n_head, p_drop) -> None:
         super().__init__()
-        self.dropout = nn.Dropout(p=p_drop)
-        self.sublayer1_prenorm = nn.LayerNorm(d_model)
-        self.masked_self_attn = MultiHeadAttention(d_model, n_head)
-        self.sublayer2_prenorm = nn.LayerNorm(d_model)
-        self.context_attn = MultiHeadAttention(d_model, n_head)
-        self.sublayer3_prenorm = nn.LayerNorm(d_model)
-        self.pos_wise_ffn = FeedForwardNetwork(d_model)
+        self.masked_self_attn = MultiHeadAttention(d_model, n_head, p_drop)
+        self.context_attn = MultiHeadAttention(d_model, n_head, p_drop)
+        self.pos_wise_ffn = FeedForwardNetwork(d_model, p_drop)
 
     def forward(self, x, memory, src_mask, tgt_mask):
-        res, x_ln = x, self.sublayer1_prenorm(x)
-        x = res + self.dropout(self.masked_self_attn(
-            q=x_ln, k=x_ln, v=x_ln, mask=self._add_subsequent_mask(tgt_mask)))
-        res, x_ln = x, self.sublayer2_prenorm(x)
-        x = res + self.dropout(self.context_attn(
-            q=x_ln, k=memory, v=memory, mask=src_mask.unsqueeze(1).unsqueeze(1)))
-        res, x_ln = x, self.sublayer3_prenorm(x)
-        x = res + self.dropout(self.pos_wise_ffn(x_ln))
+        x = x + self.masked_self_attn(
+            q=x, k=x, v=x, mask=self._add_subsequent_mask(tgt_mask))
+        x = x + self.context_attn(
+            q=x, k=memory, v=memory, mask=src_mask.unsqueeze(1).unsqueeze(1))
+        x = x + self.pos_wise_ffn(x)
         return x
 
     def _add_subsequent_mask(self, padding_mask):
@@ -150,16 +138,22 @@ class DecoderLayer(nn.Module):
 
 class MultiHeadAttention(nn.Module):
     # - src_embed_dim = d_model
-    def __init__(self, d_model, n_head) -> None:
+    def __init__(self, d_model, n_head, p_drop) -> None:
         super().__init__()
         self.n_head, self.one_head_dim = n_head, d_model // n_head
+        self.layer_norm = nn.LayerNorm(d_model)
         self.w_q = nn.Linear(d_model, self.one_head_dim * self.n_head, bias=True)
         self.w_k = nn.Linear(d_model, self.one_head_dim * self.n_head, bias=True)
         self.w_v = nn.Linear(d_model, self.one_head_dim * self.n_head, bias=True)
         self.w_out = nn.Linear(self.one_head_dim * self.n_head, d_model, bias=True)
+        self.dropout = nn.Dropout(p=p_drop)
 
     def forward(self, q, k, v, mask=None):
         # - x: (batch_size, seq_len, d_model)
+        q = self.layer_norm(q)
+        k = self.layer_norm(k)
+        v = self.layer_norm(v)
+
         batch_size, q_len, kv_len = q.size(0), q.size(1), k.size(1)
         Q = self.w_q(q).view(batch_size, q_len, self.n_head, 
                              self.one_head_dim).transpose(1, 2)
@@ -179,17 +173,21 @@ class MultiHeadAttention(nn.Module):
         O = self.w_out(torch.matmul(attn, V).transpose(1, 2).reshape(
                 batch_size, q_len, self.one_head_dim * self.n_head))
         # - O: (batch_size, seq_len, d_model)
-        return O
+        return self.dropout(O)
 
 
 class FeedForwardNetwork(nn.Module):
-    def __init__(self, d_model) -> None:
+    def __init__(self, d_model, p_drop) -> None:
         super().__init__()
+        self.layer_norm = nn.LayerNorm(d_model)
         self.linear1 = nn.Linear(d_model, 4 * d_model, bias=True)
         self.linear2 = nn.Linear(4 * d_model, d_model, bias=True)
+        self.dropout = nn.Dropout(p=p_drop)
 
     def forward(self, x):
-        return self.linear2(F.relu(self.linear1(x)))
+        x = self.layer_norm(x)
+        x = self.linear2(F.relu(self.linear1(x)))
+        return self.dropout(x)
 
 
 class PositionalEncode(nn.Module):
