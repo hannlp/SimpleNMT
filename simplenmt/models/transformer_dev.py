@@ -141,6 +141,7 @@ class MultiHeadAttention(nn.Module):
         super().__init__()
         self.n_head, self.one_head_dim = n_head, d_model // n_head
         self.layer_norm = nn.LayerNorm(d_model)
+        self.memory_layer_norm = nn.LayerNorm(d_model)
         self.w_q = nn.Linear(d_model, self.one_head_dim * self.n_head, bias=True)
         self.w_k = nn.Linear(d_model, self.one_head_dim * self.n_head, bias=True)
         self.w_v = nn.Linear(d_model, self.one_head_dim * self.n_head, bias=True)
@@ -149,9 +150,11 @@ class MultiHeadAttention(nn.Module):
 
     def forward(self, q, k, v, mask=None):
         # - x: (batch_size, seq_len, d_model)
-        q = self.layer_norm(q)
-        k = self.layer_norm(k) # 这样可能不行
-        v = self.layer_norm(v)
+        if q == k: # in encoder
+            q = k = v = self.layer_norm(q)
+        else: # in decoder
+            q = self.layer_norm(q)
+            k = v = self.memory_layer_norm(k)
 
         batch_size, q_len, kv_len = q.size(0), q.size(1), k.size(1)
         Q = self.w_q(q).view(batch_size, q_len, self.n_head, 
