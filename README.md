@@ -267,7 +267,7 @@ This is the training process:
 21-05-02 10:57:58 | Valid | Epoch: 12, loss: 3.20003, ppl: 7.91, acc: 61.71%, elapsed: 11.4 min
 ```
 
-## 3.2 Translate
+### 3.2 Translate
 After training the model, use the following command to use your best model for **interactive translation**:  
 ```bash
 python translate.py -generate -src zh -tgt en -beam_size 5 -data_path /content/drive/MyDrive/Datasets/v15news -save_path /content
@@ -312,7 +312,7 @@ The generate preocess:
 -P	indeed , if the us were serious about negotiating with china to reduce its trade surplus with the us , it would have to increase its deficit with some other countries to make up for the difference .
 ```
 
-## 3.3 Evaluation and comparison
+### 3.3 Evaluation and comparison
 And then, you can use the script to evaluate the translation results:
 ```bash
 grep ^-T /content/result.txt | cut -f2 > ref.txt
