@@ -27,6 +27,8 @@ def parse():
     parser.add_argument("-model", help="model name", type=str, default='Transformer')
     parser.add_argument("-d_model", help="dimension of the model", type=int, default=512)
     parser.add_argument("-n_layers", type=int, default=6)
+    parser.add_argument("-n_encoder_layers", type=int, default=None)
+    parser.add_argument("-n_decoder_layers", type=int, default=None)
     parser.add_argument("-share_vocab", help="share src tgt embeddings and share decoder embeddings", action="store_true")
     #parser.add_argument("-share_decoder_embeddings", action="store_true")
     parser.add_argument("-p_drop", help="probability of dropout", type=float, default=0.1)
@@ -36,6 +38,7 @@ def parse():
     
     # The arguments for Transformer
     parser.add_argument("-n_head", help="number of heads in multihead-attention", type=int, default=8)
+    parser.add_argument("-d_ff", type=int, default=2048)
     parser.add_argument("-label_smoothing", type=float, default=0.1)
     parser.add_argument("-warmup_steps", help="warmup steps of learning rate update", type=int, default=4000)
 
