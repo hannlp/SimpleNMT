@@ -36,11 +36,10 @@ class Transformer_LSTM(nn.Module):
         '''
 
         src_mask = src_tokens.eq(self.src_pdx)
-        tgt_mask = prev_tgt_tokens.eq(self.tgt_pdx)
 
         encoder_out = self.encoder(src_tokens, src_mask)
         decoder_out = self.decoder(
-            prev_tgt_tokens, encoder_out, src_mask, tgt_mask)
+            prev_tgt_tokens, encoder_out, src_mask)
         model_out = self.out_vocab_proj(decoder_out)
         return model_out
 
