@@ -97,7 +97,7 @@ class Decoder(nn.Module):
         self.attention = MultiHeadAttention(d_model=d_model, n_head=n_head)
         self.rnn = nn.LSTM(input_size=d_model, hidden_size=d_model, num_layers=n_layers, 
                             dropout=p_drop, batch_first=True, bidirectional=False)
-        self.W_context = nn.Linear(2 * d_model, d_model, bias=False) # for concat [c; h]
+        self.W_context = nn.Linear(2 * d_model, d_model, bias=False) # for concat [c; h] #可以删
         self.dropout = nn.Dropout(p=p_drop)
 
     def forward(self, prev_tgt_tokens, encoder_out, src_mask, **kwargs):
