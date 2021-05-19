@@ -19,8 +19,8 @@ class LabelSmoothingLoss(nn.Module):
           - loss
         '''
         one_hot = torch.zeros_like(input).scatter(1, target.unsqueeze(-1), 1)
-        eps = self.label_smoothing / (input.size(-1) - 1)
-        weight = one_hot * (1 - self.label_smoothing) + (1 - one_hot) * eps
+        temp = (1 - one_hot) * self.label_smoothing / (input.size(-1) - 1)
+        weight = one_hot * (1 - self.label_smoothing) + temp
 
         log_prob = F.log_softmax(input, dim=-1)     
         loss = -(weight * log_prob).sum(dim=-1)
