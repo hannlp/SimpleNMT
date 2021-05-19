@@ -23,7 +23,7 @@ class LabelSmoothingLoss(nn.Module):
 
         log_prob = F.log_softmax(input, dim=-1)     
         loss = -(weight * log_prob).sum(dim=-1)
-        nll_loss = (one_hot * log_prob).sum(dim=-1)
+        nll_loss = -(one_hot * log_prob).sum(dim=-1)
 
         non_pad_mask = target.ne(self.ignore_index)
         if self.reduction == "mean":

@@ -34,10 +34,10 @@ class Trainer(object):
 
             loss_per_word, nll_loss_per_word, accuracy = self._valid_epoch(valid_iter)
             self.logger.info("Valid | Epoch: {}, loss: {:.5f}, ppl: {:.2f}, acc: {:.2%}, elapsed: {:.1f} min".format(
-                        epoch, loss_per_word, math.exp(-nll_loss_per_word), accuracy, (time.time() - start_time) / 60))
+                        epoch, loss_per_word, math.exp(nll_loss_per_word), accuracy, (time.time() - start_time) / 60))
             
-            if (-nll_loss_per_word) < best_valid_loss:
-                best_valid_loss = (-nll_loss_per_word)
+            if nll_loss_per_word < best_valid_loss:
+                best_valid_loss = nll_loss_per_word
                 is_best_epoch = True
 
             if ckpt_save_path is not None:
@@ -59,7 +59,7 @@ class Trainer(object):
             acc = n_correct / n_word
             if i % log_interval == 0:
                 self.logger.info('Epoch: {}, batch: [{}/{}], lr: {:.6f}, loss: {:.5f}, ppl: {:.2f}, acc: {:.2%}, n_steps: {}'
-                    .format(epoch, i, n_batches, self._get_lr(), loss.item() / n_word, math.exp(-nll_loss.item() / n_word), acc, self._n_steps))
+                    .format(epoch, i, n_batches, self._get_lr(), loss.item() / n_word, math.exp(nll_loss.item() / n_word), acc, self._n_steps))
 
     def _valid_epoch(self, valid_iter):
         self.model.eval()
