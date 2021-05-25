@@ -64,20 +64,20 @@ def build_model(args):
         #     'p_drop': args.p_drop,
         #     'max_seq_len': args.max_seq_len
         #     }, 
-        "Transformer_LSTM": {
-            'n_src_words': args.n_src_words,
-            'n_tgt_words': args.n_tgt_words, 
-            'src_pdx': args.src_pdx, 
-            'tgt_pdx': args.tgt_pdx, 
-            'd_model': args.d_model,
-            'd_ff': args.d_ff, 
-            'n_head': args.n_head, 
-            'n_layers': args.n_layers, 
-            'n_encoder_layers': args.n_encoder_layers,
-            'n_decoder_layers': args.n_decoder_layers,
-            'p_drop': args.p_drop,
-            'max_seq_len': args.max_seq_len
-            }, 
+        # "Transformer_LSTM": {
+        #     'n_src_words': args.n_src_words,
+        #     'n_tgt_words': args.n_tgt_words, 
+        #     'src_pdx': args.src_pdx, 
+        #     'tgt_pdx': args.tgt_pdx, 
+        #     'd_model': args.d_model,
+        #     'd_ff': args.d_ff, 
+        #     'n_head': args.n_head, 
+        #     'n_layers': args.n_layers, 
+        #     'n_encoder_layers': args.n_encoder_layers,
+        #     'n_decoder_layers': args.n_decoder_layers,
+        #     'p_drop': args.p_drop,
+        #     'max_seq_len': args.max_seq_len
+        #     }, 
         "Transformer_nope": {
             'n_src_words': args.n_src_words,
             'n_tgt_words': args.n_tgt_words, 
