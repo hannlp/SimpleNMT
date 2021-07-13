@@ -14,8 +14,6 @@ args = parser.parse_args()
 
 def cut2(input, outdir, src, tgt, outprefix):
     fp = open(input, encoding='utf-8')
-    if outdir[-1] != '\\':
-        outdir = outdir + '\\'
     src_fp = open(outdir + outprefix + '.' + src, 'w', encoding='utf-8')
     tgt_fp = open(outdir + outprefix + '.' + tgt, 'w', encoding='utf-8')
     for line in fp.readlines():
