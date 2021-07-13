@@ -1,3 +1,4 @@
+import os
 import argparse
 
 '''
@@ -14,8 +15,11 @@ args = parser.parse_args()
 
 def cut2(input, outdir, src, tgt, outprefix):
     fp = open(input, encoding='utf-8')
-    src_fp = open(outdir + outprefix + '.' + src, 'w', encoding='utf-8')
-    tgt_fp = open(outdir + outprefix + '.' + tgt, 'w', encoding='utf-8')
+    output_path = outdir + outprefix
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+    src_fp = open(output_path + '.' + src, 'w', encoding='utf-8')
+    tgt_fp = open(output_path + '.' + tgt, 'w', encoding='utf-8')
     for line in fp.readlines():
         tgt_line, src_line = line.replace('\n', '').split('\t')
         src_fp.write(src_line + '\n')
