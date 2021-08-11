@@ -20,7 +20,7 @@ def cut2(input, outdir, left, right, outprefix):
     left_fp = open(outdir + outprefix + '.' + left, 'w', encoding='utf-8')
     right_fp = open(outdir + outprefix + '.' + right, 'w', encoding='utf-8')
     for line in fp.readlines():
-        right_line, left_line = line.replace('\n', '').split('\t')
+        left_line, right_line = line.replace('\n', '').split('\t')
         left_fp.write(left_line + '\n')
         right_fp.write(right_line + '\n')
     left_fp.close()
