@@ -317,9 +317,9 @@ And then, you can use the script to evaluate the translation results:
 ```bash
 grep ^-T /content/result.txt | cut -f2 > ref.txt
 grep ^-P /content/result.txt | cut -f2 > pred.txt
-!sed -r 's/(@@ )| (@@ ?$)//g' < pred.txt  > pred1.txt
-!sed -r 's/(@@ )| (@@ ?$)//g' < ref.txt  > ref1.txt
-perl /content/SimpleNMT/simplenmt/utils/multi-bleu.perl pred1.txt < ref1.txt
+sed -r 's/(@@ )| (@@ ?$)//g' < pred.txt  > pred1.txt
+sed -r 's/(@@ )| (@@ ?$)//g' < ref.txt  > ref1.txt
+perl utils/multi-bleu.perl pred1.txt < ref1.txt
 ```
 
 The evaluate result:
