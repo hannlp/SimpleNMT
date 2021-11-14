@@ -9,7 +9,7 @@ class Transformer(nn.Module):
 
         super().__init__()
         self.d_model = d_model
-        self.src_pdx, self.tgt_pdx = src_pdx, tgt_pdx  # pdx: padding index
+        self.src_pdx, self.tgt_pdx = src_pdx, tgt_pdx
         
         self.encoder = Encoder(n_src_words, src_pdx=src_pdx, n_head=n_head, 
                                d_model=d_model, n_layers=n_layers, p_drop=p_drop, 
@@ -199,7 +199,6 @@ class PositionalEncode(nn.Module):
         return x + self.pos_encode[:x.size(1), :].unsqueeze(0).to(x.device)
 
     def _get_pos_encode(self, max_seq_len, d_model):
-        # TODO: 尝试使用矩阵乘法，观察哪种方式速度更快
         pos_encode = torch.tensor([[pos / 10000 ** (2 * (i//2) / d_model) for i in range(d_model)]
                                    for pos in range(max_seq_len)], requires_grad=False)
         pos_encode[:, 0::2] = torch.sin(pos_encode[:, 0::2])

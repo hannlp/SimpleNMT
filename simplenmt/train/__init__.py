@@ -4,7 +4,7 @@ import torch
 import numpy as np
 import random
 from .optim import Noam
-from .loss import LabelSmoothingLoss
+from .loss import LabelSmoothingCrossEntropyLoss
 
 def build_optimizer(args, model):
     if args.optim == 'noam':
@@ -21,7 +21,7 @@ def build_optimizer(args, model):
 
 def build_criterion(args):
     assert 0 <= args.label_smoothing < 1 
-    criterion = LabelSmoothingLoss(args.label_smoothing, ignore_index=args.tgt_pdx, reduction='sum')
+    criterion = LabelSmoothingCrossEntropyLoss(args.label_smoothing, ignore_index=args.tgt_pdx, reduction='sum')
     return criterion
 
 def get_logger(args):

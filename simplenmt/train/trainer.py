@@ -22,7 +22,6 @@ class Trainer(object):
     def train(self, train_iter, valid_iter, n_epochs, log_interval=100, ckpt_save_path=None):
         """ Begin trianing ..."""
 
-        # TODO: 这里可以实现一下加载last模型实现继续训练
         self.logger.info(self.model)
         self._n_steps = 0
         best_valid_loss = 1e9
