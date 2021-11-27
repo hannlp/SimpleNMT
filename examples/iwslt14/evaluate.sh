@@ -29,7 +29,7 @@ lang=${src_lang}-${tgt_lang}
 save_dir=${root_dir}/checkpoints/${exp_name}-${lang}
 
 if [[ -n ${exp_tag} ]]; then
-  save_dir=${save_dir}_${exp_tag}
+  save_dir=${save_dir}-${exp_tag}
 fi
 
 project_dir=$PWD/../../simplenmt
@@ -57,6 +57,7 @@ cmd="python -u ${project_dir}/translate.py
         -save_path ${save_dir}
         -beam_size ${beam_size}
         -ckpt_suffix ${ckpt_suffix}
+        -length_penalty ${len_penalty}
         -generate"
 
 if [[ ${quiet} -eq 1 ]]; then

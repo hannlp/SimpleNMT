@@ -5,7 +5,6 @@ import torch
 from torchtext.legacy import data, datasets
 from .constants import Constants
 
-
 global max_src_in_batch, max_tgt_in_batch
 
 
@@ -24,6 +23,7 @@ def batch_size_fn(new, count, sofar):
     src_elements = count * max_src_in_batch
     tgt_elements = count * max_tgt_in_batch
     return max(src_elements, tgt_elements)
+
 
 """
 Referenced from harvardnlp/annotated-transformer,

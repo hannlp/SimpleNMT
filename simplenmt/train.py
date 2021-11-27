@@ -22,6 +22,7 @@ def parse():
     parser.add_argument("-optim", help="the optimizer for training", type=str, default="noam")
     parser.add_argument("-seed", help="for reproducibility", type=int, default=1314)
     parser.add_argument("-split_ratio", help="the ratio of train set, and the reset is valid set", type=float, default=0.95)
+    parser.add_argument("-patience", help="early stop after patience epochs of nothing better checkpoints", type=int, default=10)
 
     # The arguments for all models
     parser.add_argument("-model", help="model name", type=str, default='Transformer')
@@ -35,7 +36,7 @@ def parse():
     parser.add_argument("-lr", type=float, default=1e-3)
     parser.add_argument("-lr_scale", help="a scale for learning rate", type=float, default=1.0)
     parser.add_argument("-betas", type=float, nargs="+", default=(0.9, 0.98))
-    
+
     # The arguments for Transformer
     parser.add_argument("-n_head", help="number of heads in multihead-attention", type=int, default=8)
     parser.add_argument("-d_ff", type=int, default=2048)
@@ -64,10 +65,10 @@ def main():
     train_iter, valid_iter = dl.load_translation(
             src=args.src, tgt=args.tgt, batch_size=args.batch_size,
             data_path=args.data_path, dl_save_path=args.save_path,
-            share_vocab=args.share_vocab, split_ratio=args.split_ratio, 
+            share_vocab=args.share_vocab, split_ratio=args.split_ratio,
             logger=logger)
     dl.write_vocab(args.save_path)
-    
+
     args.n_src_words, args.n_tgt_words = len(dl.SRC.vocab), len(dl.TGT.vocab)
     args.src_pdx, args.tgt_pdx = dl.src_pdx, dl.tgt_pdx
     args.use_cuda = torch.cuda.is_available()
@@ -81,7 +82,7 @@ def main():
     trainer = Trainer(args=args, model=model, optimizer=optimizer,
                       criterion=criterion, lr_scale=args.lr_scale, logger=logger)
 
-    trainer.train(train_iter, valid_iter, n_epochs=args.n_epochs,
+    trainer.train(train_iter, valid_iter, n_epochs=args.n_epochs, patience=args.patience,
                   log_interval=args.log_interval, ckpt_save_path=args.save_path)
 
 if __name__ == '__main__':

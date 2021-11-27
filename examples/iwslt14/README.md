@@ -3,10 +3,10 @@ change the ```data_dir``` to your preprocessed iwslt14.de-en, and change the ```
 
 train
 ```bash
-train.sh
+bash train.sh
 ```
 
 evaluate
 ```bash
-evaluate.sh
+bash evaluate.sh
 ```

@@ -6,8 +6,8 @@ import torch
 from tqdm import tqdm
 from models import build_model
 from torchtext.legacy import datasets
-from data.constants import Constants
 from data.dataloader import SortedIterator, batch_size_fn
+from data.constants import Constants
 from data.utils import prepare_batch
 from .utils import de_numericalize
 from .algorithms import beam_search, greedy_search
@@ -56,8 +56,11 @@ class Translator(object):
         test_path = data_path + '/test' if os.path.isdir(data_path) else data_path
         test = datasets.TranslationDataset(path=test_path, exts=exts, 
                     fields=(('src', self.dl.SRC), ('trg', self.dl.TGT)))
-        
-        test_iter = SortedIterator(test, batch_size=batch_size, device=None, repeat=False, 
+
+        # test_iter = Iterator(test, batch_size=batch_size, sort_key=None, device=None, batch_size_fn=None,
+        #                      train=False, repeat=False, shuffle=None, sort=None, sort_within_batch=None
+        # )
+        test_iter = SortedIterator(test, batch_size=batch_size, device=None, repeat=False,
                                sort_key=lambda x: (len(x.src), len(x.trg)),
                                batch_size_fn=batch_size_fn, train=False, shuffle=True)
         
@@ -119,28 +122,3 @@ class Translator(object):
         else:
             from .pipeline import output_pipeline
             print(output_pipeline(translated, lang=tgt))
-
-"""
-def generate_valid(self, data_iter, use_cuda):
-    abatch = next(iter(data_iter))
-    src_tokens, prev_tgt_tokens, tgt_tokens = prepare_batch(
-        abatch, use_cuda)
-    with torch.no_grad():
-        out_tokens = torch.argmax(
-            nn.functional.softmax(self.model(src_tokens, prev_tgt_tokens), dim=-1), dim=-1)
-
-    def show_src_tgt_out(src, tgt, out):
-        batch_size = out.size(0)
-        for b in range(batch_size):
-            print('\n|src: ', end=" ")
-            for i in range(src.size(1)):
-                print(self.SRC_VOCAB.itos[src[b, i]], end=' ')
-            print('\n|gold: ', end=" ")
-            for i in range(tgt.size(1)):
-                print(self.TGT_VOCAB.itos[tgt[b, i]], end='')
-            print('\n|out: ', end=" ")
-            for i in range(out.size(1)):
-                print(self.TGT_VOCAB.itos[out[b, i]], end='')
-            print()
-    show_src_tgt_out(src_tokens, tgt_tokens, out_tokens)
-"""

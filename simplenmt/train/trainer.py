@@ -19,12 +19,12 @@ class Trainer(object):
         self.ckpt_queue = list()
         self.queue_size = args.keep_last_ckpts
 
-    def train(self, train_iter, valid_iter, n_epochs, log_interval=100, ckpt_save_path=None):
+    def train(self, train_iter, valid_iter, n_epochs, patience=5, log_interval=100, ckpt_save_path=None):
         """ Begin trianing ..."""
 
         self.logger.info(self.model)
         self._n_steps = 0
-        best_valid_loss = 1e9
+        scores = [1e9]
 
         for epoch in range(1, n_epochs + 1):
             is_best_epoch = False
@@ -34,13 +34,16 @@ class Trainer(object):
             loss_per_word, nll_loss_per_word, accuracy = self._valid_epoch(valid_iter)
             self.logger.info("Valid | Epoch: {}, loss: {:.5f}, ppl: {:.2f}, acc: {:.2%}, elapsed: {:.1f} min".format(
                         epoch, loss_per_word, math.exp(nll_loss_per_word), accuracy, (time.time() - start_time) / 60))
-            
-            if nll_loss_per_word < best_valid_loss:
-                best_valid_loss = nll_loss_per_word
-                is_best_epoch = True
 
+            is_best_epoch = True if nll_loss_per_word < min(scores) else False
             if ckpt_save_path is not None:
                 self._save_model(epoch, ckpt_save_path, is_best_epoch)
+
+            scores.append(nll_loss_per_word)
+
+            if len(scores) - 1 > patience and scores[-(patience+1)] < min(scores[-patience:]):
+                self.logger.info('End training because of early stop.')
+                return
 
     def _train_epoch(self, train_iter, epoch, log_interval):
         self.model.train()
