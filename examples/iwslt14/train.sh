@@ -8,15 +8,16 @@ root_dir=/home/hanyuchen/mt
 data_dir=${root_dir}/data/iwslt14.de-en
 
 exp_name=iwslt14
-src_lang=en
-tgt_lang=de
+src_lang=de
+tgt_lang=en
 exp_tag=
 
-model=Transformer
+model=Transformer2
 d_model=512
 d_ff=1024
 n_head=4
-n_layers=6
+n_encoder_layers=6
+n_decoder_layers=6
 share_vocab=1
 
 . ${PWD}/../utils/parse_options.sh || exit 1;

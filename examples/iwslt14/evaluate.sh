@@ -8,8 +8,8 @@ root_dir=/home/hanyuchen/mt
 data_dir=${root_dir}/data/iwslt14.de-en
 
 exp_name=iwslt14
-src_lang=en
-tgt_lang=de
+src_lang=de
+tgt_lang=en
 exp_tag=
 
 dec_model=checkpoint_best.pt
