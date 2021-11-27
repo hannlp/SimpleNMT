@@ -46,7 +46,7 @@ class Translator(object):
         model_params = checkpoint['model']
         model_params = {key.replace("module.", ""): value for key, value in model_params.items()}
 
-        model = build_model(checkpoint['settings'])
+        model = build_model(checkpoint['settings'], training=False)
         model.load_state_dict(model_params)
         model.to(self.device)
         return model

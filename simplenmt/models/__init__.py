@@ -14,7 +14,7 @@ str2model = {"Transformer": Transformer, "RNNSearch": RNNSearch, "Seq2Seq": Seq2
                 "Luong": Luong, "ConvS2S": ConvS2S, "Transformer2": Transformer2}
 
 
-def build_model(args):
+def build_model(args, training=True):
 
     model_args = {
         "Transformer": {
@@ -85,7 +85,7 @@ def build_model(args):
 
     if args.use_cuda:
         model.cuda()
-        if torch.cuda.device_count() > 1:
+        if torch.cuda.device_count() > 1 and training:
             model = nn.DataParallel(model)
     
     return model
