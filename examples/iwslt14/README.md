@@ -30,7 +30,7 @@ result(multi-bleu.perl):
 |base| 512|2048| 8| 6 | 6 |31.37/1.0min|32.67/6.0min|33.97/5.9min
 |small (deep enc shallow dec)|512|1024|4|12|1|30.99/0.4min|32.28/3.7min|33.16/3.1min|
 |base (deep enc shallow dec)|512|2048|8|12|1|30.22/0.4min|31.65/3.5min|32.88/2.8min|
-|small (deep-norm)|512|1024|4|6|6|31.91|\|33.92|
-|middle (deep-norm)|512|1024|4|24|6|32.01|\|34.07|
-|deep (deep-norm)|256|1024|4|48|6|31.88|\|33.69|
+|small (deep-norm)|512|1024|4|6|6|31.91|-|33.92|
+|middle (deep-norm)|512|1024|4|24|6|32.01|-|34.07|
+|deep (deep-norm)|256|1024|4|48|6|31.88|-|33.69|
 
