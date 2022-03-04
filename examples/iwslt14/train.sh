@@ -17,12 +17,14 @@ exp_tag=
 
 patience=5
 
-model=Transformer2
+model=Transformer3
 d_model=512
 d_ff=1024
 n_head=4
 n_encoder_layers=6
 n_decoder_layers=6
+encoder_prenorm=1
+decoder_prenorm=1
 share_vocab=1
 
 . ${PWD}/../utils/parse_options.sh || exit 1
@@ -49,7 +51,14 @@ cmd="python -u ${project_dir}/train.py
         -n_decoder_layers ${n_decoder_layers}
         -patience ${patience}
         "
-
+if [[ ${encoder_prenorm} -eq 1 ]]; then
+  cmd="$cmd
+        -encoder_prenorm"
+fi
+if [[ ${decoder_prenorm} -eq 1 ]]; then
+  cmd="$cmd
+        -decoder_prenorm"
+fi
 if [[ ${share_vocab} -eq 1 ]]; then
   cmd="$cmd
         -share_vocab"

@@ -42,6 +42,8 @@ def parse():
     parser.add_argument("-d_ff", type=int, default=2048)
     parser.add_argument("-label_smoothing", type=float, default=0.1)
     parser.add_argument("-warmup_steps", help="warmup steps of learning rate update", type=int, default=4000)
+    parser.add_argument("-encoder_prenorm", action="store_true")
+    parser.add_argument("-decoder_prenorm", action="store_true")
 
     # The arguments for RNNs
     parser.add_argument("-bidirectional", help="use bidirectional rnns", action="store_true")

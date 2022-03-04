@@ -8,10 +8,13 @@ from .seq2seq import Seq2Seq
 from .luong import Luong
 from .convs2s import ConvS2S
 from .transformer_v2 import Transformer2
+from .transformer_v3 import Transformer3
+from .FLASH import FLASH
 
 
 str2model = {"Transformer": Transformer, "RNNSearch": RNNSearch, "Seq2Seq": Seq2Seq, 
-                "Luong": Luong, "ConvS2S": ConvS2S, "Transformer2": Transformer2}
+                "Luong": Luong, "ConvS2S": ConvS2S, "Transformer2": Transformer2,
+                "Transformer3": Transformer3, "FLASH": FLASH}
 
 
 def build_model(args, training=True):
@@ -40,6 +43,21 @@ def build_model(args, training=True):
             'n_decoder_layers': args.n_decoder_layers,
             'p_drop': args.p_drop,
             'max_seq_len': args.max_seq_len
+        },
+        "Transformer3": {
+            'n_src_words': args.n_src_words,
+            'n_tgt_words': args.n_tgt_words,
+            'src_pdx': args.src_pdx,
+            'tgt_pdx': args.tgt_pdx,
+            'd_model': args.d_model,
+            'd_ff': args.d_ff,
+            'n_head': args.n_head,
+            'n_encoder_layers': args.n_encoder_layers,
+            'n_decoder_layers': args.n_decoder_layers,
+            'p_drop': args.p_drop,
+            'max_seq_len': args.max_seq_len,
+            'encoder_prenorm': args.encoder_prenorm,
+            'decoder_prenorm': args.decoder_prenorm
         },
         "Luong": {
             'n_src_words': args.n_src_words,
@@ -73,7 +91,20 @@ def build_model(args, training=True):
             },
         "ConvS2S": {
 
-            }
+            },
+        "FLASH": {
+            'n_src_words': args.n_src_words,
+            'n_tgt_words': args.n_tgt_words,
+            'src_pdx': args.src_pdx,
+            'tgt_pdx': args.tgt_pdx,
+            'd_model': args.d_model,
+            'd_ff': args.d_ff,
+            'n_head': args.n_head,
+            'n_encoder_layers': args.n_encoder_layers,
+            'n_decoder_layers': args.n_decoder_layers,
+            'p_drop': args.p_drop,
+            'max_seq_len': args.max_seq_len
+        },
         }
     
     MODEL = str2model[args.model]
