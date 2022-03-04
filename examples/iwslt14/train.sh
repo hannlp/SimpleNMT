@@ -17,7 +17,7 @@ exp_tag=
 
 patience=5
 
-model=Transformer3
+model=Transformer
 d_model=512
 d_ff=1024
 n_head=4

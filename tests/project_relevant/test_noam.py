@@ -3,7 +3,7 @@ import os
 print(os.path, os.getcwd())
 sys.path.append(os.getcwd())
 import torch
-from simplenmt.models.transformer import Transformer
+from simplenmt.models.transformer_legacy import Transformer
 from simplenmt.train.optim import Noam
 
 n_src_words = 20

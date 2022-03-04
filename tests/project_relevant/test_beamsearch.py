@@ -5,7 +5,7 @@ sys.path.append(os.getcwd())
 
 import torch
 from simplenmt.translate.algorithms import beam_search, greedy_search
-from simplenmt.models.transformer import Transformer
+from simplenmt.models.transformer_legacy import Transformer
 
 
 import time

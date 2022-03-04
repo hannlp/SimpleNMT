@@ -1,26 +1,23 @@
 import torch
 import torch.nn as nn
- # debugging: use bias=False in out_vocab_proj
-#from .transformer_dev import Transformer
+from .transformer_legacy import TransformerLegacy
 from .transformer import Transformer
 from .rnnsearch import RNNSearch
 from .seq2seq import Seq2Seq
 from .luong import Luong
 from .convs2s import ConvS2S
-from .transformer_v2 import Transformer2
-from .transformer_v3 import Transformer3
 from .FLASH import FLASH
 
 
 str2model = {"Transformer": Transformer, "RNNSearch": RNNSearch, "Seq2Seq": Seq2Seq, 
-                "Luong": Luong, "ConvS2S": ConvS2S, "Transformer2": Transformer2,
-                "Transformer3": Transformer3, "FLASH": FLASH}
+                "Luong": Luong, "ConvS2S": ConvS2S, "TransformerLegacy": TransformerLegacy,
+                "FLASH": FLASH}
 
 
 def build_model(args, training=True):
 
     model_args = {
-        "Transformer": {
+        "TransformerLegacy": {
             'n_src_words': args.n_src_words,
             'n_tgt_words': args.n_tgt_words, 
             'src_pdx': args.src_pdx, 
@@ -31,20 +28,7 @@ def build_model(args, training=True):
             'p_drop': args.p_drop,
             'max_seq_len': args.max_seq_len
             },
-        "Transformer2": {
-            'n_src_words': args.n_src_words,
-            'n_tgt_words': args.n_tgt_words,
-            'src_pdx': args.src_pdx,
-            'tgt_pdx': args.tgt_pdx,
-            'd_model': args.d_model,
-            'd_ff': args.d_ff,
-            'n_head': args.n_head,
-            'n_encoder_layers': args.n_encoder_layers,
-            'n_decoder_layers': args.n_decoder_layers,
-            'p_drop': args.p_drop,
-            'max_seq_len': args.max_seq_len
-        },
-        "Transformer3": {
+        "Transformer": {
             'n_src_words': args.n_src_words,
             'n_tgt_words': args.n_tgt_words,
             'src_pdx': args.src_pdx,
