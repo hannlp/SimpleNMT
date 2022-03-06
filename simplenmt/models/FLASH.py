@@ -142,7 +142,7 @@ class GAU(nn.Module):
         gamma = torch.empty(x.shape[1:], device=x.device) # x.shape[-1:] in the paper
         beta = torch.empty(x.shape[1:], device=x.device)
         torch.nn.init.normal_(gamma, std=0.02)
-        torch.nn.init.normal_(gamma, mean=1e-5)
+        torch.nn.init.normal_(beta, std=1e-5)
         return x * gamma + beta
 
     def attn(self, x, v, mask=None):
